@@ -32,6 +32,10 @@ TypeScript strict, React, Vite, Immer patches for commands, TipTap for rich text
 
 Pinned in F1 (2026-10-14), from the npm registry that day: React 19.3, Vite 8.3, `@vitejs/plugin-react` 6.1, Prettier 3.9, TypeScript **6.0.3** and ESLint **9.39**. Why not newer: TypeScript 7.0 is out, but `typescript-eslint` only supports TypeScript below 6.1; ESLint 10 is out, but `eslint-plugin-jsx-a11y` does not declare support for it. npm marks ESLint 9.39 as no longer supported, which matters little for a dev-only tool. Revisit both at Gate 1 and again whenever those two plugins publish support. Node 20.19 or newer; `.nvmrc` says 24.
 
+Test tooling pinned in F2 (2026-10-14): Vitest 5.0 with `@vitest/browser-playwright` (component tests in real Chromium) and `vitest-browser-react` 2.3, fast-check 4.10, fake-indexeddb 6.2, Playwright 1.64 and `@axe-core/playwright` 4.13. Playwright runs against `vite preview` of the production build.
+
+Known local problem: on Peter's Windows PC, Playwright's Firefox 157 will not start. Windows reports a side-by-side configuration error ("dependent assembly mozglue could not be found"), even though `mozglue.dll` is present and a clean reinstall did not help. Chromium and WebKit run fine, and the Visual C++ 2022 runtime (14.51) is installed. A repair of the Visual C++ redistributable is the likely fix and needs admin rights, so it is Peter's call. Firefox runs in CI on Linux. Until then Firefox is not checked on this machine, and real Firefox on Windows stays a manual check.
+
 ## Log
 
 | Date | Decision | Why | Decided by |
