@@ -38,9 +38,27 @@ Keep this file current. One line per decision, newest at the bottom of each tabl
 - Both presentation windows run on the same computer and browser.
 - The product owner is Peter: a 45-minute review each sprint and quick answers in between.
 
-## Stack (proposed; confirm at Gate 1, the end of sprint 0)
+## Stack (evidence for Gate 1, the end of sprint 0: ready for Peter to accept)
 
-TypeScript strict, React, Vite, Immer patches for commands, TipTap for rich text, Web Animations API, Dexie over IndexedDB, BroadcastChannel, zip for `.slides`, Vitest, fast-check, Playwright, axe-core. Fallbacks for each risky part are in the spike table in `docs/development-plan.md`.
+Verdict per part after the sprint 0 spikes (details in `docs/spikes/README.md`):
+
+| Part | Verdict | Evidence and conditions |
+|---|---|---|
+| TypeScript (strict), React, Vite | confirmed | F1 to F6; TypeScript 6.0.3 and ESLint 9.39 pinned for tool compatibility (below) |
+| TipTap (ProseMirror) for rich text | confirmed | SP-2: matches the static renderer to 0.02 px if the four rules are followed; about 121 KB gzipped, so load it only when editing text |
+| Our own static text renderer | added | SP-2: needed for thumbnails, presenter, audience and export; must follow the four rules |
+| Web Animations API, pure resolver | confirmed | SP-4: 60 fps on real hardware, exact stepping back; use only transform and opacity; fps budgets on the nightly runner are relative |
+| Dexie over IndexedDB | confirmed | SP-5: one transaction per deck save; photos as raw bytes plus a type; never await `persist()` |
+| BroadcastChannel for window sync | confirmed | SP-1: about 17 ms against 100 ms; add Web Locks for "window gone" |
+| HTML export as one file | confirmed | SP-3: under 0.4 s for 30 slides (limit 10 s); a policy inside the file blocks external requests |
+| Workbox through vite-plugin-pwa | confirmed | SP-6: offline, installable in Chrome and Edge, updates wait for the user; installed-app behaviour and Safari to check by hand |
+| Vitest, fast-check, Playwright, axe-core | confirmed | F2 and every sprint 0 test |
+| **Immer patches for commands, undo and window sync** | **not spiked** | Decide the one history stack in sprint 2 (plan risk table); no sprint 0 evidence either way |
+| **A zip library for `.slides` files** | **not spiked** | Choose in sprint 9 (SV-3); the file is small and the choice is local to `storage` |
+
+Safari on a Mac, a second display and Peter's own Firefox are manual checks no spike could replace (`docs/sprint-log.md`).
+
+Original proposal, kept for the record: TypeScript strict, React, Vite, Immer patches for commands, TipTap for rich text, Web Animations API, Dexie over IndexedDB, BroadcastChannel, zip for `.slides`, Vitest, fast-check, Playwright, axe-core. Fallbacks for each risky part are in the spike table in `docs/development-plan.md`.
 
 Pinned in F1 (2026-10-14), from the npm registry that day: React 19.3, Vite 8.3, `@vitejs/plugin-react` 6.1, Prettier 3.9, TypeScript **6.0.3** and ESLint **9.39**. Why not newer: TypeScript 7.0 is out, but `typescript-eslint` only supports TypeScript below 6.1; ESLint 10 is out, but `eslint-plugin-jsx-a11y` does not declare support for it. npm marks ESLint 9.39 as no longer supported, which matters little for a dev-only tool. Revisit both at Gate 1 and again whenever those two plugins publish support. Node 20.19 or newer; `.nvmrc` says 24.
 
@@ -72,3 +90,6 @@ Fonts confirmed in F3 (2026-10-14): all seven families (Instrument Sans, Figtree
 | 2026-10-14 | SP-3 finished: single-file export is a go; WebP re-encoding is not done at export | 30 slides export in under 0.4 s (Chrome, Edge) and under 1.2 s (slowest engine) against a 10 s limit, up to 52 MB; file is about 1.35 x photo bytes plus 0.16 MB; no external requests. WebP re-encode takes 6 to 12 s. WebKit could not store Blobs in IndexedDB, so store raw bytes plus a type until real Safari is checked (SP-5). Details in `docs/spikes/SP-3.md` | Claude |
 | 2026-10-14 | SP-4 finished: motion design is a go; fps budgets on the nightly runner are relative, 60 fps is confirmed by hand | 60 fps on real hardware (Chrome, Edge) with 0 to 4% dropped frames, unchanged with the CPU slowed 6x; stepping back is exact. The Linux runners have no graphics card: a normal slide holds 60 fps in Chromium and Firefox, a heavy one does not in Chromium, and software WebKit is slow. Prefer fade and push to zoom. Details in `docs/spikes/SP-4.md` | Claude |
 | 2026-10-14 | SP-5 finished: IndexedDB through Dexie is confirmed; deck and photos are saved in one transaction; photos stored as raw bytes plus a type | Real quotas are about 1 GB (WebKit) to 10 GB (Chrome, Edge, Firefox); saves take under 5 ms; a one-transaction save rolls back fully on a full store, a per-photo save leaves orphans; Firefox's `persist()` prompts and may never answer. Decision 12 (when the nearly-full banner appears) opened. Details in `docs/spikes/SP-5.md` | Claude |
+| 2026-10-14 | SP-6 finished: installable offline app is a go, with a fallback for the update step in WebKit | The whole app (0.6 MB, fonts included) works offline; Chrome and Edge report no installability errors; updates wait for the user and leave decks alone; development registers nothing. WebKit may not take over after the user chooses to update, so "Update now" falls back to removing the worker and reloading. Details in `docs/spikes/SP-6.md` | Claude |
+| 2026-10-14 | F6 finished: visual-test container pinned by digest; baselines wait for decision 13 | CI visual job runs in `mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e...`; the config refuses to run elsewhere; a test keeps the pin, Playwright version, CI and the Docker script in step. No baselines exist yet. Autumn Launch planned in `docs/fixtures/autumn-launch.md` | Claude |
+| 2026-10-14 | Sprint 0 close-out written; Gate 1 evidence ready for Peter | `docs/sprint-log.md` has the review notes and a 45-minute demo script; `docs/spikes/README.md` has the verdict table; the stack verdict per part is in this file. Gate 1 passes only when Peter accepts it | Claude |

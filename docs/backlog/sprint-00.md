@@ -31,8 +31,8 @@ No user stories this sprint. Deliver: Spikes SP-1 to SP-6, app shell, CI pipelin
 - [x] App shell matching the Studio layout (top bar 52px, left rail 208px, inspector 296px, notes strip 124px) with empty panels (F4; sizes measured in `e2e/layout.spec.ts`, axe clean, inspector tabs work with the keyboard)
 - [x] Bundle size budget recorded (F5: 300 KB JS and 30 KB CSS gzipped on first load, enforced by `npm run build`; baseline 67 KB and 1.9 KB). Fonts part done in F3: 11 open-licence WOFF2 files (374 KB, Latin subset) in `src/fonts`, all seven families confirmed SIL OFL 1.1, checked by `tests/fonts.test.ts`
 - [x] Fixture deck "Autumn Launch" planned (`docs/fixtures/autumn-launch.md`: 12 slides and slide 3's geometry and clicks read from the boards) and the visual-regression container pinned (F6: `config/visual.json`, digest-pinned in CI, a guard that refuses to run elsewhere, a consistency test). No baselines yet: the first screenshot tests come in sprint 1; decision 13 asks how baselines are made, since Docker is not installed here.
-- [ ] `CLAUDE.md` "Commands" section filled in with the real scripts
-- [ ] `docs/decisions.md` updated: stack confirmed or changed after the spikes (Gate 1)
+- [x] `CLAUDE.md` "Commands" section filled in with the real scripts (every script that exists is marked "now"; `npm run perf` is not built yet and arrives with UX-3 in sprint 5; the `spike:sp-N` scripts are for the sprint 0 demo)
+- [x] `docs/decisions.md` updated: stack confirmed or changed after the spikes (Gate 1). Written as a verdict per part; two parts were not spiked (Immer patches and the zip library). **Gate 1 itself is Peter's to accept at the review.**
 
 ## Risk spikes (1 to 2 days each)
 
@@ -78,6 +78,7 @@ Each spike ends with a short written finding in `docs/spikes/SP-N.md`: what we t
 - Question: Can a web app manifest and a service worker make the app open fully offline and install in Chrome, Edge and Safari, with updates that wait for the user and no stale files served during development? How does the installed app behave when it opens the two show windows?
 - Stories at stake: UX-7, PM-1, PM-3
 - Fallback if it fails: Cache the app files with a small hand-written service worker, or ship offline use without an install prompt in browsers that cannot install
+- **Finding (2026-10-14, `docs/spikes/SP-6.md`):** go. vite-plugin-pwa 2 with Workbox 7: the whole app (20 files, 0.6 MB, all 11 fonts) works offline; Chrome and Edge report no installability errors; a new version waits for the user and leaves stored decks alone; the development server registers no worker. WebKit on Linux did not take over after the user chose to update (and one Windows run hung), so "Update now" needs a fallback (remove the worker, clear caches, reload). Not verified: installing in Safari, Firefox desktop install, and how an installed app opens the audience window.
 - Added 2026-10-14 when Peter put the PWA in v1 (UX-7). The sprint is now about 16.5 days of work. If it runs behind, pinning the visual-regression container moves to the start of sprint 1.
 
 ## Definition of done reminder
