@@ -15,6 +15,10 @@ Decided on 2026-10-14: Netlify hosts the live site and a deploy preview for ever
 
 CI run #1 on `main` (https://github.com/PetesPen/cue/actions/runs/38513587547) passed all four jobs: checks (52 s), end to end on Chromium (33 s), Firefox (45 s) and WebKit (72 s). That includes Firefox on Linux. The first scheduled nightly run (2026-10-14) also passed: dependency audit and the full browser matrix including Edge. Peter linked Netlify to the repository on 2026-10-15 (site: https://cue-presentations.netlify.app/). Claude checked it the same day: the page serves the current build (same bundle names as a local build), with every header in `netlify.toml` plus Netlify's own HSTS, and built files are cached as immutable. `npm run e2e:deployed` runs the end-to-end suite against a deployed address: 14 of 16 pass on the live site in Chromium and WebKit. The 2 failures are Netlify's injected `/.netlify/scripts/hud` script (the Netlify Drawer), blocked by our policy and logged as a console error; it should be switched off in the Netlify site settings.
 
+## Verified on a pull request (2026-10-15)
+
+Pull request 2 got a Netlify deploy preview at `https://deploy-preview-2--cue-presentations.netlify.app` (the pattern is `deploy-preview-<number>--cue-presentations.netlify.app`; the link also shows as a check on the pull request). It serves the same bundle as a local build and the headers in `netlify.toml`. After Peter switched the Netlify Drawer off, `E2E_BASE_URL=<preview address> npm run e2e:deployed` passed in full on Chromium and WebKit (34 tests), including "no console errors". From sprint 1 on, every story is checked this way before it is called done.
+
 ## Left: needs Peter (accounts and permissions, so Claude cannot do these)
 
 1. Create a GitHub repository for Cue (an empty one, with no README or licence). Done: https://github.com/PetesPen/cue. When it was checked on 2026-10-14 it was **public**, but the plan was a private one. Peter decides which; to make it private: repository Settings, General, Danger Zone, Change visibility.
