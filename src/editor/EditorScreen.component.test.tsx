@@ -317,6 +317,16 @@ test('Given the title in the header, When it is edited in place, Then the new ti
     .toBe('Pitch v2');
 });
 
+test('Given a title edit, When the library is opened straight away, Then it already lists the new title', async () => {
+  const { screen } = await openEditor(createTestStore(), 1, 'Old name');
+
+  await screen.getByLabelText('Deck title').fill('New name');
+  await screen.getByRole('link', { name: 'All decks' }).click();
+
+  await expect.element(screen.getByText('New name')).toBeVisible();
+  await expect.element(screen.getByText('Old name')).not.toBeInTheDocument();
+});
+
 test('Given the title is cleared, When the field loses focus, Then it reads "Untitled deck"', async () => {
   const { screen } = await openEditor(createTestStore(), 1);
   const field = screen.getByLabelText('Deck title');
