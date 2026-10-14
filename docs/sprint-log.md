@@ -113,6 +113,19 @@ Tests now: 347 Vitest tests (178 at the end of sprint 0): unit, integration with
 - **SV-1: the Export deck action** on the "almost full" and "can't be saved" banners. Export is SV-3 (sprint 9). Until then the banners offer **Manage storage** (opens the library in a new tab so the open deck keeps its unsaved edits) and **Try again**. The delete confirmation also lacks the design's "Export a copy first" sentence for the same reason.
 - Library features that belong to other stories and were left out on purpose: search, the starter layouts row (TH-2), Open file and the backup reminder (SV-3), the Recent / Name toggle.
 
+### Where the screens differ from the boards
+
+`design/` was not touched. These are deliberate, for you to confirm or change:
+
+- The library's wordmark reads "Cue" (the board says "Slides"), as in the editor shell.
+- The "almost full" and "can't be saved" banners offer Manage storage and Try again, not Export deck (SV-3, sprint 9).
+- The delete confirmation drops "Export a copy first if you might want it back" until export exists.
+- The library has no search, starter layouts, Open file, backup reminder or Recent / Name toggle (other stories).
+- The editor top bar has only Add slide and the save status; Text, Shape, Image, Undo, Redo, Export and Present arrive with their stories.
+- The deck title in the editor is an input that looks like plain text until hovered or focused.
+- A dialog dims the page behind it (a 40% forest tint); the boards show the dialog on its own.
+- "Rename" is a small dialog; the boards show the menu item but not what it opens.
+
 ### Engineering days
 
 Not measured (same reason as sprint 0: one continuous session). The plan's 16 days cannot be compared with anything real. From here the unit is stories accepted per sprint.
