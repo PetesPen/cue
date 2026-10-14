@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>SP-5 storage (spike)</title>
+    <style>
+      body { font: 16px/1.5 system-ui, sans-serif; margin: 24px; max-width: 760px; background: #f4f8f1; color: #14281b; }
+      button { font: inherit; padding: 8px 14px; margin: 0 6px 8px 0; cursor: pointer; }
+      pre { background: #fff; padding: 12px; border: 1px solid #dce6d7; white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <h1>SP-5: storage (spike)</h1>
+    <p>For checking a real browser by hand. These run against this site's own storage and use a few tens of MB.</p>
+    <button id="numbers">1. Quota, usage, persistent?</button>
+    <button id="blobs">2. Blobs against raw bytes</button>
+    <button id="timings">3. Save and open timings</button>
+    <pre id="out">Press a button.</pre>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
