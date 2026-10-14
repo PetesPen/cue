@@ -14,12 +14,16 @@ test.describe('Given the visual regression job', () => {
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'Cue', level: 1 })).toBeVisible();
     // The bundled font must be what draws the UI, not a system font that differs between machines.
-    const loaded = await page.evaluate(async () => {
-      await document.fonts.ready;
-      return [...document.fonts]
-        .filter((f) => f.status === 'loaded')
-        .map((f) => f.family.replaceAll('"', ''));
-    });
-    expect(loaded).toContain('Instrument Sans');
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() =>
+            [...document.fonts]
+              .filter((f) => f.status === 'loaded')
+              .map((f) => f.family.replaceAll('"', '')),
+          ),
+        { timeout: 10_000 },
+      )
+      .toContain('Instrument Sans');
   });
 });

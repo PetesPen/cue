@@ -22,6 +22,7 @@ test.describe('Given a first visit to the app', () => {
 
   test('When it loads, Then only the Instrument Sans UI font is fetched, from the app itself', async ({
     page,
+    baseURL,
   }) => {
     const fontRequests: string[] = [];
     page.on('request', (request) => {
@@ -29,16 +30,20 @@ test.describe('Given a first visit to the app', () => {
     });
 
     await page.goto('/');
-    const loaded = await page.evaluate(async () => {
-      await document.fonts.ready;
-      return [...document.fonts].filter((face) => face.status === 'loaded').map((f) => f.family);
-    });
-
-    expect(new Set(loaded.map((family) => family.replaceAll('"', '')))).toEqual(
-      new Set(['Instrument Sans']),
-    );
+    // The font request can start after the load event on a slower host, so wait for it rather than
+    // reading the state once.
+    const loadedFamilies = () =>
+      page.evaluate(() => [
+        ...new Set(
+          [...document.fonts]
+            .filter((face) => face.status === 'loaded')
+            .map((f) => f.family.replaceAll('"', '')),
+        ),
+      ]);
+    await expect.poll(loadedFamilies, { timeout: 10_000 }).toEqual(['Instrument Sans']);
     expect(fontRequests.length).toBeGreaterThan(0);
-    for (const url of fontRequests) expect(new URL(url).hostname).toBe('127.0.0.1');
+    for (const url of fontRequests)
+      expect(new URL(url).hostname).toBe(new URL(baseURL ?? '').hostname);
   });
 
   // The hostname uses the reserved .invalid domain, which never resolves. If the policy were missing

@@ -33,8 +33,8 @@ function jobsOf(document: Record<string, unknown>): [string, Record<string, unkn
 }
 
 describe('Given the GitHub workflows (docs/development-plan.md, pipeline)', () => {
-  test('When the folder is read, Then there is a CI workflow, a nightly workflow and the throwaway spikes workflow', () => {
-    expect(workflows.map((w) => w.file).sort()).toEqual(['ci.yml', 'nightly.yml', 'spikes.yml']);
+  test('When the folder is read, Then there is a CI workflow and a nightly workflow', () => {
+    expect(workflows.map((w) => w.file).sort()).toEqual(['ci.yml', 'nightly.yml']);
   });
 
   describe.each(workflows)('workflow $file', ({ document }) => {
