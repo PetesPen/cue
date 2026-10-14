@@ -171,8 +171,10 @@ test.describe('Given an open deck', () => {
     page,
   }) => {
     await page.addInitScript(() => {
-      Object.defineProperty(navigator.storage, 'estimate', {
-        value: () => Promise.resolve({ usage: 0.9e9, quota: 1e9 }),
+      // Replace the whole object: redefining `estimate` on the real one does not stick in every engine.
+      Object.defineProperty(navigator, 'storage', {
+        configurable: true,
+        value: { estimate: () => Promise.resolve({ usage: 0.9e9, quota: 1e9 }) },
       });
     });
     await page.goto('/');
