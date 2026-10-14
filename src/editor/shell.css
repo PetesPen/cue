@@ -1,0 +1,160 @@
+/* The editor shell: Studio layout (design/screenshots/Main.png, design/boards/Main.dc.html).
+   Sizes and colours come from design/tokens.css. The few literal pixel values below are copied
+   from the board where it uses a value the token scale does not have. */
+
+.shell {
+  display: grid;
+  height: 100%;
+  grid-template-columns: var(--layout-slide-rail) minmax(0, 1fr) var(--layout-inspector);
+  grid-template-rows: var(--layout-topbar) minmax(0, 1fr) var(--layout-notes-strip);
+  grid-template-areas:
+    'top top top'
+    'rail canvas inspector'
+    'rail notes inspector';
+}
+
+.top-bar {
+  grid-area: top;
+  display: flex;
+  align-items: center;
+  gap: 10px; /* board: Main, logo to title */
+  padding: 0 var(--space-4);
+  background: var(--color-white);
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.app-name {
+  margin: 0;
+  font: var(--type-panel-heading);
+  white-space: nowrap;
+}
+
+.logo {
+  position: relative;
+  flex: none;
+  width: 22px; /* board: Main */
+  height: 22px;
+  border-radius: var(--radius-field);
+  background: var(--color-forest);
+}
+
+.logo-dot {
+  position: absolute;
+  right: var(--space-1);
+  bottom: var(--space-1);
+  width: 7px; /* board: Main */
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-yellow);
+}
+
+.section-label {
+  font: var(--type-section-label);
+  letter-spacing: var(--tracking-section-label);
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.caption {
+  font: var(--type-caption);
+  color: var(--color-muted);
+}
+
+.slide-rail {
+  grid-area: rail;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--color-white);
+  border-right: 1px solid var(--color-hairline);
+}
+
+.rail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-4) 10px; /* board: Main */
+}
+
+/* The sage well behind the slide. The slide frame is as large as fits while staying 16:9 (UX-4 fit). */
+.canvas {
+  grid-area: canvas;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 36px; /* board: Main */
+  background: var(--color-sage);
+  container-type: size;
+}
+
+.slide-frame {
+  aspect-ratio: 16 / 9;
+  width: min(100cqw, calc(100cqh * 16 / 9));
+  background: var(--color-white);
+  box-shadow: var(--shadow-slide);
+}
+
+.notes {
+  grid-area: notes;
+  padding: var(--space-3) 20px; /* board: Main */
+  background: var(--color-white);
+  border-top: 1px solid var(--color-hairline);
+}
+
+.notes-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 6px; /* board: Main */
+}
+
+.inspector {
+  grid-area: inspector;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--color-white);
+  border-left: 1px solid var(--color-hairline);
+}
+
+.tabs {
+  display: flex;
+  padding: 0 var(--space-2);
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.tab {
+  flex: 1;
+  height: 44px; /* board: Main */
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--color-muted);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.tab:hover {
+  background: var(--color-app-bg);
+}
+
+.tab[aria-selected='true'] {
+  border-bottom-color: var(--color-accent);
+  color: var(--color-forest);
+  font-weight: 600;
+}
+
+.tab-panel {
+  flex: 1;
+  min-height: 0;
+  padding: var(--space-4);
+  overflow: auto;
+}
+
+.placeholder {
+  margin: 0;
+  font: var(--type-caption);
+  color: var(--color-muted);
+}

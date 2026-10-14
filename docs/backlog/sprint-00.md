@@ -28,7 +28,7 @@ No user stories this sprint. Deliver: Spikes SP-1 to SP-6, app shell, CI pipelin
 - [x] Module folders `model`, `render`, `editor`, `present`, `storage` with the import-lint rule enforcing one-way dependencies (F1; `tests/layering.test.ts` proves the rule)
 - [ ] CI pipeline as in `docs/development-plan.md` (checks on every PR, preview deployment link posted on the PR, nightly job stubs). Hosting is Netlify: `netlify.toml` and deploy previews. These are proven only once Peter has a GitHub repository linked to Netlify.
 - [x] Design tokens from `design/tokens.css` wired in; token contrast unit test (4.5:1) (F3; `tests/tokens.test.ts` also keeps `tokens.css` and `tokens.json` in step)
-- [ ] App shell matching the Studio layout (top bar 52px, left rail 208px, inspector 296px, notes strip 124px) with empty panels
+- [x] App shell matching the Studio layout (top bar 52px, left rail 208px, inspector 296px, notes strip 124px) with empty panels (F4; sizes measured in `e2e/layout.spec.ts`, axe clean, inspector tabs work with the keyboard)
 - [ ] Bundle size budget recorded (with CI, F5). Fonts part done in F3: 11 open-licence WOFF2 files (374 KB, Latin subset) in `src/fonts`, all seven families confirmed SIL OFL 1.1, checked by `tests/fonts.test.ts`
 - [ ] Fixture deck "Autumn Launch" planned (12 slides, see `design/screenshots/Main.png` and `Presenter.png`) and the visual-regression container pinned
 - [ ] `CLAUDE.md` "Commands" section filled in with the real scripts

@@ -20,7 +20,7 @@ Story IDs (SL-1, EL-3, AN-5 ...) are the vocabulary: use them in branch names, c
 
 ## Current state
 
-Sprint 0 is in progress (started 2026-10-14, plan approved by Peter, repo at `C:\Users\peter\Projects\cue`). Done: F1, the scaffold (Vite, React, strict TypeScript, ESLint with the layering and accessibility rules, Prettier, module folders); F2, test tooling (Vitest unit, integration and component projects, Playwright on three engines, axe, a layering-rule test); F3, design tokens wired in with a contrast test, and the seven font families bundled with licences confirmed. Next: F4, the app shell. No gate passed. Work sprint by sprint, in order. Use `/start-sprint N` to begin a sprint and `/finish-sprint N` to close it. Keep this section current: which sprint is active and which gate was last passed.
+Sprint 0 is in progress (started 2026-10-14, plan approved by Peter, repo at `C:\Users\peter\Projects\cue`). Done: F1, the scaffold (Vite, React, strict TypeScript, ESLint with the layering and accessibility rules, Prettier, module folders); F2, test tooling (Vitest unit, integration and component projects, Playwright on three engines, axe, a layering-rule test); F3, design tokens wired in with a contrast test, and the seven font families bundled with licences confirmed. F4, the empty app shell in the Studio layout (`src/editor`). Next: F5, CI files, `netlify.toml` and the bundle-size budget; then F6 and the spikes SP-1 to SP-6. No gate passed. Work sprint by sprint, in order. Use `/start-sprint N` to begin a sprint and `/finish-sprint N` to close it. Keep this section current: which sprint is active and which gate was last passed.
 
 ## Stack (proposed; confirmed or changed by the sprint 0 spikes, then recorded in `docs/decisions.md`)
 
