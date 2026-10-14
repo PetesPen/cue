@@ -78,6 +78,7 @@ Every item on a slide is an element with a position, size, rotation, opacity and
 - A font picker previews each font in its own typeface and shows recently used fonts first.
 - A curated set of web fonts is bundled with the app so decks look the same on every machine.
 - Fonts are embedded in HTML exports so the presentation renders correctly offline.
+- The italic button is hidden for fonts that have no italic design (Bricolage Grotesque, Space Grotesk and Caveat), so the editor never shows a browser-made slant that could differ in the export. Only Latin text is bundled; other characters fall back to the computer's own font (decided by Peter, 2026-10-14).
 
 **EL-3 Add shapes (Must).** As a presenter, I want to insert and style shapes, so that I can build diagrams and visual structure.
 
