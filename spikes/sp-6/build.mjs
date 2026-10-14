@@ -1,6 +1,6 @@
 // SP-6 spike: throwaway. Builds the real app twice with a service worker (versions "a" and "b") into
 // spikes/sp-6/dist-a and dist-b, with icons made from the logo.
-import { cpSync, mkdirSync, rmSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, rmSync } from 'node:fs';
 import { chromium } from 'playwright';
 import { build } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -16,6 +16,11 @@ async function makeIcons() {
   rmSync(publicDir, { recursive: true, force: true });
   mkdirSync(publicDir, { recursive: true });
   cpSync('public', publicDir, { recursive: true });
+  // The icons are committed, so the build needs no browser (the Firefox and WebKit jobs have only their own).
+  if (existsSync('spikes/sp-6/icons')) {
+    cpSync('spikes/sp-6/icons', publicDir, { recursive: true });
+    return;
+  }
   const browser = await chromium.launch();
   const page = await browser.newPage();
   for (const [name, size, background] of [['icon-192.png', 192, 'transparent'], ['icon-512.png', 512, 'transparent'], ['icon-maskable-512.png', 512, '#14281B']]) {
