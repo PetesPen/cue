@@ -19,3 +19,6 @@ Thumbs.db
 
 # Spike measurements are written to docs/spikes/ by hand; the raw output is not kept
 spikes/**/results/
+spikes/**/dist-*/
+spikes/**/dist/
+spikes/sp-6/public/

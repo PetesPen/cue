@@ -71,6 +71,7 @@ Each spike ends with a short written finding in `docs/spikes/SP-N.md`: what we t
 - Question: How much can IndexedDB hold in each browser, and what happens when it is full or cleared?
 - Stories at stake: SV-1, EL-4
 - Fallback if it fails: Lower the image downscale target, request persistent storage, and make backup reminders firmer
+- **Finding (2026-10-14, `docs/spikes/SP-5.md`):** go. Quota is about 10 GB in Chrome, Edge and Firefox and 1 GB in WebKit; saving a 176 KB deck takes under 5 ms and opening a 50-slide deck about 1 ms. A deck and its photos saved in one transaction rolls back completely on a full store (Chrome, Edge); one transaction per photo leaves orphans. Firefox prompts on `persist()` and never answers unattended. Clearing site data erases the backup reminder too. Not verified: Firefox and WebKit on a full store, real Safari.
 
 ### SP-6 Installable offline app
 
