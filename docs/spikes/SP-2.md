@@ -57,4 +57,4 @@ TipTap with the extensions we use (starter kit, text style, font family, size an
 
 ## Reproduce
 
-`SPIKE=sp-2 npx playwright test -c spikes/playwright.config.ts --project=chrome` (also `edge`, `chromium`, `webkit`; Firefox runs in the Spikes workflow on GitHub). Print the numbers with `node spikes/sp-2/report.mjs chrome`.
+`SPIKE=sp-2 npx playwright test -c spikes/playwright.config.ts --project=chrome` (also `edge`, `chromium`, `webkit`; the Firefox and Linux numbers came from the Spikes workflow, removed at Gate 1; see `docs/spikes/README.md`). Print the numbers with `node spikes/sp-2/report.mjs chrome`.

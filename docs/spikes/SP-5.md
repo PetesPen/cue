@@ -75,4 +75,4 @@ After "clear site data" the deck was gone, and so was the "last backup" reminder
 
 ## Reproduce
 
-`SPIKE=sp-5 npx playwright test -c spikes/playwright.config.ts --project=chrome` (also `edge`, `webkit`; Firefox and Linux run in the Spikes workflow). Print the numbers with `node spikes/sp-5/report.mjs chrome`. For a real browser by hand: `npm run spike:sp-5`, open http://127.0.0.1:4200 and press the three buttons.
+`SPIKE=sp-5 npx playwright test -c spikes/playwright.config.ts --project=chrome` (also `edge`, `webkit`; the Firefox and Linux numbers came from the Spikes workflow, removed at Gate 1; see `docs/spikes/README.md`). Print the numbers with `node spikes/sp-5/report.mjs chrome`. For a real browser by hand: `npm run spike:sp-5`, open http://127.0.0.1:4200 and press the three buttons.

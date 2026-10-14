@@ -89,5 +89,5 @@ How to run the manual checks: run `npm run spike:sp-1`, open http://127.0.0.1:42
 ## Reproduce
 
 - Automated: `npx playwright test -c spikes/playwright.config.ts --project=chrome` (also `edge`, `chromium`, `webkit`, `chrome-blocker`, `edge-blocker`). Print the numbers with `node spikes/sp-1/report.mjs chrome`.
-- Linux and Firefox: the Spikes workflow on GitHub runs the same tests when files under `spikes/` change and writes each browser's results as an annotation on the run.
+- Linux and Firefox: these ran in a temporary Spikes workflow on GitHub, since removed at Gate 1 (see `docs/spikes/README.md`).
 - Port 4200 is deliberate: Firefox and Safari refuse to connect to port 4190 (a reserved mail-protocol port), so the first WebKit runs failed to load the page. Avoid the browsers' restricted ports for any local server.

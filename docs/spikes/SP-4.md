@@ -70,4 +70,4 @@ Run `npm run spike:sp-4`, open http://127.0.0.1:4200 and press the buttons (one 
 
 ## Reproduce
 
-`SPIKE=sp-4 npx playwright test -c spikes/playwright.config.ts --project=chrome` (also `edge`, `webkit`; Firefox and Linux run in the Spikes workflow). Print the numbers with `node spikes/sp-4/report.mjs chrome`. The Chromium frame trace counts frames in the browser's own pipeline report (`PipelineReporter` events, state `STATE_DROPPED`).
+`SPIKE=sp-4 npx playwright test -c spikes/playwright.config.ts --project=chrome` (also `edge`, `webkit`; the Firefox and Linux numbers came from the Spikes workflow, removed at Gate 1; see `docs/spikes/README.md`). Print the numbers with `node spikes/sp-4/report.mjs chrome`. The Chromium frame trace counts frames in the browser's own pipeline report (`PipelineReporter` events, state `STATE_DROPPED`).

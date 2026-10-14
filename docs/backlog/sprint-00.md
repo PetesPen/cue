@@ -1,7 +1,7 @@
 # Sprint 0: Foundations and risk spikes
 
 - Capacity: 16 engineering days (2 engineers, about 80% focus, 2 weeks)
-- Ends with Gate 1: Stack confirmed (end of sprint 0)
+- Ends with Gate 1: Stack confirmed (end of sprint 0). **Passed 2026-10-15.**
 - Next: [sprint-01.md](sprint-01.md)
 
 Work only on this sprint's goal. New ideas go to the backlog, not into the sprint (see `CLAUDE.md`). Tick the boxes as criteria are shown working on the preview deployment.
@@ -32,7 +32,7 @@ No user stories this sprint. Deliver: Spikes SP-1 to SP-6, app shell, CI pipelin
 - [x] Bundle size budget recorded (F5: 300 KB JS and 30 KB CSS gzipped on first load, enforced by `npm run build`; baseline 67 KB and 1.9 KB). Fonts part done in F3: 11 open-licence WOFF2 files (374 KB, Latin subset) in `src/fonts`, all seven families confirmed SIL OFL 1.1, checked by `tests/fonts.test.ts`
 - [x] Fixture deck "Autumn Launch" planned (`docs/fixtures/autumn-launch.md`: 12 slides and slide 3's geometry and clicks read from the boards) and the visual-regression container pinned (F6: `config/visual.json`, digest-pinned in CI, a guard that refuses to run elsewhere, a consistency test). No baselines yet: the first screenshot tests come in sprint 1; decision 13 asks how baselines are made, since Docker is not installed here.
 - [x] `CLAUDE.md` "Commands" section filled in with the real scripts (every script that exists is marked "now"; `npm run perf` is not built yet and arrives with UX-3 in sprint 5; the `spike:sp-N` scripts are for the sprint 0 demo)
-- [x] `docs/decisions.md` updated: stack confirmed or changed after the spikes (Gate 1). Written as a verdict per part; two parts were not spiked (Immer patches and the zip library). **Gate 1 itself is Peter's to accept at the review.**
+- [x] `docs/decisions.md` updated: stack confirmed or changed after the spikes (Gate 1). Written as a verdict per part; two parts were not spiked (Immer patches and the zip library). **Gate 1 accepted by Peter on 2026-10-15.**
 
 ## Risk spikes (1 to 2 days each)
 

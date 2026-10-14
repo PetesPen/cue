@@ -64,3 +64,10 @@ Found when the boards were first rendered in a browser for this pack:
 - States: the "File can't be opened" card was labelled SV-4; opening a deck file is SV-3.
 
 Both fixes are also applied to the live canvas.
+
+Changed on 2026-10-15 by Claude, with Peter's approval, in the board source `boards/States.dc.html` only:
+
+- States, "Presenter window blocked" card: now "Your browser blocked the audience window" and "You can also present in this window instead" (decision 10, Option B: a show opens only the audience window; the editor tab becomes the presenter view).
+- States, "Storage banners": the example now reads "0.9 of about 1 GB used" instead of "470 of about 500 MB", because real browser limits are about 1 GB to 10 GB (decision 12).
+
+`screenshots/States.png` was **not** regenerated (the boards cannot be rendered here) and Peter's live canvas still shows the old wording. Until they are re-exported, the board source and `docs/user-stories.md` are the reference for those two strings.

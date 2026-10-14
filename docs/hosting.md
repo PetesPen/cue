@@ -13,7 +13,7 @@ Decided on 2026-10-14: Netlify hosts the live site and a deploy preview for ever
 
 ## Verified on GitHub (2026-10-14)
 
-CI run #1 on `main` (https://github.com/PetesPen/cue/actions/runs/38513587547) passed all four jobs: checks (52 s), end to end on Chromium (33 s), Firefox (45 s) and WebKit (72 s). That includes Firefox on Linux. The first scheduled nightly run (2026-10-14) also passed: dependency audit and the full browser matrix including Edge. Peter linked Netlify to the repository on 2026-10-15; Claude still needs the site address to check that the preview builds and serves the headers in `netlify.toml`.
+CI run #1 on `main` (https://github.com/PetesPen/cue/actions/runs/38513587547) passed all four jobs: checks (52 s), end to end on Chromium (33 s), Firefox (45 s) and WebKit (72 s). That includes Firefox on Linux. The first scheduled nightly run (2026-10-14) also passed: dependency audit and the full browser matrix including Edge. Peter linked Netlify to the repository on 2026-10-15 (site: https://cue-presentations.netlify.app/). Claude checked it the same day: the page serves the current build (same bundle names as a local build), with every header in `netlify.toml` plus Netlify's own HSTS, and built files are cached as immutable. `npm run e2e:deployed` runs the end-to-end suite against a deployed address: 14 of 16 pass on the live site in Chromium and WebKit. The 2 failures are Netlify's injected `/.netlify/scripts/hud` script (the Netlify Drawer), blocked by our policy and logged as a console error; it should be switched off in the Netlify site settings.
 
 ## Left: needs Peter (accounts and permissions, so Claude cannot do these)
 

@@ -71,4 +71,4 @@ Smaller files, but the re-encoding is the slow step and scales with the number o
 
 ## Reproduce
 
-`SPIKE=sp-3 npx playwright test -c spikes/playwright.config.ts --project=chrome` (also `edge`, `webkit`; Firefox and Linux run in the Spikes workflow). Print the numbers with `node spikes/sp-3/report.mjs chrome`.
+`SPIKE=sp-3 npx playwright test -c spikes/playwright.config.ts --project=chrome` (also `edge`, `webkit`; the Firefox and Linux numbers came from the Spikes workflow, removed at Gate 1; see `docs/spikes/README.md`). Print the numbers with `node spikes/sp-3/report.mjs chrome`.

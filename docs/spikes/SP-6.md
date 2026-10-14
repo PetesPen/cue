@@ -70,4 +70,4 @@ If either surprises us, UX-7's fourth criterion ("starting a show from the insta
 
 ## Reproduce
 
-`SPIKE=sp-6 npx playwright test -c spikes/playwright.config.ts --project=chrome` (also `edge`, `webkit`; Firefox and Linux run in the Spikes workflow). The build step makes `spikes/sp-6/dist-a` and `dist-b`.
+`SPIKE=sp-6 npx playwright test -c spikes/playwright.config.ts --project=chrome` (also `edge`, `webkit`; the Firefox and Linux numbers came from the Spikes workflow, removed at Gate 1; see `docs/spikes/README.md`). The build step makes `spikes/sp-6/dist-a` and `dist-b`.

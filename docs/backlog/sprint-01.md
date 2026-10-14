@@ -69,7 +69,7 @@ Acceptance criteria:
 - [ ] Changes save within 2 seconds of the last edit, with a quiet "Saved" indicator.
 - [ ] Reopening the app restores the deck exactly as left, including images.
 - [ ] Storage uses the browser's database storage, not the small key-value store, so image-heavy decks fit.
-- [ ] If storage is nearly full, a warning explains the problem and offers to export the deck.
+- [ ] If storage is nearly full (90% or more of the quota the browser reports through `navigator.storage.estimate()`; real quotas are about 1 GB to 10 GB), a warning shows the real numbers and offers to export the deck. If a save fails because the store is full, a stronger banner says changes cannot be saved and offers Export deck (decided by Peter, 2026-10-15).
 
 Design: [`States`](../../design/screenshots/States.png) ([source](../../design/boards/States.dc.html))
 

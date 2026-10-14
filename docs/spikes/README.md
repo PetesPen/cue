@@ -20,4 +20,4 @@ Six short experiments that tested the riskiest assumptions in the plan before an
 
 ## Running a spike again
 
-`SPIKE=sp-N npx playwright test -c spikes/playwright.config.ts --project=chrome` (also `edge`, `chromium`, `webkit`; the `-blocker` projects are for SP-1). Then `node spikes/sp-N/report.mjs chrome` prints what was recorded. The Spikes workflow on GitHub runs a spike on Linux with Firefox when files under `spikes/` change; it is for the sprint 0 spikes and is deleted at Gate 1.
+`SPIKE=sp-N npx playwright test -c spikes/playwright.config.ts --project=chrome` (also `edge`, `chromium`, `webkit`; the `-blocker` projects are for SP-1). Then `node spikes/sp-N/report.mjs chrome` prints what was recorded. The Firefox and Linux numbers came from a temporary Spikes workflow on GitHub that ran a spike on Linux whenever files under `spikes/` changed. It was removed at Gate 1 (2026-10-15). To run a spike on Linux again, restore `.github/workflows/spikes.yml` from git history (last version in commit `d31ee2b`).

@@ -177,7 +177,7 @@ A gate is a checkpoint at the end of a phase. At the sprint review the product o
 | 4 | First full show | 10 | Can you deliver a real talk from start to finish, with all 38 Must stories working? |
 | 5 | v1.0 | 13 | Is the release candidate good on all four browsers, with every budget met? |
 
-Only Gate 1's criteria are written so far. The criteria for each later gate are written at the start of the sprint that ends in it.
+**Status:** Gate 1 passed on 2026-10-15 (accepted by Peter). Gates 2 to 5 are open. Only Gate 1's criteria are written so far. The criteria for each later gate are written at the start of the sprint that ends in it.
 
 **Gate 1 criteria** (written by Claude on 2026-10-15, because the plan did not define them; the product owner can change them):
 

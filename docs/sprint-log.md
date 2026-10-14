@@ -4,7 +4,7 @@ One entry per sprint, newest at the bottom. Written by Claude at the end of a sp
 
 ## Sprint 0: Foundations and risk spikes
 
-**Dates:** started and finished 2026-10-14 (one long working session). **Gate 1 (stack confirmed):** evidence is ready; Peter decides at the review.
+**Dates:** started and finished 2026-10-14 (one long working session). **Gate 1 (stack confirmed): accepted by Peter on 2026-10-15.**
 
 **Goal:** an empty, tested, deployable Cue app, plus a written go or no-go on each risky assumption. **Met, except for the Netlify preview** (see "Not done").
 
@@ -81,3 +81,10 @@ Run the spike pages with the `npm run spike:sp-N` commands from the project fold
 3. He prefers to touch base only at the end of each sprint, unless a significant decision is needed. Recorded as working rule 9 in `CLAUDE.md`.
 
 Also on 2026-10-15: Peter linked Netlify to the repository, and asked where Gate 1 is defined. It was only a one-line placeholder in the plan; "The five gates" in `docs/development-plan.md` now explains gates and writes out Gate 1's criteria.
+
+### Review outcome (2026-10-15)
+
+- **Gate 1 accepted.**
+- Decisions 11, 12 and 13 settled (see `docs/decisions.md`); the two design changes to the States board were approved and made in the board source.
+- Netlify linked: https://cue-presentations.netlify.app/ serves the current build with our security headers. Our end-to-end tests pass against it except two that catch a script Netlify injects (the Netlify Drawer). Peter to switch it off.
+- Sprint 0's last open item, the preview deployment, is therefore met for the live site; previews of pull requests start in sprint 1.

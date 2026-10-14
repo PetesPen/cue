@@ -44,7 +44,7 @@ Acceptance criteria:
 - [ ] A font picker previews each font in its own typeface and shows recently used fonts first.
 - [ ] A curated set of web fonts is bundled with the app so decks look the same on every machine.
 - [ ] Fonts are embedded in HTML exports so the presentation renders correctly offline.
-- [ ] The italic button is hidden for fonts that have no italic design (Bricolage Grotesque, Space Grotesk and Caveat), so the editor never shows a browser-made slant that could differ in the export. Only Latin text is bundled; other characters fall back to the computer's own font (decided by Peter, 2026-10-14). Planning note: decide in sprint 3 how a selection that mixes fonts, and italic text pasted into one of these fonts, behave. Test: a component test that the button is absent for each of the three fonts and present for the other four.
+- [ ] A style control is hidden when the selected font has no such design, so the editor never shows a browser-made slant or thickening that could differ in the export: italic for Bricolage Grotesque, Space Grotesk and Caveat; bold for DM Serif Display. The same rule applies to any other control that does not apply to the selected font (decided by Peter, 2026-10-14 and 2026-10-15). Only Latin text is bundled; other characters fall back to the computer's own font (decided by Peter, 2026-10-14). Planning note: decide in sprint 3 how a selection that mixes fonts, and italic text pasted into one of these fonts, behave. Test: a component test that each unavailable style button is absent for its fonts and present for the others.
 
 Design: [`Editor-Text`](../../design/screenshots/Editor-Text.png) ([source](../../design/boards/Editor-Text.dc.html))
 

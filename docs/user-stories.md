@@ -78,7 +78,7 @@ Every item on a slide is an element with a position, size, rotation, opacity and
 - A font picker previews each font in its own typeface and shows recently used fonts first.
 - A curated set of web fonts is bundled with the app so decks look the same on every machine.
 - Fonts are embedded in HTML exports so the presentation renders correctly offline.
-- The italic button is hidden for fonts that have no italic design (Bricolage Grotesque, Space Grotesk and Caveat), so the editor never shows a browser-made slant that could differ in the export. Only Latin text is bundled; other characters fall back to the computer's own font (decided by Peter, 2026-10-14).
+- A style control is hidden when the selected font has no such design, so the editor never shows a browser-made slant or thickening that could differ in the export: italic for Bricolage Grotesque, Space Grotesk and Caveat; bold for DM Serif Display. The same rule applies to any other control that does not apply to the selected font (decided by Peter, 2026-10-14 and 2026-10-15). Only Latin text is bundled; other characters fall back to the computer's own font (decided by Peter, 2026-10-14).
 
 **EL-3 Add shapes (Must).** As a presenter, I want to insert and style shapes, so that I can build diagrams and visual structure.
 
@@ -303,7 +303,7 @@ Decks are stored in the browser. Files are how a deck is backed up, moved to ano
 - Changes save within 2 seconds of the last edit, with a quiet "Saved" indicator.
 - Reopening the app restores the deck exactly as left, including images.
 - Storage uses the browser's database storage, not the small key-value store, so image-heavy decks fit.
-- If storage is nearly full, a warning explains the problem and offers to export the deck.
+- If storage is nearly full (90% or more of the quota the browser reports through `navigator.storage.estimate()`; real quotas are about 1 GB to 10 GB), a warning shows the real numbers and offers to export the deck. If a save fails because the store is full, a stronger banner says changes cannot be saved and offers Export deck (decided by Peter, 2026-10-15).
 
 **SV-2 Manage multiple decks (Must).** As a presenter, I want a home screen of my decks, so that I can work on more than one presentation.
 
