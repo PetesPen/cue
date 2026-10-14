@@ -57,6 +57,7 @@ Each spike ends with a short written finding in `docs/spikes/SP-N.md`: what we t
 - Question: How large is a 30-slide, image-heavy deck as one HTML file, and how long does the export take?
 - Stories at stake: SV-4
 - Fallback if it fails: Re-encode images to WebP on export and warn above a size threshold
+- **Finding (2026-10-14, `docs/spikes/SP-3.md`):** go. A 30-slide deck exports as one file in under 0.4 s in Chrome and Edge and under 1.2 s in the slowest engine (limit 10 s), for up to 52 MB; the file is about 1.35 times the photo bytes plus 0.16 MB; zero external requests, no console errors. WebP re-encoding at export is too slow (6 to 12 s) and should not be used there. WebKit could not store photos as Blobs in IndexedDB; use raw bytes plus a type until real Safari is checked in SP-5.
 
 ### SP-4 Motion at 60 fps
 
