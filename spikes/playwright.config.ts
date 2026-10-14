@@ -6,10 +6,9 @@ import { defineConfig, devices } from '@playwright/test';
 const PORT = '4200';
 // Choose the spike with the SPIKE environment variable (default sp-1).
 const SPIKE = process.env.SPIKE ?? 'sp-1';
-const serve =
-  SPIKE === 'sp-2'
-    ? `node spikes/sp-2/build.mjs && node spikes/serve.mjs spikes/sp-2/dist ${PORT}`
-    : `node spikes/serve.mjs spikes/${SPIKE} ${PORT}`;
+const serve = ['sp-2', 'sp-3'].includes(SPIKE)
+  ? `node spikes/${SPIKE}/build.mjs && node spikes/serve.mjs spikes/${SPIKE}/dist ${PORT}`
+  : `node spikes/serve.mjs spikes/${SPIKE} ${PORT}`;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 const popupBlockerOn = { ignoreDefaultArgs: ['--disable-popup-blocking'] };
 
