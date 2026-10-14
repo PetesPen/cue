@@ -362,7 +362,7 @@ The app should feel calm and fast: the slide is the hero and the interface stays
 - Layout: thumbnail sidebar on the left, canvas in the centre, and a context-sensitive format panel on the right that shows only what applies to the selection.
 - A slim top toolbar holds the core actions; everything else lives in menus or the right-click menu.
 - A restrained palette, generous spacing, one typeface for the interface, and subtle motion.
-- Light and dark interface modes follow the system setting; the slide itself is never affected.
+- The interface is light only in v1 (dark mode dropped by Peter, 2026-10-15; decision 14).
 
 **UX-2 Fast, keyboard-first work (Must).** As a presenter, I want shortcuts for common actions, so that I can work efficiently.
 

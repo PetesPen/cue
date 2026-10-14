@@ -1,6 +1,6 @@
 # Sprint 1 plan: Decks, shell and saving
 
-Status: **waiting for Peter's approval** (written 2026-10-15). Stories: UX-1, SL-1, SL-2, SV-1, SV-2 (all Must). Capacity: 16 engineering days, with no slack to add anything.
+Status: **approved by Peter on 2026-10-15**, with dark mode dropped (decision 14), `gh` to be installed, and the Netlify Drawer switched off by Peter. Written 2026-10-15. Stories: UX-1, SL-1, SL-2, SV-1, SV-2 (all Must). Capacity: 16 engineering days, with no slack to add anything.
 
 ## Outcome at the review
 
@@ -25,7 +25,7 @@ U = unit (Vitest), I = integration (fake-indexeddb), C = component (real Chromiu
 - Given nothing is selected, When the inspector shows, Then it shows only what applies. (C)
 - Given the top bar, When it is read, Then it holds only the actions that exist so far (add slide), with the rest arriving with their stories. (E)
 - Given the styles, When they are read, Then they use design tokens only, one interface typeface, and motion no longer than 200 ms that stops under "reduce motion". (U on the CSS, M for feel)
-- **Dark mode: conflicts with the design. See "Decisions needed".**
+- Dark mode is out of v1 (decision 14, Peter 2026-10-15): the criterion is removed and the interface is light only.
 
 ### SL-1 Add a slide
 - Given a deck of three slides with the second selected, When the "+" button or Ctrl/Cmd+M is used, Then a blank 16:9 slide is added directly after the second, and it is selected. (U for the command, E for button and shortcut)
