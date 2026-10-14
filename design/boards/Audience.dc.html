@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Audience window</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+</style>
+</helmet>
+<div style="position:relative; height:900px; container-type:size; background:#000000; display:flex; align-items:center; justify-content:center; overflow:hidden; font-family:'Instrument Sans', system-ui, sans-serif; color:#14281B">
+
+<div style="position:relative; width:min(100cqw, 160cqh); aspect-ratio:16/9; container-type:inline-size; background:#FFFFFF; overflow:hidden">
+<div style="position:absolute; left:6%; top:9%; font-size:1.5cqw; font-weight:600; letter-spacing:.14em; color:#17803F">03 — STRATEGY</div>
+<div style="position:absolute; left:6%; top:15%; font-size:7.2cqw; font-weight:700; line-height:1; letter-spacing:-.03em">Our<br>approach</div>
+<div style="position:absolute; left:6%; top:54%; width:34%">
+<div style="display:flex; gap:1.6cqw; padding:1.1cqw 0; border-top:1px solid #14281B; font-size:2cqw; font-weight:500"><span style="color:#5B6F61; width:3cqw">01</span>Listen first</div>
+<div style="display:flex; gap:1.6cqw; padding:1.1cqw 0; border-top:1px solid #14281B; font-size:2cqw; font-weight:500"><span style="color:#5B6F61; width:3cqw">02</span>Ship in small steps</div>
+<div style="display:flex; gap:1.6cqw; padding:1.1cqw 0; border-top:1px solid #14281B; font-size:2cqw; font-weight:500"><span style="color:#5B6F61; width:3cqw">03</span>Measure what matters</div>
+</div>
+<div style="position:absolute; left:58%; top:24%; width:34%; height:56%; background:#F5C542"></div>
+<div style="position:absolute; left:48%; top:8%; width:38%; height:60%; background:#7FC8A0; opacity:.6"></div>
+<div style="position:absolute; left:42%; top:54%; width:13cqw; height:13cqw; border-radius:50%; background:#14281B"></div>
+</div>
+
+<div style="position:absolute; left:50%; top:18px; transform:translateX(-50%); height:30px; padding:0 14px; display:inline-flex; align-items:center; gap:8px; border-radius:15px; background:rgba(20,40,27,.82); color:#F4F8F1; font-size:12px; font-weight:500">
+<kbd style="height:18px; padding:0 6px; display:inline-flex; align-items:center; font-family:inherit; font-size:11px; font-weight:700; border:1px solid rgba(244,248,241,.4); border-radius:4px">Esc</kbd>
+to end the show · this hint fades after 3 seconds
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

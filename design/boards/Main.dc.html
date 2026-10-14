@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Editor: Design tab</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+@media (max-width:900px){.app{display:none !important}.small-note{display:flex !important}}
+</style>
+</helmet>
+<div style="font-family:'Instrument Sans', system-ui, sans-serif; color:#14281B; font-size:13px; background:#F4F8F1">
+<div class="small-note" style="display:none; min-height:320px; align-items:center; justify-content:center; padding:32px; text-align:center; font-size:15px">Slides is built for larger screens. Open it on a laptop or desktop to edit; exported HTML decks play on any device.</div>
+<div class="app" style="height:900px; display:flex; flex-direction:column">
+
+<header style="height:52px; flex:none; display:flex; align-items:center; gap:16px; padding:0 16px; background:#FFFFFF; border-bottom:1px solid #DCE6D7">
+<div style="width:200px; display:flex; align-items:center; gap:10px">
+<span style="position:relative; width:22px; height:22px; border-radius:6px; background:#14281B; flex:none"><span style="position:absolute; right:4px; bottom:4px; width:7px; height:7px; border-radius:50%; background:#F5C542"></span></span>
+<span style="font-weight:600; font-size:14px; white-space:nowrap">Autumn Launch</span>
+</div>
+<div style="flex:1; display:flex; align-items:center; justify-content:center; gap:2px">
+<button style="height:32px; padding:0 10px; border:0; background:transparent; border-radius:6px; display:inline-flex; align-items:center; gap:6px; font-weight:500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Slide</button>
+<button style="height:32px; padding:0 10px; border:0; background:transparent; border-radius:6px; display:inline-flex; align-items:center; gap:6px; font-weight:500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg>Text</button>
+<button style="height:32px; padding:0 10px; border:0; background:transparent; border-radius:6px; display:inline-flex; align-items:center; gap:6px; font-weight:500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>Shape</button>
+<button style="height:32px; padding:0 10px; border:0; background:transparent; border-radius:6px; display:inline-flex; align-items:center; gap:6px; font-weight:500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-9 9"/></svg>Image</button>
+<span style="width:1px; height:18px; background:#DCE6D7; margin:0 8px"></span>
+<button aria-label="Undo" style="width:32px; height:32px; border:0; background:transparent; border-radius:6px; display:inline-flex; align-items:center; justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
+<button aria-label="Redo" style="width:32px; height:32px; border:0; background:transparent; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; color:#5B6F61"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg></button>
+</div>
+<div style="width:300px; display:flex; align-items:center; justify-content:flex-end; gap:10px">
+<span style="color:#5B6F61; font-size:12px">Saved</span>
+<button style="height:34px; padding:0 12px; border:1px solid #DCE6D7; background:#FFFFFF; border-radius:7px; font-weight:500">Export</button>
+<button style="height:34px; padding:0 14px; border:0; background:#17803F; color:#FFFFFF; border-radius:7px; font-weight:600; display:inline-flex; align-items:center; gap:8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>Present</button>
+</div>
+</header>
+
+<div style="flex:1; min-height:0; display:flex">
+
+<aside style="width:208px; flex:none; background:#FFFFFF; border-right:1px solid #DCE6D7; display:flex; flex-direction:column">
+<div style="padding:16px 16px 10px; display:flex; justify-content:space-between; align-items:center">
+<span style="font-weight:600; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#5B6F61">Slides</span>
+<span style="font-size:12px; color:#5B6F61">12</span>
+</div>
+<div style="flex:1; min-height:0; overflow:hidden; padding:4px 12px; display:flex; flex-direction:column; gap:12px">
+<sc-for list="{{thumbs}}" as="t" hint-placeholder-count="7">
+<div style="display:flex; gap:8px; align-items:flex-start">
+<span style="width:16px; padding-top:4px; text-align:right; font-size:11px; color:#5B6F61">{{t.n}}</span>
+<div style="position:relative; flex:1; aspect-ratio:16/9; border-radius:4px; overflow:hidden; border:1px solid #DCE6D7; background:{{t.bg}}; outline:{{t.ring}}; outline-offset:2px">
+<div style="position:absolute; left:8%; top:16%; width:46%; height:13%; border-radius:2px; background:{{t.bar}}"></div>
+<div style="position:absolute; left:8%; top:40%; width:34%; height:5%; border-radius:2px; background:{{t.line}}"></div>
+<div style="position:absolute; left:8%; top:52%; width:26%; height:5%; border-radius:2px; background:{{t.line}}"></div>
+<div style="position:absolute; right:8%; bottom:14%; width:20%; aspect-ratio:1; border-radius:50%; background:{{t.dot}}"></div>
+<sc-if value="{{t.motion}}" hint-placeholder-val="{{false}}"><span style="position:absolute; right:4px; top:4px; width:12px; height:12px; border-radius:50%; background:#F5C542"></span></sc-if>
+</div>
+</div>
+</sc-for>
+</div>
+<div style="padding:12px; border-top:1px solid #DCE6D7">
+<button style="width:100%; height:34px; border:1px dashed #A9BDA4; background:transparent; border-radius:7px; font-weight:500">New slide</button>
+</div>
+</aside>
+
+<main style="flex:1; min-width:0; display:flex; flex-direction:column; background:#E8F0E4">
+<div style="position:relative; flex:1; min-height:0; display:flex; align-items:center; justify-content:center; padding:36px">
+<div style="position:relative; width:100%; max-width:860px; aspect-ratio:16/9; container-type:inline-size; background:#FFFFFF; box-shadow:0 1px 2px rgba(20,40,27,.08), 0 14px 36px rgba(20,40,27,.12)">
+
+<div style="position:absolute; left:6%; top:9%; font-size:1.5cqw; font-weight:600; letter-spacing:.14em; color:#17803F">03 — STRATEGY</div>
+<div style="position:absolute; left:6%; top:15%; font-size:7.2cqw; font-weight:700; line-height:1; letter-spacing:-.03em">Our<br>approach</div>
+<div style="position:absolute; left:6%; top:54%; width:34%">
+<div style="display:flex; gap:1.6cqw; padding:1.1cqw 0; border-top:1px solid #14281B; font-size:2cqw; font-weight:500"><span style="color:#5B6F61; width:3cqw">01</span>Listen first</div>
+<div style="display:flex; gap:1.6cqw; padding:1.1cqw 0; border-top:1px solid #14281B; font-size:2cqw; font-weight:500"><span style="color:#5B6F61; width:3cqw">02</span>Ship in small steps</div>
+<div style="display:flex; gap:1.6cqw; padding:1.1cqw 0; border-top:1px solid #14281B; font-size:2cqw; font-weight:500"><span style="color:#5B6F61; width:3cqw">03</span>Measure what matters</div>
+</div>
+
+<div style="position:absolute; left:58%; top:24%; width:34%; height:56%; background:#F5C542"></div>
+<div style="position:absolute; left:48%; top:8%; width:38%; height:60%; background:#7FC8A0; opacity:.6; display:flex; align-items:center; justify-content:center">
+<svg width="30%" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-9 9"/></svg>
+</div>
+<div style="position:absolute; left:42%; top:54%; width:13cqw; height:13cqw; border-radius:50%; background:#14281B"></div>
+
+<div style="position:absolute; left:48%; top:8%; width:38%; height:60%; outline:1.5px solid #17803F">
+<span style="position:absolute; left:-4px; top:-4px; width:7px; height:7px; background:#fff; border:1.5px solid #17803F"></span>
+<span style="position:absolute; left:calc(50% - 4px); top:-4px; width:7px; height:7px; background:#fff; border:1.5px solid #17803F"></span>
+<span style="position:absolute; right:-4px; top:-4px; width:7px; height:7px; background:#fff; border:1.5px solid #17803F"></span>
+<span style="position:absolute; left:-4px; top:calc(50% - 4px); width:7px; height:7px; background:#fff; border:1.5px solid #17803F"></span>
+<span style="position:absolute; right:-4px; top:calc(50% - 4px); width:7px; height:7px; background:#fff; border:1.5px solid #17803F"></span>
+<span style="position:absolute; left:-4px; bottom:-4px; width:7px; height:7px; background:#fff; border:1.5px solid #17803F"></span>
+<span style="position:absolute; left:calc(50% - 4px); bottom:-4px; width:7px; height:7px; background:#fff; border:1.5px solid #17803F"></span>
+<span style="position:absolute; right:-4px; bottom:-4px; width:7px; height:7px; background:#fff; border:1.5px solid #17803F"></span>
+<span style="position:absolute; left:0; top:-26px; height:20px; padding:0 8px; display:inline-flex; align-items:center; background:#17803F; color:#fff; font-size:11px; font-weight:600; border-radius:4px; white-space:nowrap">Image · 60%</span>
+<span style="position:absolute; right:-30px; top:-6px; width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; border-radius:50%; background:#F5C542; color:#14281B; font-size:11px; font-weight:700">1</span>
+</div>
+
+</div>
+<div style="position:absolute; right:16px; bottom:12px; height:28px; padding:0 10px; display:inline-flex; align-items:center; gap:8px; background:#FFFFFF; border:1px solid #DCE6D7; border-radius:7px; font-size:12px; font-weight:500">Fit · 54%</div>
+</div>
+<div style="flex:none; height:124px; background:#FFFFFF; border-top:1px solid #DCE6D7; padding:12px 20px">
+<div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px">
+<span style="font-weight:600; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#5B6F61">Speaker notes</span>
+<span style="font-size:12px; color:#5B6F61">Shown in presenter view</span>
+</div>
+<div style="font-size:14px; line-height:1.5; max-width:760px">Open with the customer problem, not the product. Click once to bring in the image, then pause for questions before moving to the three pillars.</div>
+</div>
+</main>
+
+<aside style="width:296px; flex:none; background:#FFFFFF; border-left:1px solid #DCE6D7; display:flex; flex-direction:column">
+<div style="display:flex; padding:0 8px; border-bottom:1px solid #DCE6D7">
+<button style="flex:1; height:44px; border:0; border-bottom:2px solid #17803F; background:transparent; font-weight:600">Design</button>
+<button style="flex:1; height:44px; border:0; border-bottom:2px solid transparent; background:transparent; color:#5B6F61; font-weight:500">Animate</button>
+<button style="flex:1; height:44px; border:0; border-bottom:2px solid transparent; background:transparent; color:#5B6F61; font-weight:500">Transition</button>
+</div>
+<div style="flex:1; min-height:0; overflow:hidden">
+
+<div style="padding:16px; border-bottom:1px solid #DCE6D7">
+<div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:10px">
+<span style="font-weight:600; font-size:14px">Image</span>
+<span style="font-size:12px; color:#5B6F61">harbour.jpg</span>
+</div>
+<label style="display:flex; align-items:center; gap:8px; height:32px; padding:0 10px; border:1px solid #DCE6D7; border-radius:6px"><span style="color:#5B6F61; white-space:nowrap">Alt text</span><input type="text" value="Boats in the harbour at dawn" style="min-width:0; width:100%; border:0; background:transparent; font:inherit; outline:none"></label>
+</div>
+
+<div style="padding:16px; border-bottom:1px solid #DCE6D7">
+<div style="font-weight:600; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#5B6F61; margin-bottom:10px">Position and size</div>
+<div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px">
+<label style="display:flex; align-items:center; gap:8px; height:32px; padding:0 10px; border:1px solid #DCE6D7; border-radius:6px"><span style="width:14px; color:#5B6F61">X</span><input type="text" value="922" style="min-width:0; width:100%; border:0; background:transparent; font:inherit; outline:none"></label>
+<label style="display:flex; align-items:center; gap:8px; height:32px; padding:0 10px; border:1px solid #DCE6D7; border-radius:6px"><span style="width:14px; color:#5B6F61">Y</span><input type="text" value="86" style="min-width:0; width:100%; border:0; background:transparent; font:inherit; outline:none"></label>
+<label style="display:flex; align-items:center; gap:8px; height:32px; padding:0 10px; border:1px solid #DCE6D7; border-radius:6px"><span style="width:14px; color:#5B6F61">W</span><input type="text" value="730" style="min-width:0; width:100%; border:0; background:transparent; font:inherit; outline:none"></label>
+<label style="display:flex; align-items:center; gap:8px; height:32px; padding:0 10px; border:1px solid #DCE6D7; border-radius:6px"><span style="width:14px; color:#5B6F61">H</span><input type="text" value="648" style="min-width:0; width:100%; border:0; background:transparent; font:inherit; outline:none"></label>
+</div>
+</div>
+
+<div style="padding:16px; border-bottom:1px solid #DCE6D7">
+<div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px">
+<span style="font-weight:600; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#5B6F61">Opacity</span>
+<span style="font-weight:600">60%</span>
+</div>
+<input type="range" min="0" max="100" value="60" aria-label="Opacity" style="width:100%; accent-color:#17803F; margin:0">
+</div>
+
+<div style="padding:16px; border-bottom:1px solid #DCE6D7">
+<div style="font-weight:600; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#5B6F61; margin-bottom:10px">Arrange</div>
+<div style="display:flex; border:1px solid #DCE6D7; border-radius:6px; overflow:hidden">
+<button style="flex:1; height:32px; border:0; background:transparent; font-size:12px; font-weight:500">Front</button>
+<button style="flex:1; height:32px; border:0; border-left:1px solid #DCE6D7; background:transparent; font-size:12px; font-weight:500">Forward</button>
+<button style="flex:1; height:32px; border:0; border-left:1px solid #DCE6D7; background:transparent; font-size:12px; font-weight:500">Backward</button>
+<button style="flex:1; height:32px; border:0; border-left:1px solid #DCE6D7; background:transparent; font-size:12px; font-weight:500">Back</button>
+</div>
+</div>
+
+<div style="padding:16px; border-bottom:1px solid #DCE6D7">
+<div style="font-weight:600; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#5B6F61; margin-bottom:10px">Animation</div>
+<div style="display:flex; align-items:center; gap:10px; padding:10px; border:1px solid #DCE6D7; border-radius:8px">
+<span style="width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; border-radius:50%; background:#F5C542; color:#14281B; font-size:11px; font-weight:700">1</span>
+<span style="flex:1"><span style="display:block; font-weight:600">Appear</span><span style="display:block; font-size:12px; color:#5B6F61">Fade · On click · 0.5 s</span></span>
+<button aria-label="Preview animation" style="width:28px; height:28px; border:0; background:#F4F8F1; border-radius:6px; display:inline-flex; align-items:center; justify-content:center"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg></button>
+</div>
+</div>
+
+<div style="padding:16px">
+<div style="font-weight:600; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#5B6F61; margin-bottom:8px">Layers</div>
+<div style="display:flex; flex-direction:column; gap:2px">
+<sc-for list="{{layers}}" as="l" hint-placeholder-count="5">
+<div style="display:flex; align-items:center; gap:8px; height:32px; padding:0 8px; border-radius:6px; background:{{l.bg}}">
+<svg width="12" height="12" viewBox="0 0 24 24" fill="#A9BDA4" aria-hidden="true"><circle cx="9" cy="6" r="1.8"/><circle cx="15" cy="6" r="1.8"/><circle cx="9" cy="12" r="1.8"/><circle cx="15" cy="12" r="1.8"/><circle cx="9" cy="18" r="1.8"/><circle cx="15" cy="18" r="1.8"/></svg>
+<span style="width:12px; height:12px; border-radius:3px; background:{{l.swatch}}; border:1px solid #DCE6D7"></span>
+<span style="flex:1; font-weight:500">{{l.name}}</span>
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5B6F61" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+</div>
+</sc-for>
+</div>
+</div>
+
+</div>
+</aside>
+
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return {
+thumbs: [
+{ n: 1, bg: '#14281B', bar: '#F4F8F1', line: '#3F5A48', dot: '#F5C542', ring: 'none', motion: false },
+{ n: 2, bg: '#FFFFFF', bar: '#14281B', line: '#CBD8C6', dot: '#7FC8A0', ring: 'none', motion: false },
+{ n: 3, bg: '#FFFFFF', bar: '#14281B', line: '#CBD8C6', dot: '#14281B', ring: '2px solid #17803F', motion: true },
+{ n: 4, bg: '#F5C542', bar: '#14281B', line: '#14281B', dot: '#FFFFFF', ring: 'none', motion: false },
+{ n: 5, bg: '#FFFFFF', bar: '#14281B', line: '#CBD8C6', dot: '#F5C542', ring: 'none', motion: true },
+{ n: 6, bg: '#DDF1E3', bar: '#14281B', line: '#8FB89B', dot: '#17803F', ring: 'none', motion: false },
+{ n: 7, bg: '#14281B', bar: '#F4F8F1', line: '#3F5A48', dot: '#7FC8A0', ring: 'none', motion: false }
+],
+layers: [
+{ name: 'Title', swatch: '#14281B', bg: 'transparent' },
+{ name: 'Pillars list', swatch: '#FFFFFF', bg: 'transparent' },
+{ name: 'Circle', swatch: '#14281B', bg: 'transparent' },
+{ name: 'Image', swatch: '#7FC8A0', bg: '#DDF1E3' },
+{ name: 'Rectangle', swatch: '#F5C542', bg: 'transparent' }
+]
+};
+}
+}
+</script>
+</body>
+</html>

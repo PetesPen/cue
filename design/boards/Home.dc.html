@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Deck library</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+input{font:inherit;color:inherit}
+@media (max-width:900px){.app{display:none !important}.small-note{display:flex !important}}
+</style>
+</helmet>
+<div style="font-family:'Instrument Sans', system-ui, sans-serif; color:#14281B; font-size:13px; background:#F4F8F1">
+<div class="small-note" style="display:none; min-height:320px; align-items:center; justify-content:center; padding:32px; text-align:center; font-size:15px">Slides is built for larger screens. Open it on a laptop or desktop to edit; exported HTML decks play on any device.</div>
+<div class="app" style="height:900px; display:flex; flex-direction:column; overflow:hidden">
+
+<header style="height:52px; flex:none; display:flex; align-items:center; gap:16px; padding:0 24px; background:#FFFFFF; border-bottom:1px solid #DCE6D7">
+<div style="display:flex; align-items:center; gap:10px; width:200px">
+<span style="position:relative; width:22px; height:22px; border-radius:6px; background:#14281B; flex:none"><span style="position:absolute; right:4px; bottom:4px; width:7px; height:7px; border-radius:50%; background:#F5C542"></span></span>
+<span style="font-weight:700; font-size:15px; letter-spacing:-.01em">Slides</span>
+</div>
+<div style="flex:1; display:flex; justify-content:center">
+<div style="position:relative; width:100%; max-width:420px">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5B6F61" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position:absolute; left:11px; top:9px"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+<input type="text" aria-label="Search decks" placeholder="Search your decks" style="width:100%; height:34px; padding:0 12px 0 34px; border:1px solid #DCE6D7; border-radius:7px; background:#F4F8F1; outline:none">
+</div>
+</div>
+<div style="width:300px; display:flex; justify-content:flex-end; align-items:center; gap:10px">
+<button style="height:34px; padding:0 12px; border:1px solid #DCE6D7; background:#FFFFFF; border-radius:7px; font-weight:500; display:inline-flex; align-items:center; gap:8px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Open file</button>
+<button style="height:34px; padding:0 14px; border:0; background:#17803F; color:#FFFFFF; border-radius:7px; font-weight:600; display:inline-flex; align-items:center; gap:8px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New deck</button>
+</div>
+</header>
+
+<div style="flex:1; min-height:0; overflow:hidden">
+<div style="max-width:1180px; margin:0 auto; padding:28px 40px 0">
+
+<div style="display:flex; align-items:center; gap:14px; padding:12px 14px; background:#FFF6D6; border:1px solid #F0DC8E; border-radius:8px">
+<span style="width:28px; height:28px; border-radius:50%; background:#F5C542; display:inline-flex; align-items:center; justify-content:center; flex:none"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#14281B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8v5M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg></span>
+<span style="flex:1; line-height:1.4"><span style="font-weight:600">Your decks live only in this browser.</span> It has been 14 days since your last backup. Export a copy so a cleared cache can’t take them with it.</span>
+<button style="height:32px; padding:0 12px; border:1px solid #14281B; background:#FFFFFF; border-radius:7px; font-weight:600; white-space:nowrap">Back up all decks</button>
+<button aria-label="Dismiss" style="width:28px; height:28px; border:0; background:transparent; border-radius:6px; display:inline-flex; align-items:center; justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+</div>
+
+<div style="display:flex; align-items:baseline; justify-content:space-between; margin:26px 0 12px">
+<span style="font-weight:600; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#5B6F61">Start a new deck</span>
+<span style="font-size:12px; color:#5B6F61">Layouts are optional. Everything can be moved, resized and restyled.</span>
+</div>
+<div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:16px">
+<sc-for list="{{templates}}" as="tp" hint-placeholder-count="4">
+<button style="padding:0; border:0; background:transparent; text-align:left">
+<div style="position:relative; aspect-ratio:16/9; border-radius:6px; border:1px solid #DCE6D7; background:{{tp.bg}}; overflow:hidden; container-type:inline-size">
+<div style="position:absolute; left:{{tp.tx}}; top:{{tp.ty}}; width:{{tp.tw}}; height:{{tp.th}}; border-radius:2px; background:{{tp.bar}}"></div>
+<div style="position:absolute; left:{{tp.tx}}; top:{{tp.ly}}; width:{{tp.lw}}; height:5%; border-radius:2px; background:{{tp.line}}"></div>
+<div style="position:absolute; left:{{tp.tx}}; top:{{tp.ly2}}; width:{{tp.lw2}}; height:5%; border-radius:2px; background:{{tp.line}}"></div>
+<div style="position:absolute; left:{{tp.ix}}; top:{{tp.iy}}; width:{{tp.iw}}; height:{{tp.ih}}; border-radius:2px; background:{{tp.img}}"></div>
+</div>
+<div style="margin-top:8px; font-weight:600">{{tp.name}}</div>
+</button>
+</sc-for>
+</div>
+
+<div style="display:flex; align-items:center; justify-content:space-between; margin:28px 0 12px">
+<span style="font-weight:600; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#5B6F61">Your decks · 8</span>
+<div style="display:flex; align-items:center; gap:18px">
+<span style="display:inline-flex; align-items:center; gap:10px; font-size:12px; color:#5B6F61">Stored on this device · 38 MB used
+<span style="width:96px; height:4px; border-radius:2px; background:#DCE6D7; overflow:hidden"><span style="display:block; width:14%; height:100%; background:#17803F"></span></span></span>
+<div style="display:flex; border:1px solid #DCE6D7; border-radius:6px; overflow:hidden; background:#FFFFFF">
+<button style="height:28px; padding:0 12px; border:0; background:#DDF1E3; color:#0F5C2C; font-size:12px; font-weight:700">Recent</button>
+<button style="height:28px; padding:0 12px; border:0; border-left:1px solid #DCE6D7; background:transparent; font-size:12px; font-weight:500">Name</button>
+</div>
+</div>
+</div>
+
+<div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:20px 16px">
+<sc-for list="{{decks}}" as="d" hint-placeholder-count="8">
+<div style="position:relative">
+<button style="display:block; width:100%; padding:0; border:0; background:transparent; text-align:left">
+<div style="position:relative; aspect-ratio:16/9; border-radius:6px; border:1px solid #DCE6D7; background:{{d.bg}}; overflow:hidden; outline:{{d.ring}}; outline-offset:2px">
+<div style="position:absolute; left:8%; top:18%; width:48%; height:14%; border-radius:2px; background:{{d.bar}}"></div>
+<div style="position:absolute; left:8%; top:42%; width:34%; height:5%; border-radius:2px; background:{{d.line}}"></div>
+<div style="position:absolute; left:8%; top:54%; width:26%; height:5%; border-radius:2px; background:{{d.line}}"></div>
+<div style="position:absolute; right:8%; bottom:14%; width:22%; aspect-ratio:1; border-radius:{{d.shape}}; background:{{d.dot}}"></div>
+</div>
+<div style="margin-top:8px; font-weight:600; font-size:14px">{{d.title}}</div>
+<div style="font-size:12px; color:#5B6F61; margin-top:2px">{{d.meta}}</div>
+</button>
+<button aria-label="Deck options" style="position:absolute; right:6px; top:6px; width:28px; height:28px; border:1px solid #DCE6D7; background:rgba(255,255,255,.95); border-radius:6px; display:inline-flex; align-items:center; justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>
+<sc-if value="{{d.menu}}" hint-placeholder-val="{{false}}">
+<div role="menu" style="position:absolute; right:6px; top:38px; width:160px; padding:4px; background:#FFFFFF; border:1px solid #DCE6D7; border-radius:8px; box-shadow:0 8px 24px rgba(20,40,27,.16); z-index:2">
+<button role="menuitem" style="display:block; width:100%; height:30px; padding:0 10px; border:0; background:#DDF1E3; border-radius:5px; text-align:left; font-weight:500">Open</button>
+<button role="menuitem" style="display:block; width:100%; height:30px; padding:0 10px; border:0; background:transparent; border-radius:5px; text-align:left; font-weight:500">Rename</button>
+<button role="menuitem" style="display:block; width:100%; height:30px; padding:0 10px; border:0; background:transparent; border-radius:5px; text-align:left; font-weight:500">Duplicate</button>
+<button role="menuitem" style="display:block; width:100%; height:30px; padding:0 10px; border:0; background:transparent; border-radius:5px; text-align:left; font-weight:500">Export…</button>
+<div style="height:1px; background:#DCE6D7; margin:4px 0"></div>
+<button role="menuitem" style="display:block; width:100%; height:30px; padding:0 10px; border:0; background:transparent; border-radius:5px; text-align:left; font-weight:500; color:#B3261E">Delete</button>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return {
+templates: [
+{ name: 'Blank', bg: '#FFFFFF', bar: 'transparent', line: 'transparent', tx: '8%', ty: '18%', tw: '0%', th: '0%', ly: '40%', lw: '0%', ly2: '52%', lw2: '0%', img: 'transparent', ix: '60%', iy: '20%', iw: '0%', ih: '0%' },
+{ name: 'Title and content', bg: '#FFFFFF', bar: '#14281B', line: '#CBD8C6', tx: '8%', ty: '14%', tw: '52%', th: '14%', ly: '42%', lw: '70%', ly2: '54%', lw2: '58%', img: 'transparent', ix: '60%', iy: '20%', iw: '0%', ih: '0%' },
+{ name: 'Section divider', bg: '#14281B', bar: '#F4F8F1', line: '#3F5A48', tx: '8%', ty: '38%', tw: '60%', th: '16%', ly: '62%', lw: '32%', ly2: '72%', lw2: '0%', img: 'transparent', ix: '60%', iy: '20%', iw: '0%', ih: '0%' },
+{ name: 'Image feature', bg: '#FFFFFF', bar: '#14281B', line: '#CBD8C6', tx: '8%', ty: '22%', tw: '34%', th: '14%', ly: '46%', lw: '28%', ly2: '58%', lw2: '22%', img: '#7FC8A0', ix: '52%', iy: '0%', iw: '48%', ih: '100%' }
+],
+decks: [
+{ title: 'Autumn Launch', meta: '12 slides · Edited 2 hours ago', bg: '#FFFFFF', bar: '#14281B', line: '#CBD8C6', dot: '#14281B', shape: '50%', ring: '2px solid #17803F', menu: false },
+{ title: 'Team offsite', meta: '24 slides · Edited yesterday', bg: '#F5C542', bar: '#14281B', line: '#14281B', dot: '#FFFFFF', shape: '50%', ring: 'none', menu: true },
+{ title: 'Q3 review', meta: '18 slides · Edited 3 days ago', bg: '#14281B', bar: '#F4F8F1', line: '#3F5A48', dot: '#7FC8A0', shape: '2px', ring: 'none', menu: false },
+{ title: 'Pitch v2', meta: '10 slides · Edited 6 days ago', bg: '#DDF1E3', bar: '#14281B', line: '#8FB89B', dot: '#17803F', shape: '2px', ring: 'none', menu: false },
+{ title: 'Design basics workshop', meta: '31 slides · Edited 2 weeks ago', bg: '#FFFFFF', bar: '#17803F', line: '#CBD8C6', dot: '#F5C542', shape: '50%', ring: 'none', menu: false },
+{ title: 'Product roadmap', meta: '9 slides · Edited 3 weeks ago', bg: '#E8F0E4', bar: '#14281B', line: '#A9BDA4', dot: '#14281B', shape: '2px', ring: 'none', menu: false },
+{ title: 'Onboarding', meta: '15 slides · Edited last month', bg: '#FFFFFF', bar: '#14281B', line: '#CBD8C6', dot: '#7FC8A0', shape: '50%', ring: 'none', menu: false },
+{ title: 'Conference talk', meta: '42 slides · Edited last month', bg: '#14281B', bar: '#F5C542', line: '#3F5A48', dot: '#F4F8F1', shape: '2px', ring: 'none', menu: false }
+]
+};
+}
+}
+</script>
+</body>
+</html>

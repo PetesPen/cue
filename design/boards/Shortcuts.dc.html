@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Keyboard shortcuts</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+input{font:inherit;color:inherit}
+</style>
+</helmet>
+<div style="position:relative; width:960px; height:680px; overflow:hidden; font-family:'Instrument Sans', system-ui, sans-serif; color:#14281B; font-size:13px; background:#E8F0E4">
+
+<div style="position:absolute; left:0; top:0; right:0; height:52px; background:#FFFFFF; border-bottom:1px solid #DCE6D7"></div>
+<div style="position:absolute; left:0; top:52px; bottom:0; width:160px; background:#FFFFFF; border-right:1px solid #DCE6D7"></div>
+<div style="position:absolute; right:0; top:52px; bottom:0; width:220px; background:#FFFFFF; border-left:1px solid #DCE6D7"></div>
+<div style="position:absolute; left:220px; top:110px; width:520px; aspect-ratio:16/9; background:#FFFFFF; box-shadow:0 14px 36px rgba(20,40,27,.12)"></div>
+<div style="position:absolute; inset:0; background:rgba(20,40,27,.46)"></div>
+
+<div role="dialog" aria-label="Keyboard shortcuts" style="position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); width:840px; background:#FFFFFF; border-radius:12px; box-shadow:0 24px 64px rgba(20,40,27,.32); overflow:hidden">
+
+<div style="display:flex; align-items:center; gap:16px; padding:18px 24px 14px">
+<div style="flex:1">
+<div style="font-weight:700; font-size:18px; letter-spacing:-.01em">Keyboard shortcuts</div>
+</div>
+<div style="position:relative; width:240px">
+<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5B6F61" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position:absolute; left:10px; top:9px"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+<input type="text" aria-label="Search shortcuts" placeholder="Search shortcuts" style="width:100%; height:33px; padding:0 12px 0 31px; border:1px solid #DCE6D7; border-radius:7px; background:#F4F8F1; outline:none">
+</div>
+<button aria-label="Close" style="width:32px; height:32px; border:0; background:transparent; border-radius:6px; display:inline-flex; align-items:center; justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:0 40px; padding:6px 24px 22px; border-top:1px solid #DCE6D7">
+
+<div>
+<sc-for list="{{left}}" as="g" hint-placeholder-count="3">
+<div style="padding-top:16px">
+<div style="font-weight:600; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#5B6F61; padding-bottom:6px; border-bottom:1px solid #DCE6D7">{{g.name}}</div>
+<sc-for list="{{g.rows}}" as="r" hint-placeholder-count="4">
+<div style="display:flex; align-items:center; justify-content:space-between; height:30px">
+<span>{{r.label}}</span>
+<span style="display:inline-flex; gap:4px">
+<sc-for list="{{r.keys}}" as="k" hint-placeholder-count="2">
+<kbd style="min-width:22px; height:22px; padding:0 6px; display:inline-flex; align-items:center; justify-content:center; font-family:inherit; font-size:12px; font-weight:600; background:#F4F8F1; border:1px solid #DCE6D7; border-bottom-width:2px; border-radius:5px">{{k.k}}</kbd>
+</sc-for>
+</span>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+
+<div>
+<sc-for list="{{right}}" as="g" hint-placeholder-count="2">
+<div style="padding-top:16px">
+<div style="font-weight:600; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#5B6F61; padding-bottom:6px; border-bottom:1px solid #DCE6D7">{{g.name}}</div>
+<sc-for list="{{g.rows}}" as="r" hint-placeholder-count="6">
+<div style="display:flex; align-items:center; justify-content:space-between; height:30px">
+<span>{{r.label}}</span>
+<span style="display:inline-flex; gap:4px">
+<sc-for list="{{r.keys}}" as="k" hint-placeholder-count="2">
+<kbd style="min-width:22px; height:22px; padding:0 6px; display:inline-flex; align-items:center; justify-content:center; font-family:inherit; font-size:12px; font-weight:600; background:#F4F8F1; border:1px solid #DCE6D7; border-bottom-width:2px; border-radius:5px">{{k.k}}</kbd>
+</sc-for>
+</span>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+
+</div>
+
+<div style="display:flex; align-items:center; justify-content:space-between; padding:12px 24px; border-top:1px solid #DCE6D7; background:#F9FBF7; color:#5B6F61">
+<span>Ctrl on Windows and Linux, ⌘ on Mac. Press ? at any time to open this list.</span>
+<button style="height:34px; padding:0 16px; border:0; background:#17803F; color:#FFFFFF; border-radius:7px; font-weight:600">Done</button>
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":960,"height":680}}'>
+class Component extends DCLogic {
+renderVals() {
+const m = 'Ctrl/⌘';
+return {
+left: [
+{ name: 'Slides', rows: [
+{ label: 'New slide', keys: [{ k: m }, { k: 'M' }] },
+{ label: 'Duplicate slide', keys: [{ k: m }, { k: 'Shift' }, { k: 'D' }] },
+{ label: 'Delete slide', keys: [{ k: 'Delete' }] },
+{ label: 'Previous or next slide', keys: [{ k: '↑' }, { k: '↓' }] }
+] },
+{ name: 'Order', rows: [
+{ label: 'Bring forward', keys: [{ k: m }, { k: ']' }] },
+{ label: 'Send backward', keys: [{ k: m }, { k: '[' }] },
+{ label: 'Bring to front', keys: [{ k: m }, { k: 'Shift' }, { k: ']' }] },
+{ label: 'Send to back', keys: [{ k: m }, { k: 'Shift' }, { k: '[' }] }
+] },
+{ name: 'General', rows: [
+{ label: 'Undo', keys: [{ k: m }, { k: 'Z' }] },
+{ label: 'Redo', keys: [{ k: m }, { k: 'Shift' }, { k: 'Z' }] },
+{ label: 'Export', keys: [{ k: m }, { k: 'E' }] },
+{ label: 'Show this list', keys: [{ k: '?' }] }
+] }
+],
+right: [
+{ name: 'Elements', rows: [
+{ label: 'Text box', keys: [{ k: 'T' }] },
+{ label: 'Shape', keys: [{ k: 'S' }] },
+{ label: 'Image', keys: [{ k: 'I' }] },
+{ label: 'Duplicate', keys: [{ k: m }, { k: 'D' }] },
+{ label: 'Nudge', keys: [{ k: '←' }, { k: '↑' }, { k: '→' }, { k: '↓' }] },
+{ label: 'Nudge further', keys: [{ k: 'Shift' }, { k: 'Arrows' }] }
+] },
+{ name: 'Presenting', rows: [
+{ label: 'Start from the beginning', keys: [{ k: m }, { k: 'Enter' }] },
+{ label: 'Start from this slide', keys: [{ k: m }, { k: 'Shift' }, { k: 'Enter' }] },
+{ label: 'Next click or slide', keys: [{ k: '→' }, { k: 'Space' }] },
+{ label: 'Previous click or slide', keys: [{ k: '←' }] },
+{ label: 'Blank the screen', keys: [{ k: 'B' }] },
+{ label: 'End the show', keys: [{ k: 'Esc' }] }
+] }
+]
+};
+}
+}
+</script>
+</body>
+</html>

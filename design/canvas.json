@@ -1,0 +1,41 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-10-14T01:20:00Z" },
+  "title": "Slides App: Studio Design",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Style-Guide.dc.html": { "x": 0, "y": 0, "w": 1440, "h": 1240, "title": "Style guide: tokens and components (UX-1)", "expand": "fill" },
+    "Home.dc.html": { "x": 0, "y": 1580, "w": 1440, "h": 900, "title": "Deck library (SV-2, SV-3, TH-2)", "expand": "fill" },
+    "Main.dc.html": { "x": 0, "y": 2900, "w": 1440, "h": 900, "title": "Editor: Design tab, image selected (SL, EL-3 to EL-8, ZO, TR)", "expand": "fill" },
+    "Editor-Text.dc.html": { "x": 1520, "y": 2900, "w": 1440, "h": 900, "title": "Editor: rich text and fonts (EL-1, EL-2, TR-2)", "expand": "fill" },
+    "Editor-Animate.dc.html": { "x": 0, "y": 3920, "w": 1440, "h": 900, "title": "Editor: Animate tab (AN-1 to AN-7)", "expand": "fill" },
+    "Editor-Transition.dc.html": { "x": 1520, "y": 3920, "w": 1440, "h": 900, "title": "Editor: Transition tab (TN-1 to TN-5)", "expand": "fill" },
+    "Export-Dialog.dc.html": { "x": 0, "y": 5240, "w": 960, "h": 680, "title": "Export dialog (SV-3 to SV-6)" },
+    "Shortcuts.dc.html": { "x": 1040, "y": 5240, "w": 960, "h": 680, "title": "Keyboard shortcuts (UX-2)" },
+    "States.dc.html": { "x": 0, "y": 6040, "w": 1440, "h": 900,"title": "Messages, errors and empty states (SV-1, EL-4, PM-1, UX-5)", "expand": "fill" },
+    "Presenter.dc.html": { "x": 0, "y": 7340, "w": 1440, "h": 900, "title": "Presenter view (PM-2 to PM-7)", "expand": "fill" },
+    "Audience.dc.html": { "x": 1520, "y": 7340, "w": 1440, "h": 900, "title": "Audience window (PM-1, PM-3)", "expand": "fill" }
+  },
+  "order": [
+    "Main.dc.html",
+    "Style-Guide.dc.html",
+    "Home.dc.html",
+    "Editor-Text.dc.html",
+    "Editor-Animate.dc.html",
+    "Editor-Transition.dc.html",
+    "Export-Dialog.dc.html",
+    "Shortcuts.dc.html",
+    "States.dc.html",
+    "Presenter.dc.html",
+    "Audience.dc.html"
+  ],
+  "notes": {
+    "t1": { "x": 0, "y": -300, "text": "Foundations: tokens and components", "kind": "title1", "maxW": 1440 },
+    "t2": { "x": 0, "y": 1280, "text": "Library: your decks", "kind": "title1", "maxW": 1440 },
+    "t3": { "x": 0, "y": 2600, "text": "Editor: the four working states", "kind": "title1", "maxW": 2960 },
+    "t4": { "x": 0, "y": 4940, "text": "Dialogs, shortcuts and messages", "kind": "title1", "maxW": 2000 },
+    "t5": { "x": 0, "y": 7040, "text": "Presenting: two windows", "kind": "title1", "maxW": 2960 }
+  },
+  "designSystems": []
+}

@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Style guide</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+input{font:inherit;color:inherit}
+</style>
+</helmet>
+<div style="font-family:'Instrument Sans', system-ui, sans-serif; color:#14281B; font-size:13px; background:#F4F8F1; height:1240px; padding:32px; display:flex; flex-direction:column; gap:16px; overflow:hidden">
+
+<div style="display:flex; align-items:flex-end; justify-content:space-between; height:48px">
+<div style="display:flex; align-items:center; gap:14px">
+<span style="position:relative; width:34px; height:34px; border-radius:9px; background:#14281B; flex:none"><span style="position:absolute; right:6px; bottom:6px; width:11px; height:11px; border-radius:50%; background:#F5C542"></span></span>
+<span><span style="display:block; font-size:28px; font-weight:700; letter-spacing:-.02em; line-height:1">Slides style guide</span><span style="display:block; margin-top:4px; color:#5B6F61">Studio layout, Meadow colours. Every screen in this canvas uses only what is on this page.</span></span>
+</div>
+<span style="color:#5B6F61">Instrument Sans · 16:9 slides · light theme</span>
+</div>
+
+<section style="background:#FFFFFF; border:1px solid #DCE6D7; border-radius:10px; padding:16px 20px 18px">
+<div style="font-weight:600; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#5B6F61; margin-bottom:12px">Colour</div>
+<div style="display:grid; grid-template-columns:repeat(7, 1fr); gap:16px 14px">
+<sc-for list="{{swatches}}" as="s" hint-placeholder-count="14">
+<div>
+<div style="height:40px; border-radius:6px; border:1px solid #DCE6D7; background:{{s.hex}}"></div>
+<div style="margin-top:7px; font-weight:600; font-size:12px">{{s.name}}</div>
+<div style="font-size:12px; color:#5B6F61; font-variant-numeric:tabular-nums">{{s.hex}}</div>
+<div style="font-size:11px; color:#5B6F61; line-height:1.35; margin-top:2px">{{s.use}}</div>
+</div>
+</sc-for>
+</div>
+</section>
+
+<div style="display:grid; grid-template-columns:1.5fr 1fr 0.9fr; gap:16px; height:296px; flex:none">
+
+<section style="background:#FFFFFF; border:1px solid #DCE6D7; border-radius:10px; padding:16px 20px; overflow:hidden">
+<div style="font-weight:600; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#5B6F61; margin-bottom:8px">Type</div>
+<sc-for list="{{types}}" as="t" hint-placeholder-count="7">
+<div style="display:flex; align-items:baseline; gap:14px; padding:5px 0; border-top:1px solid #EEF3EA">
+<span style="width:112px; flex:none; font-size:12px; color:#5B6F61">{{t.name}}<span style="display:block; font-size:11px">{{t.spec}}</span></span>
+<span style="font-size:{{t.size}}; font-weight:{{t.weight}}; letter-spacing:{{t.ls}}; text-transform:{{t.tt}}; color:{{t.color}}; line-height:1.2; white-space:nowrap">{{t.sample}}</span>
+</div>
+</sc-for>
+</section>
+
+<section style="background:#FFFFFF; border:1px solid #DCE6D7; border-radius:10px; padding:16px 20px; overflow:hidden; display:flex; flex-direction:column; gap:12px">
+<div>
+<div style="font-weight:600; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#5B6F61; margin-bottom:8px">Spacing</div>
+<div style="display:flex; align-items:flex-end; gap:12px">
+<sc-for list="{{spacing}}" as="p" hint-placeholder-count="6">
+<span style="display:flex; flex-direction:column; align-items:center; gap:4px"><span style="width:{{p.px}}px; height:{{p.px}}px; background:#7FC8A0; border-radius:2px"></span><span style="font-size:11px; color:#5B6F61">{{p.px}}</span></span>
+</sc-for>
+</div>
+</div>
+<div>
+<div style="font-weight:600; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#5B6F61; margin-bottom:8px">Radius</div>
+<div style="display:flex; gap:10px">
+<sc-for list="{{radii}}" as="r" hint-placeholder-count="4">
+<span style="display:flex; flex-direction:column; align-items:center; gap:4px"><span style="width:38px; height:38px; border:2px solid #17803F; background:#DDF1E3; border-radius:{{r.px}}px"></span><span style="font-size:11px; color:#5B6F61; text-align:center; line-height:1.2">{{r.px}}<br>{{r.use}}</span></span>
+</sc-for>
+</div>
+</div>
+<div>
+<div style="font-weight:600; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#5B6F61; margin-bottom:8px">Shadow</div>
+<div style="display:flex; gap:12px">
+<sc-for list="{{shadows}}" as="h" hint-placeholder-count="3">
+<span style="display:flex; flex-direction:column; align-items:center; gap:6px"><span style="width:58px; height:34px; background:#FFFFFF; border-radius:6px; box-shadow:{{h.css}}"></span><span style="font-size:11px; color:#5B6F61">{{h.name}}</span></span>
+</sc-for>
+</div>
+</div>
+</section>
+
+<section style="background:#FFFFFF; border:1px solid #DCE6D7; border-radius:10px; padding:16px 20px; overflow:hidden">
+<div style="font-weight:600; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#5B6F61; margin-bottom:10px">Editor layout</div>
+<div style="position:relative; height:210px; border:1px solid #14281B; border-radius:6px; overflow:hidden; background:#E8F0E4">
+<div style="position:absolute; left:0; top:0; right:0; height:20px; background:#FFFFFF; border-bottom:1px solid #DCE6D7; font-size:10px; line-height:20px; padding-left:8px; color:#5B6F61">Top bar · 52</div>
+<div style="position:absolute; left:0; top:20px; bottom:0; width:56px; background:#FFFFFF; border-right:1px solid #DCE6D7; font-size:10px; padding:8px 4px; color:#5B6F61; line-height:1.3">Slides<br>208</div>
+<div style="position:absolute; right:0; top:20px; bottom:0; width:74px; background:#FFFFFF; border-left:1px solid #DCE6D7; font-size:10px; padding:8px 6px; color:#5B6F61; line-height:1.3">Inspector<br>296</div>
+<div style="position:absolute; left:80px; top:36px; right:98px; height:84px; background:#FFFFFF; border:1px dashed #17803F; font-size:10px; display:flex; align-items:center; justify-content:center; color:#0F5C2C; font-weight:600">16:9 slide</div>
+<div style="position:absolute; left:56px; right:74px; bottom:0; height:34px; background:#FFFFFF; border-top:1px solid #DCE6D7; font-size:10px; padding:4px 8px; color:#5B6F61">Notes · 124</div>
+</div>
+</section>
+
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; flex:1; min-height:0">
+
+<section style="background:#FFFFFF; border:1px solid #DCE6D7; border-radius:10px; padding:16px 20px; overflow:hidden; display:flex; flex-direction:column; gap:14px">
+<div style="font-weight:600; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#5B6F61">Buttons, tabs, segmented</div>
+<div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center">
+<button style="height:34px; padding:0 14px; border:0; background:#17803F; color:#FFFFFF; border-radius:7px; font-weight:600">Present</button>
+<button style="height:34px; padding:0 12px; border:1px solid #DCE6D7; background:#FFFFFF; border-radius:7px; font-weight:500">Export</button>
+<button style="height:34px; padding:0 12px; border:1px dashed #A9BDA4; background:transparent; border-radius:7px; font-weight:500">New slide</button>
+<button style="height:34px; padding:0 12px; border:1px solid #B3261E; background:#FFFFFF; color:#B3261E; border-radius:7px; font-weight:600">End show</button>
+<button style="height:34px; padding:0 14px; border:0; background:#B3261E; color:#FFFFFF; border-radius:7px; font-weight:600">Delete deck</button>
+<button disabled style="height:34px; padding:0 14px; border:0; background:#DCE6D7; color:#8EA194; border-radius:7px; font-weight:600; cursor:not-allowed">Disabled</button>
+</div>
+<div style="display:flex; align-items:center; gap:2px">
+<button aria-label="Undo" style="width:32px; height:32px; border:0; background:transparent; border-radius:6px; display:inline-flex; align-items:center; justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
+<button style="height:32px; padding:0 10px; border:0; background:#E8F0E4; border-radius:6px; display:inline-flex; align-items:center; gap:6px; font-weight:500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg>Hover</button>
+<button style="height:32px; padding:0 10px; border:0; background:#DDF1E3; color:#0F5C2C; border-radius:6px; display:inline-flex; align-items:center; gap:6px; font-weight:600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg>Active tool</button>
+<span style="margin-left:8px; font-size:12px; color:#5B6F61">Toolbar items</span>
+</div>
+<div style="display:flex; border-bottom:1px solid #DCE6D7">
+<button style="flex:1; height:40px; border:0; border-bottom:2px solid #17803F; background:transparent; font-weight:600">Design</button>
+<button style="flex:1; height:40px; border:0; border-bottom:2px solid transparent; background:transparent; color:#5B6F61; font-weight:500">Animate</button>
+<button style="flex:1; height:40px; border:0; border-bottom:2px solid transparent; background:transparent; color:#5B6F61; font-weight:500">Transition</button>
+</div>
+<div style="display:flex; border:1px solid #DCE6D7; border-radius:6px; overflow:hidden">
+<button style="flex:1; height:30px; border:0; background:#DDF1E3; color:#0F5C2C; font-size:12px; font-weight:700">Front</button>
+<button style="flex:1; height:30px; border:0; border-left:1px solid #DCE6D7; background:transparent; font-size:12px; font-weight:500">Forward</button>
+<button style="flex:1; height:30px; border:0; border-left:1px solid #DCE6D7; background:transparent; font-size:12px; font-weight:500">Backward</button>
+<button style="flex:1; height:30px; border:0; border-left:1px solid #DCE6D7; background:transparent; font-size:12px; font-weight:500">Back</button>
+</div>
+<div style="margin-top:auto; font-size:12px; color:#5B6F61; line-height:1.45">Primary green is for the one main action on screen. Selected state is always tint background with tint text. Focus is a 2 px green ring with a 2 px offset.</div>
+</section>
+
+<section style="background:#FFFFFF; border:1px solid #DCE6D7; border-radius:10px; padding:16px 20px; overflow:hidden; display:flex; flex-direction:column; gap:14px">
+<div style="font-weight:600; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#5B6F61">Fields and controls</div>
+<div>
+<label for="sg-alt" style="display:block; color:#5B6F61; margin-bottom:5px">Alt text</label>
+<input id="sg-alt" type="text" value="Team at the autumn event" style="width:100%; height:34px; padding:0 10px; border:1px solid #DCE6D7; border-radius:6px; background:#FFFFFF; outline:none">
+</div>
+<div>
+<label for="sg-focus" style="display:block; color:#5B6F61; margin-bottom:5px">Focused</label>
+<input id="sg-focus" type="text" value="Autumn Launch" style="width:100%; height:34px; padding:0 10px; border:1px solid #17803F; border-radius:6px; background:#FFFFFF; outline:2px solid #17803F; outline-offset:2px">
+</div>
+<div style="display:flex; gap:10px">
+<div style="flex:1"><label for="sg-x" style="display:block; color:#5B6F61; margin-bottom:5px">X</label><input id="sg-x" type="text" value="412" style="width:100%; height:32px; padding:0 10px; border:1px solid #DCE6D7; border-radius:6px; outline:none; font-variant-numeric:tabular-nums"></div>
+<div style="flex:1"><label for="sg-y" style="display:block; color:#5B6F61; margin-bottom:5px">Y</label><input id="sg-y" type="text" value="260" style="width:100%; height:32px; padding:0 10px; border:1px solid #DCE6D7; border-radius:6px; outline:none; font-variant-numeric:tabular-nums"></div>
+<div style="flex:1.4"><label for="sg-f" style="display:block; color:#5B6F61; margin-bottom:5px">Font</label><button id="sg-f" style="width:100%; height:32px; padding:0 10px; border:1px solid #DCE6D7; background:#FFFFFF; border-radius:6px; display:flex; align-items:center; justify-content:space-between; font-weight:500">Figtree<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div>
+</div>
+<div>
+<div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px"><label for="sg-op" style="color:#5B6F61">Opacity</label><span style="font-weight:600">60%</span></div>
+<input id="sg-op" type="range" min="0" max="100" value="60" style="width:100%; accent-color:#17803F; margin:0">
+</div>
+<div style="display:flex; gap:20px; align-items:center">
+<label for="sg-c1" style="display:inline-flex; align-items:center; gap:8px"><input id="sg-c1" type="checkbox" checked style="margin:0; accent-color:#17803F; width:15px; height:15px">Include notes</label>
+<label for="sg-r1" style="display:inline-flex; align-items:center; gap:8px"><input id="sg-r1" type="radio" name="sg" checked style="margin:0; accent-color:#17803F; width:15px; height:15px">Selected</label>
+<label for="sg-r2" style="display:inline-flex; align-items:center; gap:8px"><input id="sg-r2" type="radio" name="sg" style="margin:0; accent-color:#17803F; width:15px; height:15px">Option</label>
+</div>
+<div style="display:flex; align-items:center; gap:10px">
+<div style="flex:1; height:36px; display:flex; align-items:center; gap:10px; padding:0 8px 0 12px; background:#14281B; color:#F4F8F1; border-radius:8px"><span style="flex:1; font-weight:500">Slide 4 deleted</span><button style="height:26px; padding:0 8px; border:0; background:transparent; color:#F5C542; font-weight:700">Undo</button></div>
+<span style="font-size:12px; color:#5B6F61">Toast</span>
+</div>
+<div style="margin-top:auto; font-size:12px; color:#5B6F61; line-height:1.45">Every icon-only button needs an aria-label. Inputs always have a visible label or an aria-label.</div>
+</section>
+
+<section style="background:#FFFFFF; border:1px solid #DCE6D7; border-radius:10px; padding:16px 20px; overflow:hidden; display:flex; flex-direction:column; gap:14px">
+<div style="font-weight:600; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#5B6F61">Slide-specific parts</div>
+
+<div style="display:flex; gap:12px">
+<sc-for list="{{thumbStates}}" as="t" hint-placeholder-count="4">
+<div style="flex:1">
+<div style="position:relative; aspect-ratio:16/9; border-radius:4px; overflow:hidden; border:1px solid #DCE6D7; background:#FFFFFF; outline:{{t.ring}}; outline-offset:2px">
+<div style="position:absolute; left:8%; top:16%; width:46%; height:13%; border-radius:2px; background:#14281B"></div>
+<div style="position:absolute; left:8%; top:40%; width:34%; height:5%; border-radius:2px; background:#CBD8C6"></div>
+<div style="position:absolute; right:8%; bottom:14%; width:20%; aspect-ratio:1; border-radius:50%; background:#7FC8A0"></div>
+<sc-if value="{{t.motion}}" hint-placeholder-val="{{false}}"><span style="position:absolute; right:4px; top:4px; width:10px; height:10px; border-radius:50%; background:#F5C542"></span></sc-if>
+<sc-if value="{{t.trans}}" hint-placeholder-val="{{false}}"><span style="position:absolute; left:4px; bottom:4px; width:14px; height:14px; border-radius:3px; background:rgba(255,255,255,.92); border:1px solid #DCE6D7; display:inline-flex; align-items:center; justify-content:center"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#17803F" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></sc-if>
+</div>
+<div style="margin-top:4px; font-size:11px; color:#5B6F61; text-align:center">{{t.label}}</div>
+</div>
+</sc-for>
+</div>
+
+<div style="display:flex; align-items:center; gap:14px">
+<span style="width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; border-radius:50%; background:#F5C542; font-size:11px; font-weight:700">1</span>
+<span style="width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; border-radius:50%; background:#17803F; color:#FFFFFF; font-size:11px; font-weight:700">2</span>
+<span style="height:20px; padding:0 8px; display:inline-flex; align-items:center; border-radius:10px; background:#F5C542; font-size:11px; font-weight:700">Coming later</span>
+<span style="height:20px; padding:0 8px; display:inline-flex; align-items:center; border-radius:4px; background:#17803F; color:#FFFFFF; font-size:11px; font-weight:600">Ends here · drag</span>
+</div>
+<div style="font-size:12px; color:#5B6F61; margin-top:-8px">Step badges (yellow normal, green selected), chips, canvas label.</div>
+
+<div style="display:flex; flex-direction:column; gap:2px">
+<div style="display:flex; align-items:center; gap:8px; height:32px; padding:0 8px; border-radius:6px; background:transparent"><span style="width:14px; height:14px; border-radius:3px; background:#14281B"></span><span style="flex:1; font-weight:500">Circle</span><span style="color:#5B6F61; font-size:12px">Default</span></div>
+<div style="display:flex; align-items:center; gap:8px; height:32px; padding:0 8px; border-radius:6px; background:#DDF1E3"><span style="width:14px; height:14px; border-radius:3px; background:#7FC8A0"></span><span style="flex:1; font-weight:600; color:#0F5C2C">Image</span><span style="color:#0F5C2C; font-size:12px">Selected</span></div>
+<div style="display:flex; align-items:center; gap:8px; height:32px; padding:0 8px; border-radius:6px; background:transparent; opacity:.5"><span style="width:14px; height:14px; border-radius:3px; background:#F5C542"></span><span style="flex:1; font-weight:500; text-decoration:line-through">Rectangle</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18M10.6 6.1A9.8 9.8 0 0 1 12 6c5 0 8.5 4 10 6-.7 1-1.8 2.3-3.2 3.4M6.3 6.4C4.4 7.7 3 9.5 2 12c1.5 2 5 6 10 6 1.5 0 2.8-.3 4-.8"/></svg></div>
+</div>
+<div style="font-size:12px; color:#5B6F61; margin-top:-8px">Layer rows: default, selected, hidden.</div>
+
+<div style="display:flex; align-items:center; gap:18px">
+<span style="position:relative; width:84px; height:44px; background:#7FC8A0; opacity:.9; outline:1.5px solid #17803F; outline-offset:3px; flex:none">
+<span style="position:absolute; left:-8px; top:-8px; width:7px; height:7px; background:#fff; border:1.5px solid #17803F"></span>
+<span style="position:absolute; right:-8px; top:-8px; width:7px; height:7px; background:#fff; border:1.5px solid #17803F"></span>
+<span style="position:absolute; left:-8px; bottom:-8px; width:7px; height:7px; background:#fff; border:1.5px solid #17803F"></span>
+<span style="position:absolute; right:-8px; bottom:-8px; width:7px; height:7px; background:#fff; border:1.5px solid #17803F"></span>
+</span>
+<span style="font-size:12px; color:#5B6F61; line-height:1.45">Selection: 1.5 px green outline, white square handles. Motion path is a dashed 1 px green line with a ghost end shape.</span>
+</div>
+</section>
+
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+renderVals() {
+return {
+swatches: [
+{ name: 'Forest', hex: '#14281B', use: 'Text, dark slides, logo' },
+{ name: 'Accent green', hex: '#17803F', use: 'Primary action, selection, focus' },
+{ name: 'Accent tint', hex: '#DDF1E3', use: 'Selected rows and controls' },
+{ name: 'Tint text', hex: '#0F5C2C', use: 'Text on accent tint' },
+{ name: 'Yellow', hex: '#F5C542', use: 'Step badges, motion markers' },
+{ name: 'Mint', hex: '#7FC8A0', use: 'Image placeholders, accents' },
+{ name: 'Sage well', hex: '#E8F0E4', use: 'Canvas behind the slide' },
+{ name: 'App background', hex: '#F4F8F1', use: 'Page background, hover' },
+{ name: 'Hairline', hex: '#DCE6D7', use: 'Borders and dividers' },
+{ name: 'Muted', hex: '#5B6F61', use: 'Labels, secondary text' },
+{ name: 'White', hex: '#FFFFFF', use: 'Panels, slides, dialogs' },
+{ name: 'Danger', hex: '#B3261E', use: 'Delete and error text' },
+{ name: 'Danger tint', hex: '#FBE9E7', use: 'Error banners' },
+{ name: 'Warning tint', hex: '#FFF6D6', use: 'Warning banners' }
+],
+types: [
+{ name: 'Page title', spec: '28 / 700', size: '28px', weight: 700, ls: '-.02em', tt: 'none', color: '#14281B', sample: 'Your decks' },
+{ name: 'Dialog title', spec: '18 / 700', size: '18px', weight: 700, ls: '-.01em', tt: 'none', color: '#14281B', sample: 'Export deck' },
+{ name: 'Panel heading', spec: '14 / 600', size: '14px', weight: 600, ls: '0', tt: 'none', color: '#14281B', sample: 'Position and size' },
+{ name: 'Body', spec: '13 / 400–500', size: '13px', weight: 500, ls: '0', tt: 'none', color: '#14281B', sample: 'Open with the customer problem, not the product.' },
+{ name: 'Section label', spec: '11 / 600, caps', size: '11px', weight: 600, ls: '.08em', tt: 'uppercase', color: '#5B6F61', sample: 'Speaker notes' },
+{ name: 'Caption', spec: '12 / 400', size: '12px', weight: 400, ls: '0', tt: 'none', color: '#5B6F61', sample: 'Saved two minutes ago' },
+{ name: 'Presenter notes', spec: '22 / 400', size: '22px', weight: 400, ls: '0', tt: 'none', color: '#14281B', sample: 'Say the Q2 number out loud.' }
+],
+spacing: [{ px: 4 }, { px: 8 }, { px: 12 }, { px: 16 }, { px: 24 }, { px: 32 }],
+radii: [
+{ px: 4, use: 'thumbs' },
+{ px: 6, use: 'fields' },
+{ px: 8, use: 'cards' },
+{ px: 12, use: 'dialogs' }
+],
+shadows: [
+{ name: 'Slide', css: '0 1px 2px rgba(20,40,27,.08), 0 14px 36px rgba(20,40,27,.12)' },
+{ name: 'Popover', css: '0 8px 24px rgba(20,40,27,.14)' },
+{ name: 'Dialog', css: '0 24px 64px rgba(20,40,27,.32)' }
+],
+thumbStates: [
+{ label: 'Default', ring: 'none', motion: false, trans: false },
+{ label: 'Selected', ring: '2px solid #17803F', motion: false, trans: false },
+{ label: 'Animated', ring: 'none', motion: true, trans: false },
+{ label: 'Transition', ring: 'none', motion: false, trans: true }
+]
+};
+}
+}
+</script>
+</body>
+</html>
