@@ -20,7 +20,7 @@ Story IDs (SL-1, EL-3, AN-5 ...) are the vocabulary: use them in branch names, c
 
 ## Current state
 
-Sprint 0 is in planning (2026-10-14); the plan is waiting for Peter's approval and no code exists yet. No gate passed. Work sprint by sprint, in order. Use `/start-sprint N` to begin a sprint and `/finish-sprint N` to close it. Keep this section current: which sprint is active and which gate was last passed.
+Sprint 0 is in progress (started 2026-10-14, plan approved by Peter, repo at `C:\Users\peter\Projects\cue`). Done: F1, the scaffold (Vite, React, strict TypeScript, ESLint with the layering and accessibility rules, Prettier, module folders). Next: F2, test tooling. No gate passed. Work sprint by sprint, in order. Use `/start-sprint N` to begin a sprint and `/finish-sprint N` to close it. Keep this section current: which sprint is active and which gate was last passed.
 
 ## Stack (proposed; confirmed or changed by the sprint 0 spikes, then recorded in `docs/decisions.md`)
 
@@ -49,19 +49,22 @@ Module boundaries, with dependencies pointing one way only (an import-lint rule 
 
 `editor` and `present` may use `render` and `model`; `model` uses nothing. Keep it that way. No `any`, no unchecked casts at module boundaries.
 
+The exact rule, enforced by ESLint in `eslint.config.js`: `model` imports nothing; `render` imports `model`; `storage` imports `model` and `render`; `editor` and `present` import `model`, `render` and `storage`, and never each other. `model` also may not touch the DOM or React. `src/main.tsx` and `src/App.tsx` sit above the modules. Import across modules with the `@/` alias (for example `@/model`).
+
 Out of scope for v1 (do not build): accounts, cloud storage, sharing links, collaboration; `.pptx` import or export; audio, video, charts, tables, comments; aspect ratios other than 16:9; editing on a phone; a phone as a remote control. (The installable offline editor, a PWA, is in scope as UX-7.)
 
 ## Commands
 
-Defined in sprint 0. Fill this list in with the real scripts and keep it accurate. Expected:
+Sprint 0 fills this list in. Scripts that exist today are marked "now"; the rest are expected and arrive as noted. Keep it accurate.
 
-- `npm run dev`: dev server
-- `npm run typecheck`, `npm run lint`: static checks (lint includes accessibility and import-layering rules)
+- `npm run dev`: dev server (now)
+- `npm run typecheck`, `npm run lint`: static checks; lint includes accessibility and import-layering rules (now)
+- `npm run format`, `npm run format:check`: Prettier on code and config; docs, design and Markdown are not formatted (now)
 - `npm test`: unit, component and integration tests (Vitest)
 - `npm run e2e`: Playwright end-to-end on Chromium, Firefox and WebKit
 - `npm run e2e:visual`: visual regression, Chromium only, in the pinned container
 - `npm run perf`: performance budgets (60 fps drags with 50 elements, 2 s open for 50 slides, 10 s export for 30 slides)
-- `npm run build`: production build with the bundle-size check
+- `npm run build`: typecheck and production build (now); the bundle-size check is added with CI (F5)
 
 ## Testing rules
 

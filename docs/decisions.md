@@ -30,6 +30,8 @@ Keep this file current. One line per decision, newest at the bottom of each tabl
 
 TypeScript strict, React, Vite, Immer patches for commands, TipTap for rich text, Web Animations API, Dexie over IndexedDB, BroadcastChannel, zip for `.slides`, Vitest, fast-check, Playwright, axe-core. Fallbacks for each risky part are in the spike table in `docs/development-plan.md`.
 
+Pinned in F1 (2026-10-14), from the npm registry that day: React 19.3, Vite 8.3, `@vitejs/plugin-react` 6.1, Prettier 3.9, TypeScript **6.0.3** and ESLint **9.39**. Why not newer: TypeScript 7.0 is out, but `typescript-eslint` only supports TypeScript below 6.1; ESLint 10 is out, but `eslint-plugin-jsx-a11y` does not declare support for it. npm marks ESLint 9.39 as no longer supported, which matters little for a dev-only tool. Revisit both at Gate 1 and again whenever those two plugins publish support. Node 20.19 or newer; `.nvmrc` says 24.
+
 ## Log
 
 | Date | Decision | Why | Decided by |
@@ -39,3 +41,4 @@ TypeScript strict, React, Vite, Immer patches for commands, TipTap for rich text
 | 2026-10-14 | Team is Claude; stack is React; hosting is Netlify; phone remote out of scope for now | Peter's answers to open decisions 1, 2, 3 and 5 | Peter |
 | 2026-10-14 | PWA is in v1 as story UX-7 (sprint 9); spike SP-6 added to sprint 0 | Peter: "yes please". Totals now 57 stories, 38 Must, 212 days. Sprint 0 is about 16.5 days, and the visual-container pinning moves to sprint 1 if it runs behind | Peter |
 | 2026-10-14 | Sprint 0 plan approved. Repo moves out of OneDrive to `C:\Users\peter\Projects\cue`; commits use peter.is.brainy@gmail.com | `node_modules` and `.git` do not mix with OneDrive sync | Peter |
+| 2026-10-14 | Layering rule spelled out: `model` imports nothing; `render` imports `model`; `storage` imports `model`, `render`; `editor` and `present` import `model`, `render`, `storage`, never each other | `CLAUDE.md` said editor and present may use render and model, but both must also reach storage to open and save decks. This is my reading of "one way only"; Peter can change it | Claude |
