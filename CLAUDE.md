@@ -101,7 +101,8 @@ Sprint 0 fills this list in. Scripts that exist today are marked "now"; the rest
 - Trunk-based: short branches (`sl-1-add-slide`) merged to `main` within two days. Every change is a pull request with a preview link. `main` is always releasable and deploys automatically.
 - Commit messages start with the story ID: `SL-1: add slide command and shortcut`. Use `chore:` for tooling and `spike:` for spikes.
 - Pipeline: PR checks (install, typecheck, lint, unit and component tests, build, bundle-size check) in parallel with end-to-end, visual and accessibility jobs; deploy a preview and post the link; on merge repeat and deploy; nightly performance suite, full browser matrix including Edge, dependency audit; on a release tag run the manual checklist.
-- Do not push, deploy or create a remote repository unless Peter asks. Never commit secrets.
+- Remote: `origin` is https://github.com/PetesPen/cue (public). Peter gave standing permission on 2026-10-14 to push after each piece of work, with CI as the check. During sprint 0 push straight to `main`; once Netlify is linked and UI stories start (sprint 1), switch to short branches and pull requests with preview links. Still ask first before: force-pushing or rewriting pushed history, deleting remote branches, deploying anywhere other than Netlify, creating other remotes or repositories, or changing the repository's settings.
+- Never commit secrets. The repository is public: nothing private goes in it.
 
 ## How to work
 
