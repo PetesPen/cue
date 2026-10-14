@@ -1,0 +1,18 @@
+/* SP-2 spike styles (throwaway). Shared text styling for every rendering of the text box. */
+html, body { margin: 0; background: #e8f0e4; }
+.slide { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; background: #fff; }
+.text-box { box-sizing: border-box; padding: 0; font-family: 'Instrument Sans'; font-size: 36px; line-height: 1.2; color: #14281b; }
+.text-box p { margin: 0 0 0.5em; }
+.text-box ul, .text-box ol { margin: 0 0 0.5em; padding-left: 1.5em; }
+
+/* The contract a static renderer must follow: what ProseMirror (and so the editor) adds to the text.
+   Without these, wrapping differs. Taken from the CSS TipTap injects. */
+.static-matched {
+  white-space: break-spaces;
+  word-wrap: break-word;
+  font-variant-ligatures: none;
+  font-feature-settings: 'liga' 0;
+}
+/* The "naive" renderer: plain browser defaults. */
+.static-naive {
+}

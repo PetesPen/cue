@@ -4,12 +4,18 @@ import { defineConfig, devices } from '@playwright/test';
 // Projects ending in "-blocker" switch the browser's real popup blocker back on, which Playwright
 // disables by default. "chrome" and "edge" drive the browsers installed on this PC.
 const PORT = '4200';
+// Choose the spike with the SPIKE environment variable (default sp-1).
+const SPIKE = process.env.SPIKE ?? 'sp-1';
+const serve =
+  SPIKE === 'sp-2'
+    ? `node spikes/sp-2/build.mjs && node spikes/serve.mjs spikes/sp-2/dist ${PORT}`
+    : `node spikes/serve.mjs spikes/${SPIKE} ${PORT}`;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 const popupBlockerOn = { ignoreDefaultArgs: ['--disable-popup-blocking'] };
 
 export default defineConfig({
   testDir: '.',
-  testMatch: '**/*.spec.ts',
+  testMatch: `**/${SPIKE}/*.spec.ts`,
   fullyParallel: false,
   workers: 1,
   timeout: 90_000,
@@ -42,7 +48,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `node spikes/serve.mjs spikes/sp-1 ${PORT}`,
+    command: serve,
     cwd: '..',
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
