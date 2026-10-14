@@ -24,10 +24,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # SP-1 ran at commit 638ce97 and SP-2 at 58c659a; both are finished. Add new spikes here.
-          - { spike: sp-3, project: chromium, browser: chromium }
-          - { spike: sp-3, project: firefox, browser: firefox }
-          - { spike: sp-3, project: webkit, browser: webkit }
+          # SP-1, SP-2 and SP-3 are finished (commits 638ce97, 58c659a, 9492ff7). Add new spikes here.
+          - { spike: sp-4, project: chromium, browser: chromium }
+          - { spike: sp-4, project: firefox, browser: firefox }
+          - { spike: sp-4, project: webkit, browser: webkit }
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0

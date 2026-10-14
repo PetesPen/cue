@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>SP-4 motion (spike)</title>
+    <style>
+      html, body { margin: 0; background: #e8f0e4; font: 14px system-ui, sans-serif; color: #14281b; }
+      #controls { position: fixed; right: 12px; top: 12px; z-index: 10; width: 360px; background: #fff; border: 1px solid #dce6d7; padding: 12px; border-radius: 8px; }
+      #controls button { font: inherit; margin: 0 6px 6px 0; padding: 6px 10px; cursor: pointer; }
+      #out { white-space: pre-wrap; font: 12px ui-monospace, monospace; max-height: 50vh; overflow: auto; }
+      #stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; background: #fff; overflow: hidden; }
+      .slide { position: absolute; inset: 0; background: #fff; }
+      .el { position: absolute; box-sizing: border-box; overflow: hidden; will-change: auto; }
+    </style>
+  </head>
+  <body>
+    <div id="stage"></div>
+    <div id="controls">
+      <strong>SP-4 motion</strong> (50 elements per slide)
+      <div>
+        <button data-run="elements50-transform">50 elements: transform</button>
+        <button data-run="elements50-layout">50 elements: left/top (contrast)</button>
+        <button data-run="transition-fade">Transition: fade</button>
+        <button data-run="transition-push">Transition: push</button>
+        <button data-run="transition-zoom">Transition: zoom</button>
+        <button data-run="step-back">Forward 3 then back 3</button>
+      </div>
+      <div id="out">Press a button. Frame intervals are in milliseconds; 16.7 is one frame at 60 Hz.</div>
+    </div>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
