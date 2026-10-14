@@ -1,0 +1,6 @@
+{
+  "image": "mcr.microsoft.com/playwright",
+  "tag": "v1.64.0-noble",
+  "digest": "sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f",
+  "note": "The one container visual baselines are made and checked in (CLAUDE.md, testing rules). The tag must match the @playwright/test version; tests/visual-container.test.ts checks that, and that CI and the docker script use this exact image. Change all of it together, in a reviewed pull request, with new baselines."
+}

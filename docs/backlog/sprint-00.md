@@ -30,7 +30,7 @@ No user stories this sprint. Deliver: Spikes SP-1 to SP-6, app shell, CI pipelin
 - [x] Design tokens from `design/tokens.css` wired in; token contrast unit test (4.5:1) (F3; `tests/tokens.test.ts` also keeps `tokens.css` and `tokens.json` in step)
 - [x] App shell matching the Studio layout (top bar 52px, left rail 208px, inspector 296px, notes strip 124px) with empty panels (F4; sizes measured in `e2e/layout.spec.ts`, axe clean, inspector tabs work with the keyboard)
 - [x] Bundle size budget recorded (F5: 300 KB JS and 30 KB CSS gzipped on first load, enforced by `npm run build`; baseline 67 KB and 1.9 KB). Fonts part done in F3: 11 open-licence WOFF2 files (374 KB, Latin subset) in `src/fonts`, all seven families confirmed SIL OFL 1.1, checked by `tests/fonts.test.ts`
-- [ ] Fixture deck "Autumn Launch" planned (12 slides, see `design/screenshots/Main.png` and `Presenter.png`) and the visual-regression container pinned
+- [x] Fixture deck "Autumn Launch" planned (`docs/fixtures/autumn-launch.md`: 12 slides and slide 3's geometry and clicks read from the boards) and the visual-regression container pinned (F6: `config/visual.json`, digest-pinned in CI, a guard that refuses to run elsewhere, a consistency test). No baselines yet: the first screenshot tests come in sprint 1; decision 13 asks how baselines are made, since Docker is not installed here.
 - [ ] `CLAUDE.md` "Commands" section filled in with the real scripts
 - [ ] `docs/decisions.md` updated: stack confirmed or changed after the spikes (Gate 1)
 

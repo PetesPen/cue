@@ -4,9 +4,11 @@ const PORT = '4173';
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 
 // End-to-end tests run against the production build, on the three engines CLAUDE.md requires.
-// Visual regression (Chromium only, pinned container) is added in F6.
+// Visual regression (Chromium only, pinned container) has its own config: playwright.visual.config.ts.
 export default defineConfig({
   testDir: 'e2e',
+  // Visual tests run in the pinned container with their own config (playwright.visual.config.ts).
+  testIgnore: '**/visual/**',
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
