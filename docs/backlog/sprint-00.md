@@ -50,6 +50,7 @@ Each spike ends with a short written finding in `docs/spikes/SP-N.md`: what we t
 - Question: Does TipTap text with mixed fonts, sizes and colour alpha wrap identically in the editor and in the static renderer?
 - Stories at stake: EL-1, EL-2, SV-5
 - Fallback if it fails: Render presentation and export text through the same TipTap schema, and strip unsupported formatting on paste
+- **Finding (2026-10-14, `docs/spikes/SP-2.md`):** go. A small static renderer that follows four rules matches the editor to 0.02 px on 1,013 measured lines; without the rules 44 of 64 blocks wrap differently. Same line breaks in Chrome, Edge, Firefox and WebKit on Windows and Linux; Linux Chromium needs `text-rendering: geometricPrecision`. Scale and screen density do not change wraps. TipTap costs about 121 KB gzipped, so load it only when text editing starts. Not covered: pixel comparison, real macOS, Safari, typing and paste.
 
 ### SP-3 Single-file export
 
