@@ -29,7 +29,6 @@ Acceptance criteria:
 - [ ] Layout: thumbnail sidebar on the left, canvas in the centre, and a context-sensitive format panel on the right that shows only what applies to the selection.
 - [ ] A slim top toolbar holds the core actions; everything else lives in menus or the right-click menu.
 - [ ] A restrained palette, generous spacing, one typeface for the interface, and subtle motion.
-- [ ] Light and dark interface modes follow the system setting; the slide itself is never affected.
 
 Design: [`Style-Guide`](../../design/screenshots/Style-Guide.png) ([source](../../design/boards/Style-Guide.dc.html))
 
