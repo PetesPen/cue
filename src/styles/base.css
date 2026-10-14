@@ -1,0 +1,27 @@
+/* Base styles. Values come from design/tokens.css only; do not add new ones here. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font: var(--type-body);
+  color: var(--color-forest);
+  background: var(--color-app-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Style guide: focus is a 2 px green ring with a 2 px offset. The transparent outline keeps a
+   visible ring in forced-colors (high contrast) mode, where box-shadow is removed. */
+:focus-visible {
+  outline: 2px solid transparent;
+  box-shadow: var(--focus-ring);
+}

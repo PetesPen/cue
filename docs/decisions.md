@@ -13,6 +13,13 @@ Keep this file current. One line per decision, newest at the bottom of each tabl
 | 5 | Phone as a remote control | The plan assumes it is out of v1. | Settled: out of scope for now (2026-10-14) |
 | 6 | Installable offline editor (PWA) | The plan assumes it is out of v1; exported HTML already works offline. | Settled: in v1 (2026-10-14). New story UX-7 (priority Must is proposed; Peter can change it), planned in sprint 9, with spike SP-6 in sprint 0 |
 
+## Open (found during the build)
+
+| # | Decision | Notes | Status |
+|---|---|---|---|
+| 7 | Italic for fonts that have none | Bricolage Grotesque, Space Grotesk and Caveat have no italic design. If a user presses italic, the browser slants the upright letters itself, and that slant can differ between browsers, which puts the one-pixel match with the HTML export (SV-5) at risk. Options: hide the italic button for those three fonts (my recommendation), or accept the difference. Needed before sprint 3 (EL-2) | Open |
+| 8 | Languages beyond Western European | Only the Latin subset of each font is bundled (English and Western European text, euro sign and common punctuation). Characters outside it, such as Polish, Czech, Vietnamese, Greek or Cyrillic, fall back to the computer's own font, so they would look different on another machine. Adding Latin Extended costs roughly 30 to 50 KB per file. Needed before sprint 3 (EL-2) | Open (assumed Latin only) |
+
 ## Settled (from the user stories)
 
 - Storage is local only: browser storage, no accounts, no sharing links.
@@ -35,6 +42,8 @@ Pinned in F1 (2026-10-14), from the npm registry that day: React 19.3, Vite 8.3,
 Test tooling pinned in F2 (2026-10-14): Vitest 5.0 with `@vitest/browser-playwright` (component tests in real Chromium) and `vitest-browser-react` 2.3, fast-check 4.10, fake-indexeddb 6.2, Playwright 1.64 and `@axe-core/playwright` 4.13. Playwright runs against `vite preview` of the production build.
 
 Known local problem: on Peter's Windows PC, Playwright's Firefox 157 will not start. Windows reports a side-by-side configuration error ("dependent assembly mozglue could not be found"), even though `mozglue.dll` is present and a clean reinstall did not help. Chromium and WebKit run fine, and the Visual C++ 2022 runtime (14.51) is installed. A repair of the Visual C++ redistributable is the likely fix and needs admin rights, so it is Peter's call. Firefox runs in CI on Linux. Until then Firefox is not checked on this machine, and real Firefox on Windows stays a manual check.
+
+Fonts confirmed in F3 (2026-10-14): all seven families (Instrument Sans, Figtree, Bricolage Grotesque, DM Serif Display, Space Grotesk, JetBrains Mono, Caveat) are under the SIL Open Font License 1.1; the licence text and copyright of each was read from its Fontsource 5.3.0 package and is kept next to the files in `src/fonts/<family>/OFL.txt`. DM Serif Display reserves the name "Source" (Adobe), which only restricts modified versions using that name. The files are used unmodified. Two duties for later sprints: the licence text of every embedded family must travel inside a `.slides` file and a standalone HTML export (SV-3, SV-4), and the fonts may not be sold on their own. Source, versions and SHA-256 of every file are in `src/fonts/README.md`.
 
 ## Log
 

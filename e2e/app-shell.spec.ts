@@ -20,6 +20,27 @@ test.describe('Given a first visit to the app', () => {
     expect(errors).toEqual([]);
   });
 
+  test('When it loads, Then only the Instrument Sans UI font is fetched, from the app itself', async ({
+    page,
+  }) => {
+    const fontRequests: string[] = [];
+    page.on('request', (request) => {
+      if (request.resourceType() === 'font') fontRequests.push(request.url());
+    });
+
+    await page.goto('/');
+    const loaded = await page.evaluate(async () => {
+      await document.fonts.ready;
+      return [...document.fonts].filter((face) => face.status === 'loaded').map((f) => f.family);
+    });
+
+    expect(new Set(loaded.map((family) => family.replaceAll('"', '')))).toEqual(
+      new Set(['Instrument Sans']),
+    );
+    expect(fontRequests.length).toBeGreaterThan(0);
+    for (const url of fontRequests) expect(new URL(url).hostname).toBe('127.0.0.1');
+  });
+
   test('When it loads, Then axe finds no accessibility violations', async ({ page }) => {
     await page.goto('/');
 

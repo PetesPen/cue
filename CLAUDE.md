@@ -20,7 +20,7 @@ Story IDs (SL-1, EL-3, AN-5 ...) are the vocabulary: use them in branch names, c
 
 ## Current state
 
-Sprint 0 is in progress (started 2026-10-14, plan approved by Peter, repo at `C:\Users\peter\Projects\cue`). Done: F1, the scaffold (Vite, React, strict TypeScript, ESLint with the layering and accessibility rules, Prettier, module folders); F2, test tooling (Vitest unit, integration and component projects, Playwright on three engines, axe, a layering-rule test). Next: F3, design tokens and fonts, then F4 the app shell. No gate passed. Work sprint by sprint, in order. Use `/start-sprint N` to begin a sprint and `/finish-sprint N` to close it. Keep this section current: which sprint is active and which gate was last passed.
+Sprint 0 is in progress (started 2026-10-14, plan approved by Peter, repo at `C:\Users\peter\Projects\cue`). Done: F1, the scaffold (Vite, React, strict TypeScript, ESLint with the layering and accessibility rules, Prettier, module folders); F2, test tooling (Vitest unit, integration and component projects, Playwright on three engines, axe, a layering-rule test); F3, design tokens wired in with a contrast test, and the seven font families bundled with licences confirmed. Next: F4, the app shell. No gate passed. Work sprint by sprint, in order. Use `/start-sprint N` to begin a sprint and `/finish-sprint N` to close it. Keep this section current: which sprint is active and which gate was last passed.
 
 ## Stack (proposed; confirmed or changed by the sprint 0 spikes, then recorded in `docs/decisions.md`)
 
@@ -33,7 +33,7 @@ Sprint 0 is in progress (started 2026-10-14, plan approved by Peter, repo at `C:
 - Two windows: BroadcastChannel carrying only deck, slide, step and blank state. Each window renders from the stored deck.
 - Deck file `.slides`: a zip holding `deck.json` (with a schema version) plus images and fonts. Older versions migrate; newer ones get a clear message.
 - HTML export: one file with deck JSON, images and fonts inlined and a small runtime built from the shared renderer. It must make no external requests.
-- Fonts: bundled WOFF2 from open-licence families only; embedded in exports only when used.
+- Fonts: bundled WOFF2 from open-licence families only; embedded in exports only when used. They live in `src/fonts` with their licences and are loaded only when text uses them. An embedded family's `OFL.txt` must travel with it in a `.slides` file or HTML export.
 - Installable and offline (UX-7): a web app manifest and a service worker that caches the app files. Workbox through `vite-plugin-pwa` is proposed, and spike SP-6 confirms it. Register the service worker in production builds only, so development never serves stale files.
 - Hosting: Netlify (static files, a deploy preview for every pull request). Decided by Peter on 2026-10-14.
 
