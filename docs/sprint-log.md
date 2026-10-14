@@ -73,3 +73,11 @@ Run the spike pages with the `npm run spike:sp-N` commands from the project fold
 1. The spikes changed the plan twice (the way a show opens its windows, and how performance is judged). Do you want that kind of finding raised earlier, mid-sprint, rather than collected at the review?
 2. Several of the biggest risks need things only you can provide (a Mac, a second display, Netlify, Docker). Which of those can you arrange before sprint 1?
 3. The sprint was done in one long session, so there was no natural place to stop and ask you things. Would you prefer a checkpoint after each foundation item and spike next time, even if it slows things down?
+
+### Peter's answers (2026-10-15)
+
+1. Findings that change the plan can be raised mid-sprint; that is fine.
+2. (Not answered yet: which of a Mac, a second display and Docker he can arrange.)
+3. He prefers to touch base only at the end of each sprint, unless a significant decision is needed. Recorded as working rule 9 in `CLAUDE.md`.
+
+Also on 2026-10-15: Peter linked Netlify to the repository, and asked where Gate 1 is defined. It was only a one-line placeholder in the plan; "The five gates" in `docs/development-plan.md` now explains gates and writes out Gate 1's criteria.

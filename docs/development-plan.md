@@ -165,7 +165,28 @@ Two-week sprints, a live preview of every change, and a short set of rules that 
 
 The first complete show, with every Must story, is ready at the end of sprint 10, and v1.0 follows after sprint 13. Each milestone is a gate: the next phase does not start until the gate's criteria hold.
 
-> *Diagram: roadmap. Five phases and five gates (Stack confirmed end of S0, Editor alpha S4, Motion beta S7, First full show S10, v1.0 S13). See the sprint-by-sprint table below.*
+### The five gates
+
+A gate is a checkpoint at the end of a phase. At the sprint review the product owner says yes or no to it. A yes means the next phase starts. A no, or "not yet", means the next sprint closes the gap before any new stories begin. Claude never marks a gate passed; only the product owner does, and the answer is recorded in `docs/decisions.md` and the "Current state" section of `CLAUDE.md`.
+
+| Gate | Name | Ends sprint | The question being answered |
+|---|---|---|---|
+| 1 | Stack confirmed | 0 | Is the technology good enough to build everything on, given what the spikes found? |
+| 2 | Editor alpha | 4 | Can you build and save a real deck of text, shapes and images, with undo? (The plan also rebuilds a second real deck here, decision 4: this plan says "milestone 2", `docs/decisions.md` says Gate 3; decide when the deck is chosen.) |
+| 3 | Motion beta | 7 | Do animations, transitions and the two windows work well enough to try a real talk? |
+| 4 | First full show | 10 | Can you deliver a real talk from start to finish, with all 38 Must stories working? |
+| 5 | v1.0 | 13 | Is the release candidate good on all four browsers, with every budget met? |
+
+Only Gate 1's criteria are written so far. The criteria for each later gate are written at the start of the sprint that ends in it.
+
+**Gate 1 criteria** (written by Claude on 2026-10-15, because the plan did not define them; the product owner can change them):
+
+1. Each of the six spikes has a written finding with numbers and a verdict (`docs/spikes/`).
+2. CI is green on the empty app on Chromium, Firefox and WebKit, and the accessibility scan finds no violations.
+3. The commands in `CLAUDE.md` are real, and the stack verdict is written (`docs/decisions.md`, "Stack").
+4. The empty app is deployed with a preview, as the sprint 0 demo says.
+
+Gate 1 is not about the spike code or about every risk being gone. It is the answer to "do we build on this stack, knowing what we now know?". The things the spikes could not check (real Safari, a second display) stay on the manual list either way.
 
 If a gate's criteria are not met, the next sprint closes the gap before any new stories start.
 
