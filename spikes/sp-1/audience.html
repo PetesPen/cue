@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>SP-1 audience</title>
+    <style>
+      html, body { height: 100%; margin: 0; }
+      body { display: grid; place-items: center; background: #14281b; color: #f4f8f1; font: 700 6vw system-ui, sans-serif; text-align: center; }
+      body[data-blank='true'] #now { visibility: hidden; }
+      body[data-ended='true']::after { content: 'Show ended. You can close this window.'; font-size: 3vw; }
+      #hint { position: fixed; bottom: 12px; font: 400 14px system-ui; opacity: 0.7; }
+    </style>
+  </head>
+  <body>
+    <div id="now"></div>
+    <div id="hint">Click or press F for fullscreen. Arrow keys also drive the show.</div>
+    <script type="module">
+      import { startShow } from './show.js';
+      const view = document.getElementById('now');
+      const { drive, tryFullscreen, sp1 } = startShow({
+        role: 'audience',
+        render: (s) => {
+          document.body.dataset.blank = String(s.blank);
+          view.textContent = `Slide ${s.slide}, click ${s.step}`;
+        },
+      });
+      // Does fullscreen work with no gesture in this window? Record it.
+      tryFullscreen('onLoad');
+      let attempted = false;
+      const onGesture = () => {
+        if (attempted) return;
+        attempted = true;
+        tryFullscreen('afterGestureInThisWindow');
+      };
+      addEventListener('click', onGesture);
+      addEventListener('keydown', (e) => {
+        onGesture();
+        if (e.key === 'ArrowRight') drive({ step: sp1.state.step + 1 });
+        if (e.key === 'ArrowLeft') drive({ step: Math.max(0, sp1.state.step - 1) });
+      });
+    </script>
+  </body>
+</html>

@@ -11,6 +11,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build && npm run size",
     "size": "node scripts/check-bundle-size.mjs",
+    "spike:sp-1": "node spikes/serve.mjs spikes/sp-1 4200",
     "audit": "npm audit --audit-level=high",
     "preview": "vite preview",
     "typecheck": "tsc -b",

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>SP-1 two-window show (opener)</title>
+    <style>
+      body { font: 16px/1.5 system-ui, sans-serif; margin: 24px; max-width: 880px; background: #f4f8f1; color: #14281b; }
+      button { font: inherit; padding: 8px 14px; margin: 0 6px 8px 0; cursor: pointer; }
+      button.primary { background: #17803f; color: #fff; border: 0; border-radius: 7px; font-weight: 600; }
+      pre { background: #fff; padding: 12px; border: 1px solid #dce6d7; white-space: pre-wrap; word-break: break-word; }
+      h2 { margin-top: 28px; font-size: 18px; }
+    </style>
+  </head>
+  <body>
+    <h1>SP-1: two-window show (opener, stands in for the editor)</h1>
+    <p id="ua"></p>
+
+    <h2>1. One click, two windows</h2>
+    <button id="open-both" class="primary">Open audience and presenter (one click)</button>
+    <button id="open-occluded">Open both, presenter covering the audience (occlusion test)</button>
+    <button id="open-audience">Open audience only</button>
+    <button id="open-presenter">Open presenter only</button>
+    <button id="close-both">Close both from here</button>
+    <p>Use <code>?mech=storage</code> on this page's address to test the storage-event fallback instead of BroadcastChannel.</p>
+
+    <h2>2. From this window</h2>
+    <button id="fs-cross">Try fullscreen on the audience window from here</button>
+    <button id="screens">Detect screens</button>
+
+    <h2>3. Status and results</h2>
+    <pre id="status"></pre>
+    <button id="copy">Copy results</button>
+    <pre id="results"></pre>
+
+    <script type="module">
+      const qs = location.search;
+      const results = { userAgent: navigator.userAgent };
+      let audienceWin = null;
+      let presenterWin = null;
+
+      const refresh = () => {
+        document.getElementById('status').textContent =
+          `audience window: ${audienceWin ? (audienceWin.closed ? 'closed' : 'open') : 'never opened'}\n` +
+          `presenter window: ${presenterWin ? (presenterWin.closed ? 'closed' : 'open') : 'never opened'}`;
+        document.getElementById('results').textContent = JSON.stringify(results, null, 2);
+      };
+      const record = (key, value) => {
+        results[key] = value;
+        window.__sp1 = { ...window.__sp1, results, audienceWin, presenterWin };
+        refresh();
+      };
+      const opened = (w) => (w && !w.closed ? 'opened' : 'blocked');
+      const openAudience = () =>
+        window.open('audience.html' + qs, 'cue-sp1-audience', 'popup=yes,width=960,height=540,left=60,top=60');
+      const openPresenter = () =>
+        window.open('presenter.html' + qs, 'cue-sp1-presenter', 'popup=yes,width=1000,height=700,left=200,top=140');
+
+      document.getElementById('ua').textContent = navigator.userAgent;
+
+      document.getElementById('open-both').onclick = () => {
+        const t0 = performance.now();
+        audienceWin = openAudience();
+        presenterWin = openPresenter();
+        record('openBoth', {
+          audience: opened(audienceWin),
+          presenter: opened(presenterWin),
+          ms: Math.round(performance.now() - t0),
+        });
+      };
+      document.getElementById('open-occluded').onclick = () => {
+        audienceWin = window.open('audience.html' + qs, 'cue-sp1-audience', 'popup=yes,width=600,height=400,left=80,top=80');
+        presenterWin = window.open('presenter.html' + qs, 'cue-sp1-presenter', 'popup=yes,width=1100,height=760,left=40,top=40');
+        record('openOccluded', { audience: opened(audienceWin), presenter: opened(presenterWin) });
+      };
+      document.getElementById('open-audience').onclick = () => {
+        audienceWin = openAudience();
+        record('openAudienceOnly', { audience: opened(audienceWin) });
+      };
+      document.getElementById('open-presenter').onclick = () => {
+        presenterWin = openPresenter();
+        record('openPresenterOnly', { presenter: opened(presenterWin) });
+      };
+      document.getElementById('close-both').onclick = () => {
+        audienceWin?.close();
+        presenterWin?.close();
+        refresh();
+      };
+      document.getElementById('fs-cross').onclick = async () => {
+        try {
+          await audienceWin.document.documentElement.requestFullscreen();
+          record('fullscreenAudienceFromOpener', 'ok');
+        } catch (error) {
+          record('fullscreenAudienceFromOpener', `${error.name}: ${error.message}`);
+        }
+      };
+      document.getElementById('screens').onclick = async () => {
+        if (!('getScreenDetails' in window)) {
+          record('screens', 'getScreenDetails is not available in this browser');
+          return;
+        }
+        try {
+          const details = await window.getScreenDetails();
+          record('screens', details.screens.map((s) => `${s.width}x${s.height}${s.isPrimary ? ' primary' : ''}`));
+        } catch (error) {
+          record('screens', `${error.name}: ${error.message}`);
+        }
+      };
+      document.getElementById('copy').onclick = () => navigator.clipboard.writeText(JSON.stringify(results, null, 2));
+      setInterval(refresh, 250);
+      refresh();
+    </script>
+  </body>
+</html>

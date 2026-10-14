@@ -16,3 +16,6 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 .claude/settings.local.json
+
+# Spike measurements are written to docs/spikes/ by hand; the raw output is not kept
+spikes/**/results/

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>SP-1 presenter</title>
+    <style>
+      body { font: 16px system-ui, sans-serif; margin: 24px; background: #f4f8f1; color: #14281b; }
+      button { font: inherit; padding: 8px 14px; margin: 0 6px 6px 0; }
+      #now { font-size: 40px; font-weight: 700; margin: 12px 0; }
+      pre { background: #fff; padding: 12px; border: 1px solid #dce6d7; white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <h1>Presenter (SP-1 spike)</h1>
+    <div id="now"></div>
+    <button id="prev">Previous</button>
+    <button id="next">Next click</button>
+    <button id="blank">Blank</button>
+    <button id="end">End show</button>
+    <button id="reconnect">Reconnect audience</button>
+    <p>
+      <button id="latency">Run latency test (200 steps)</button>
+      <span id="mech"></span>
+    </p>
+    <pre id="stats">Latency test not run.</pre>
+    <script type="module">
+      import { startShow, summarise } from './show.js';
+      const view = document.getElementById('now');
+      const { drive, endShow, runLatency, sp1 } = startShow({
+        role: 'presenter',
+        render: (s) => {
+          view.textContent = `Slide ${s.slide}, click ${s.step}${s.blank ? ' (blank)' : ''}`;
+        },
+      });
+      document.getElementById('mech').textContent = `channel: ${sp1.mechanism}`;
+      document.getElementById('next').onclick = () => drive({ step: sp1.state.step + 1 });
+      document.getElementById('prev').onclick = () => drive({ step: Math.max(0, sp1.state.step - 1) });
+      document.getElementById('blank').onclick = () => drive({ blank: !sp1.state.blank });
+      document.getElementById('end').onclick = endShow;
+      document.getElementById('reconnect').onclick = () => {
+        const w = window.open('audience.html' + location.search, 'cue-sp1-audience', 'popup=yes,width=960,height=540');
+        sp1.reconnect = { returned: w ? 'a window' : 'null', closedAtOnce: w ? w.closed : null };
+      };
+      document.getElementById('latency').onclick = async () => {
+        document.getElementById('stats').textContent = 'Running...';
+        const result = await runLatency(200, 10);
+        document.getElementById('stats').textContent =
+          `Round trip (send to painted acknowledgement), ms:\n${JSON.stringify(result, null, 2)}`;
+      };
+      addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') drive({ step: sp1.state.step + 1 });
+        if (e.key === 'ArrowLeft') drive({ step: Math.max(0, sp1.state.step - 1) });
+      });
+      window.__summarise = summarise;
+    </script>
+  </body>
+</html>
