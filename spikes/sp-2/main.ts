@@ -240,13 +240,14 @@ async function loadFonts(docs: { doc: JSONContent }[]) {
   return [...wanted].length;
 }
 
-async function runAll(options: { scale: number; docCount: number; widths?: number[]; variants?: Variant[] }) {
+async function runAll(options: { scale: number; docCount: number; widths?: number[]; variants?: Variant[]; textRendering?: string }) {
   const docs = makeDocs(options.docCount);
   const fontsRequested = await loadFonts(docs);
   const stage = document.getElementById('stage')!;
   const slide = document.createElement('div');
   slide.className = 'slide';
   slide.style.transform = `scale(${options.scale})`;
+  if (options.textRendering) slide.style.textRendering = options.textRendering;
   stage.replaceChildren(slide);
 
   const result: Record<string, Measure[]> = {};

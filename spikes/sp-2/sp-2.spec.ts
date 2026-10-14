@@ -24,10 +24,10 @@ function record(info: TestInfo, key: string, value: unknown) {
   appendFileSync(join(RESULTS_DIR, `${info.project.name}.jsonl`), `${JSON.stringify({ key, value })}\n`);
 }
 
-async function runAll(page: Page, options: { scale: number; variants?: string[] }): Promise<Run> {
+async function runAll(page: Page, options: { scale: number; variants?: string[]; textRendering?: string }): Promise<Run> {
   return page.evaluate(
     async (o) => (window as unknown as { __sp2: { runAll: (o: unknown) => Promise<Run> } }).__sp2.runAll(o),
-    { scale: options.scale, docCount: DOCS, variants: options.variants },
+    { scale: options.scale, docCount: DOCS, variants: options.variants, textRendering: options.textRendering },
   );
 }
 
@@ -107,6 +107,19 @@ test.describe('SP-2 rich text fidelity', () => {
     }
     expect(results['generateHtml']!.docsWithDifferentWraps).toBe(0);
     expect(results['staticNaive']!.docsWithDifferentWraps).toBeGreaterThan(0);
+  });
+
+  // Chromium on Linux broke some lines differently from every other engine (glyph hinting rounds
+  // character widths). text-rendering: geometricPrecision asks for unhinted, fractional layout.
+  test('wrap fingerprint with text-rendering: geometricPrecision', async ({ page }, info) => {
+    await page.goto('/index.html');
+    const auto = await runAll(page, { scale: 1, variants: ['editor', 'staticMatched'] });
+    const precise = await runAll(page, { scale: 1, variants: ['editor', 'staticMatched'], textRendering: 'geometricPrecision' });
+    record(info, 'editor wrap fingerprint, text-rendering auto', hash(auto.variants['editor']!));
+    record(info, 'editor wrap fingerprint, text-rendering geometricPrecision', hash(precise.variants['editor']!));
+    const result = compare(precise.variants['editor']!, precise.variants['staticMatched']!);
+    record(info, 'geometricPrecision: staticMatched vs editor', result);
+    expect(result.docsWithDifferentWraps).toBe(0);
   });
 
   for (const scale of [0.5, 0.3]) {
