@@ -49,9 +49,14 @@ function makeDeck(id: string, slides: number, imageHashes: string[]): DeckRow {
 async function numbers() {
   const estimate = await navigator.storage.estimate();
   const persistedBefore = await navigator.storage.persisted?.();
+  // Firefox shows the user a prompt and leaves this promise pending until they answer, so give it a short time.
   let persistResult: boolean | string = 'not supported';
   try {
-    persistResult = (await navigator.storage.persist?.()) ?? 'not supported';
+    const answer = await Promise.race([
+      navigator.storage.persist?.() ?? Promise.resolve('not supported'),
+      new Promise<string>((resolve) => setTimeout(() => resolve('no answer after 2 s (a permission prompt is probably waiting)'), 2000)),
+    ]);
+    persistResult = answer;
   } catch (error) {
     persistResult = describeError(error).message;
   }

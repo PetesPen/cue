@@ -50,6 +50,13 @@ async function limitQuota(context: BrowserContext, page: Page, megabytes: number
   await client.send('Storage.overrideQuotaForOrigin', { origin: ORIGIN, quotaSize: megabytes * 1024 * 1024 });
 }
 
+// A failing test records why, so the reason shows up in the run's annotation as well as the log.
+test.afterEach(async ({}, info) => {
+  if (info.status !== info.expectedStatus && info.status !== 'skipped') {
+    record(info, `FAILED: ${info.title}`, String(info.error?.message ?? info.status).slice(0, 700));
+  }
+});
+
 test.describe('SP-5 storage limits', () => {
   test('quota, usage and persistent storage in a fresh profile', async ({ playwright }, info) => {
     const app = await openApp(playwright, info);

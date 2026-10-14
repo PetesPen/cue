@@ -12,7 +12,7 @@ How large is a 30-slide, image-heavy deck as one HTML file, and how long does th
 
 The plan's fallback (re-encode photos to WebP on export) works but must **not** run at export time: it took 6 to 7 s in Chrome and Edge and 11.7 s in WebKit for a modest deck, which would break the 10-second limit by itself.
 
-One storage warning for later: WebKit would not store photos as Blobs in IndexedDB (see "Found along the way").
+One storage note: WebKit would not store photos as Blobs in IndexedDB in Playwright's throwaway test sessions, though SP-5 found it works in a normal profile (see "Found along the way").
 
 ## What we measured
 
@@ -51,7 +51,7 @@ Smaller files, but the re-encoding is the slow step and scales with the number o
 
 ## Found along the way
 
-- **WebKit could not store photos as Blobs in IndexedDB** (`Error preparing Blob/File data to be stored in object store`), in both the Windows and Linux Playwright builds. Storing the same photo as an `ArrayBuffer` plus its type worked, and export then ran as above. We do not know whether real Safari behaves the same. **For SP-5 and EL-4: test real Safari, and until then store photos as raw bytes plus a type.** The cost is that reading a deck loads all its photo bytes into memory instead of file-backed Blobs.
+- **WebKit could not store photos as Blobs in IndexedDB** in Playwright's default throwaway sessions (`Error preparing Blob/File data to be stored in object store`), in both the Windows and Linux builds. Storing the same photo as an `ArrayBuffer` plus its type worked there, and export then ran as above. **SP-5 later found that WebKit stores Blobs normally in a persistent profile**, so this is about sessions with no disk storage (what a private window is), not WebKit in general. Whether real Safari's private windows behave the same is untested. Raw bytes plus a type work everywhere, at the cost that reading a deck loads all its photo bytes into memory instead of file-backed Blobs; see `docs/spikes/SP-5.md` for the recommendation.
 - **Opening a very large file is slower in WebKit** (about 3 s to the first slide for 52 MB). Real Safari is untested.
 - **Port 4190** is refused by Firefox and Safari (see SP-1); the spikes use 4200.
 
@@ -60,7 +60,7 @@ Smaller files, but the re-encoding is the slow step and scales with the number o
 1. Export as the spike does: photos as base64 in separate `text/plain` script blocks (read only when a slide is shown), the deck as JSON, the runtime inline, only the fonts the deck uses with their licences, and a content security policy in the file.
 2. Show the estimated size in the dialog, and add a warning above about 20 MB, because many mail services refuse larger attachments. That is a suggestion for the dialog, not part of SV-4 as written.
 3. Keep export a plain copy. Do any WebP work at import time or not at all.
-4. Store photos so Safari can read them back (raw bytes plus type) until SP-5 and a real Safari say otherwise.
+4. How to store photos is decided in SP-5 (`docs/spikes/SP-5.md`).
 
 ## Not covered
 
