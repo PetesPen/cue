@@ -43,6 +43,7 @@ Each spike ends with a short written finding in `docs/spikes/SP-N.md`: what we t
 - Question: Can one click open audience and presenter windows reliably in Chrome, Edge, Firefox and Safari, and keep them in sync within 100 ms?
 - Stories at stake: PM-1, PM-3, UX-5
 - Fallback if it fails: The presenter view opens as a second tab that the user places; a storage-event channel replaces BroadcastChannel if needed
+- **Finding (2026-10-14, `docs/spikes/SP-1.md`):** sync is a go (about 17 ms at the 95th percentile against 100 ms, in every engine run; the storage-event fallback is not needed). One click opening both windows is a no-go as PM-1 is written: Chrome, Edge and Firefox block the second window until pop-ups are allowed. Needs Peter's decision 10. Safari, Peter's own Firefox, a second display and a covered audience window remain manual checks.
 
 ### SP-2 Rich text fidelity
 

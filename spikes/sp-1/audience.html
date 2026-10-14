@@ -14,6 +14,7 @@
   <body>
     <div id="now"></div>
     <div id="hint">Click or press F for fullscreen. Arrow keys also drive the show.</div>
+    <div id="occlusion" style="position: fixed; top: 12px; left: 12px; font: 400 14px system-ui; opacity: 0.8; text-align: left"></div>
     <script type="module">
       import { startShow } from './show.js';
       const view = document.getElementById('now');
@@ -24,6 +25,30 @@
           view.textContent = `Slide ${s.slide}, click ${s.step}`;
         },
       });
+      // Manual occlusion check: cover this window with the presenter window for a while, then look
+      // here. If the browser treated the covered window as hidden, "hidden for" grows and the longest
+      // gap between frames is large; the window must still show the right click when uncovered.
+      const readout = document.getElementById('occlusion');
+      const stats = (sp1.occlusion = { hiddenMs: 0, hiddenSince: null, longestFrameGapMs: 0 });
+      let lastFrame = performance.now();
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') stats.hiddenSince = performance.now();
+        else if (stats.hiddenSince !== null) {
+          stats.hiddenMs += performance.now() - stats.hiddenSince;
+          stats.hiddenSince = null;
+        }
+      });
+      const tick = (time) => {
+        stats.longestFrameGapMs = Math.max(stats.longestFrameGapMs, Math.round(time - lastFrame));
+        lastFrame = time;
+        const hidden = stats.hiddenMs + (stats.hiddenSince === null ? 0 : performance.now() - stats.hiddenSince);
+        readout.textContent =
+          `visibility: ${document.visibilityState} | hidden for ${(hidden / 1000).toFixed(1)} s | ` +
+          `longest gap between frames ${stats.longestFrameGapMs} ms`;
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+
       // Does fullscreen work with no gesture in this window? Record it.
       tryFullscreen('onLoad');
       let attempted = false;

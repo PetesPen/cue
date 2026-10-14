@@ -285,14 +285,32 @@ test.describe('SP-1 two-window show', () => {
 
   // Needs real, visible windows: run with SP1_OCCLUSION=1 and --headed. A covered window can be
   // treated as hidden by the browser, which pauses painting and slows timers.
-  test('occlusion: audience window fully covered by the presenter window', async ({ context }, info) => {
+  test('occlusion: audience window fully covered by the presenter window', async ({ playwright }, info) => {
     test.skip(!process.env.SP1_OCCLUSION, 'run with SP1_OCCLUSION=1 and --headed');
+    test.skip(!['chrome', 'edge'].includes(info.project.name), 'uses a real Chrome or Edge profile');
+    // Playwright starts Chromium with flags that switch off occlusion detection and background
+    // throttling. Remove them so the browser behaves as it does for a real user.
+    const profile = mkdtempSync(join(tmpdir(), 'sp1-occlusion-'));
+    const context = await playwright.chromium.launchPersistentContext(profile, {
+      channel: info.project.name === 'edge' ? 'msedge' : 'chrome',
+      headless: false,
+      baseURL: ORIGIN,
+      ignoreDefaultArgs: [
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding',
+        '--disable-background-timer-throttling',
+      ],
+    });
+    try {
     const opener = await startOpener(context);
     const { audience, presenter } = await openWindows(context, opener, /presenter covering the audience/);
     if (!audience || !presenter) throw new Error('windows did not open');
     await presenter.bringToFront();
     await presenter.waitForTimeout(1500);
 
+    const rect = () => ({ x: window.screenX, y: window.screenY, w: window.outerWidth, h: window.outerHeight, focused: document.hasFocus() });
+    const audienceRect = await audience.evaluate(rect);
+    const presenterRect = await presenter.evaluate(rect);
     const visibility = await audience.evaluate(() => document.visibilityState);
     const frames = await audience.evaluate(
       () =>
@@ -313,6 +331,8 @@ test.describe('SP-1 two-window show', () => {
     const audienceState = await audience.evaluate(() => window.__sp1.state);
     const presenterState = await presenter.evaluate(() => window.__sp1.state);
     record(info, 'occlusion: covered audience window', {
+      audienceRect,
+      presenterRect,
       audienceVisibility: visibility,
       animationFramesInOneSecond: frames,
       acknowledgedOf100: result.acknowledged,
@@ -320,6 +340,10 @@ test.describe('SP-1 two-window show', () => {
       paintedMs: summarise(oneWay.filter((r: { painted: number | null }) => r.painted !== null).map((r: { painted: number }) => r.painted)),
       audienceStateMatchesPresenter: audienceState.step === presenterState.step,
     });
+    } finally {
+      await context.close();
+      rmSync(profile, { recursive: true, force: true });
+    }
   });
 });
 
