@@ -11,6 +11,10 @@ Decided on 2026-10-14: Netlify hosts the live site and a deploy preview for ever
 - `config/budgets.json` and `scripts/check-bundle-size.mjs`: the first-load budget (300 KB of JavaScript and 30 KB of CSS, gzipped). `npm run build` fails when it is broken.
 - Tests that keep these honest: `tests/ci.test.ts` (read-only permissions, every action pinned to a commit, job timeouts), `tests/netlify.test.ts` (the headers in `netlify.toml` match `config/headers.ts`) and `tests/bundle-size.test.ts`. The end-to-end tests run under the same content security policy, and one proves the browser blocks a request to another host.
 
+## Verified on GitHub (2026-10-14)
+
+CI run #1 on `main` (https://github.com/PetesPen/cue/actions/runs/38513587547) passed all four jobs: checks (52 s), end to end on Chromium (33 s), Firefox (45 s) and WebKit (72 s). That includes Firefox on Linux. The nightly workflow has not run yet. Netlify is still not linked.
+
 ## Left: needs Peter (accounts and permissions, so Claude cannot do these)
 
 1. Create a GitHub repository for Cue (an empty one, with no README or licence). Done: https://github.com/PetesPen/cue. When it was checked on 2026-10-14 it was **public**, but the plan was a private one. Peter decides which; to make it private: repository Settings, General, Danger Zone, Change visibility.
