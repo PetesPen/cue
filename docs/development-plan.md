@@ -86,7 +86,7 @@ Every acceptance criterion becomes an automated check wherever a machine can jud
 | Criterion | How it is tested |
 |---|---|
 | Windows stay in sync within 100 ms (PM-3) | Playwright opens audience and presenter in one browser context, advances one, and times how long the other takes to show the same step |
-| A blocked second window gives a clear prompt (PM-1) | A test hook makes window.open return null and the prompt must appear. Real pop-up blocking is checked by hand |
+| A blocked audience window gives a clear prompt (PM-1) | A test hook makes window.open return null and the prompt must appear. Real pop-up blocking is checked by hand in real Chrome, Edge, Firefox and Safari (Playwright's own Chromium does not enforce the blocker; see `docs/spikes/SP-1.md`) |
 | An export makes no external requests (SV-4) | Open the exported file in a context that fails every request except the file itself, then click through every slide |
 | Export matches the editor to within one pixel (SV-5) | A fixture deck is drawn in editor, presentation and export at 1920 × 1080; element boxes must match within 1 px and screenshots within a small pixel tolerance |
 | Opacity is identical everywhere (TR-3) | A fixture slide with images, shapes and text at several opacities is captured in all three renderers and compared |

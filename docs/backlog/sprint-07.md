@@ -53,7 +53,7 @@ As a presenter, I want to start a show from any slide, so that I can rehearse a 
 
 Acceptance criteria:
 - [ ] "Present" starts from slide 1, and "Present from current slide" starts where I am.
-- [ ] One click opens both windows; if the browser blocks the second window, a clear prompt explains how to allow it.
+- [ ] One click opens the audience window and turns this tab into the presenter view. Ending the show returns this tab to the editor exactly as it was left. If the browser blocks the audience window, a clear prompt explains how to allow it, and the show can run in this one window without notes. (Option B, decided by Peter on 2026-10-14 after spike SP-1: `docs/spikes/SP-1.md`.) The States board card "presenter window blocked" needs rewording to "audience window"; that design change is Peter's.
 - [ ] The audience window goes fullscreen, and slides scale to fit with letterboxing so they are never cropped.
 - [ ] Where the browser allows it, the audience window opens on the second display and the presenter view stays on the laptop.
 

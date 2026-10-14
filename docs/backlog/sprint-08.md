@@ -27,8 +27,8 @@ As a presenter, I want both windows to show the same moment, so that the audienc
 
 Acceptance criteria:
 - [ ] Slide changes and animation steps made in either window appear in the other within 100 ms.
-- [ ] If one window is closed, the other keeps working, and a "reconnect" action reopens the second window.
-- [ ] Ending the show from either window closes both.
+- [ ] If the audience window is closed, the presenter view keeps working, and a "reconnect" action reopens the audience window and catches it up. If the presenter tab is closed, the audience window notices and closes. (Use Web Locks to notice a gone window: `docs/spikes/SP-1.md`.)
+- [ ] Ending the show from either window closes the audience window and returns the presenter tab to the editor.
 
 Design: [`Presenter`](../../design/screenshots/Presenter.png) ([source](../../design/boards/Presenter.dc.html)), [`Audience`](../../design/screenshots/Audience.png) ([source](../../design/boards/Audience.dc.html))
 

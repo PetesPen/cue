@@ -56,7 +56,7 @@ Acceptance criteria:
 - [ ] After one visit, the app opens and my decks load with the network switched off.
 - [ ] Where the browser supports installing, a clear "Install" action adds Cue as an app with its own window and icon. Where it does not, no install prompt shows and the app works in a tab.
 - [ ] A new version waits until I choose to update, never replaces the app while I am editing, and never touches my stored decks.
-- [ ] Starting a show from the installed app opens both windows and keeps them in sync, or explains any browser-specific limit.
+- [ ] Starting a show from the installed app opens the audience window and keeps it in sync with the presenter view, or explains any browser-specific limit.
 - [ ] The app makes requests only to its own files.
 
 Design: none yet. The install action and the update prompt should reuse the toast and banner styles in [`States`](../../design/screenshots/States.png). If a new screen is needed, describe it and ask Peter.

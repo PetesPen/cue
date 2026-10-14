@@ -243,12 +243,12 @@ A transition plays when the show moves from one slide to the next, and belongs t
 
 ## Presentation mode
 
-Starting a show opens two browser windows: an audience window for the projector and a presenter window for the speaker. They stay in sync, and either one can drive.
+Starting a show opens an audience window for the projector, and the editor tab itself becomes the presenter view for the speaker. The two stay in sync, and either one can drive. (Decided by Peter on 2026-10-14 after spike SP-1: browsers block a second pop-up opened by the same click.)
 
 **PM-1 Start a presentation (Must).** As a presenter, I want to start a show from any slide, so that I can rehearse a section or deliver the whole deck.
 
 - "Present" starts from slide 1, and "Present from current slide" starts where I am.
-- One click opens both windows; if the browser blocks the second window, a clear prompt explains how to allow it.
+- One click opens the audience window and turns this tab into the presenter view. Ending the show returns this tab to the editor exactly as it was left. If the browser blocks the audience window, a clear prompt explains how to allow it, and the show can run in this one window without notes.
 - The audience window goes fullscreen, and slides scale to fit with letterboxing so they are never cropped.
 - Where the browser allows it, the audience window opens on the second display and the presenter view stays on the laptop.
 
@@ -260,8 +260,8 @@ Starting a show opens two browser windows: an audience window for the projector 
 **PM-3 Keep both windows in sync (Must).** As a presenter, I want both windows to show the same moment, so that the audience never sees a mismatch.
 
 - Slide changes and animation steps made in either window appear in the other within 100 ms.
-- If one window is closed, the other keeps working, and a "reconnect" action reopens the second window.
-- Ending the show from either window closes both.
+- If the audience window is closed, the presenter view keeps working, and a "reconnect" action reopens the audience window and catches it up. If the presenter tab is closed, the audience window notices and closes.
+- Ending the show from either window closes the audience window and returns the presenter tab to the editor.
 
 **PM-4 Read and resize notes (Must).** As a presenter, I want to read my notes in a panel I can resize, so that I can fit the text to my eyes and screen.
 
@@ -398,7 +398,7 @@ The app should feel calm and fast: the slide is the hero and the interface stays
 - After one visit, the app opens and my decks load with the network switched off.
 - Where the browser supports installing, a clear "Install" action adds Cue as an app with its own window and icon. Where it does not, no install prompt shows and the app works in a tab.
 - A new version waits until I choose to update, never replaces the app while I am editing, and never touches my stored decks.
-- Starting a show from the installed app opens both windows and keeps them in sync, or explains any browser-specific limit.
+- Starting a show from the installed app opens the audience window and keeps it in sync with the presenter view, or explains any browser-specific limit.
 - The app makes requests only to its own files.
 
 Added 2026-10-14 at Peter's request. Priority Must is proposed: Peter can change it.

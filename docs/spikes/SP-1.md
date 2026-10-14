@@ -72,7 +72,7 @@ Ending from either window closes both, in every engine. This works because both 
 ## Recommendation
 
 1. **Sync:** keep BroadcastChannel as planned, with a hello message so a new window catches up, and Web Locks for "window gone". Apply state in the message handler, never inside a screen-refresh callback, so a hidden window is right when it reappears. The storage-event fallback in the plan is not needed.
-2. **Opening the windows (decision for Peter):**
+2. **Opening the windows (decided by Peter on 2026-10-14: Option B):**
    - **Option A, as PM-1 is written:** one click tries to open both. In Chrome, Edge and Firefox the first-time experience is the "blocked" card already in the design (`States.png`: Try again, or Present in one window) until the user allows pop-ups once.
    - **Option B, my recommendation:** one click opens only the **audience** window, and the editor tab itself turns into the **presenter** view, going back to the editor when the show ends. Opening one window per click was never blocked in any browser, so the normal case needs no pop-up prompt. The blocked card stays for the rare case where even the audience window is blocked. It also puts the presenter view on the laptop, where the speaker is.
 3. **Fullscreen:** show the audience window's "click or press F" hint, and also ask for fullscreen from the Present click where the browser allows it.

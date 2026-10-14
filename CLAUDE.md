@@ -2,7 +2,7 @@
 
 Working name: **Cue** (decided by Peter, 2026-10-14). Use it for the package, app title and code. The docs and the design still say "Slides" as the description of the product; the design wordmark changes only when Peter says so.
 
-A local-first web app. One presenter builds a deck (rich text, shapes, images), animates it click by click, and presents from two synced windows: an audience window and a presenter window (resizable notes, next-slide preview, navigation). No server and no accounts. Decks live in the browser (IndexedDB) and leave it as a `.slides` file or a single standalone HTML file. The feel is sleek, simple, attractive and efficient.
+A local-first web app. One presenter builds a deck (rich text, shapes, images), animates it click by click, and presents from two synced windows: an audience window and a presenter view (resizable notes, next-slide preview, navigation). One click opens the audience window and the editor tab itself becomes the presenter view; ending the show returns it to the editor (decision 10). No server and no accounts. Decks live in the browser (IndexedDB) and leave it as a `.slides` file or a single standalone HTML file. The feel is sleek, simple, attractive and efficient.
 
 The product owner is Peter. Ask him when a requirement is unclear or a decision is his; do not guess on product questions.
 
