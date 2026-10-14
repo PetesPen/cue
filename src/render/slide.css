@@ -1,0 +1,18 @@
+/* A slide is drawn in a fixed 1920 x 1080 space and scaled to fit its box with a CSS transform, so the
+   editor, thumbnails, presenter, audience and HTML export all look the same (CLAUDE.md, stack). */
+
+.cue-slide-viewport {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.cue-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  /* Same on every platform, so lines wrap the same everywhere (docs/spikes/SP-2.md). */
+  text-rendering: geometricPrecision;
+}

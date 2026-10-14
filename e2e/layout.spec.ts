@@ -1,17 +1,24 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+
+/** The library, then a new deck in the editor: the layout under test is the editor's. */
+async function openNewDeck(page: Page) {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'New deck' }).first().click();
+  await expect(page.getByRole('option', { name: 'Slide 1' })).toBeVisible();
+}
 
 // The Studio layout sizes from design/tokens.json, measured at the design's 1440 x 900 frame.
 test.describe('Given the app at the design size of 1440 by 900', () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
-  test('When it loads, Then the top bar is 52 px, the rail 208 px, the inspector 296 px and the notes strip 124 px', async ({
+  test('When a deck opens, Then the top bar is 52 px, the rail 208 px, the inspector 296 px and the notes strip 124 px', async ({
     page,
   }) => {
-    await page.goto('/');
+    await openNewDeck(page);
 
     const topBar = await page.getByRole('banner').boundingBox();
-    const rail = await page.getByRole('complementary', { name: 'Slides' }).boundingBox();
+    const rail = await page.getByRole('complementary', { name: 'Slide panel' }).boundingBox();
     const inspector = await page.getByRole('complementary', { name: 'Inspector' }).boundingBox();
     const notes = await page.getByRole('region', { name: 'Speaker notes' }).boundingBox();
     const canvas = await page.getByRole('main').boundingBox();
@@ -23,10 +30,10 @@ test.describe('Given the app at the design size of 1440 by 900', () => {
     expect(canvas).toMatchObject({ x: 208, y: 52, width: 1440 - 208 - 296 });
   });
 
-  test('When it loads, Then the empty slide is 16:9 and sits inside the canvas', async ({
+  test('When a deck opens, Then the blank slide is 16:9 and sits inside the canvas', async ({
     page,
   }) => {
-    await page.goto('/');
+    await openNewDeck(page);
 
     const canvas = await page.getByRole('main').boundingBox();
     const slide = await page.locator('.slide-frame').boundingBox();
@@ -45,7 +52,7 @@ test.describe('Given the app at the design size of 1440 by 900', () => {
     page,
   }) => {
     await page.setViewportSize({ width: 1100, height: 640 });
-    await page.goto('/');
+    await openNewDeck(page);
 
     const canvas = await page.getByRole('main').boundingBox();
     const slide = await page.locator('.slide-frame').boundingBox();
@@ -59,7 +66,7 @@ test.describe('Given the app at the design size of 1440 by 900', () => {
   test('When the Animate tab is chosen with the keyboard, Then its panel shows and axe still finds no violations', async ({
     page,
   }) => {
-    await page.goto('/');
+    await openNewDeck(page);
 
     await page.getByRole('tab', { name: 'Design' }).focus();
     await page.keyboard.press('ArrowRight');
