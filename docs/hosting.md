@@ -19,7 +19,7 @@ CI run #1 on `main` (https://github.com/PetesPen/cue/actions/runs/38513587547) p
 
 1. Create a GitHub repository for Cue (an empty one, with no README or licence). Done: https://github.com/PetesPen/cue. When it was checked on 2026-10-14 it was **public**, but the plan was a private one. Peter decides which; to make it private: repository Settings, General, Danger Zone, Change visibility.
 2. Claude has added it as `origin` locally. Claude pushes `main` only after Peter says to (`CLAUDE.md`: no pushing unless asked), and for a public repository only after Peter confirms that public is intended. The first push may open a GitHub sign-in window on Peter's PC (Git Credential Manager); Claude cannot complete that sign-in.
-3. In Netlify (not set up yet; this does not block CI, which runs on GitHub alone, but the preview links and the live site need it): Add new project, import from Git, choose the repository. Signing in to Netlify with the GitHub account is the simplest route. Netlify reads `netlify.toml`, so no build settings need typing in. Deploy previews for pull requests are on by default.
+3. In Netlify: Add new project, import from Git, choose the repository. **Done by Peter on 2026-10-15** (the preview links and the live site depend on it; CI does not). Signing in to Netlify with the GitHub account is the simplest route. Netlify reads `netlify.toml`, so no build settings need typing in. Deploy previews for pull requests are on by default.
 4. Optional but recommended: in the GitHub repository settings, protect `main` and require the checks "Checks (typecheck, lint, format, tests, build)" and "End to end (chromium)", "(firefox)" and "(webkit)" before merging.
 
 ## What Claude then verifies
