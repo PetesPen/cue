@@ -64,6 +64,7 @@ Each spike ends with a short written finding in `docs/spikes/SP-N.md`: what we t
 - Question: Do 50 animated elements and a full-slide transition hold 60 fps, and can the same engine step backward?
 - Stories at stake: AN-3, AN-7, TN-5
 - Fallback if it fails: Limit transitions to opacity and transform, and use a snapshot of the outgoing slide
+- **Finding (2026-10-14, `docs/spikes/SP-4.md`):** go. Pure resolver plus Web Animations on transform and opacity holds 60 fps on real graphics hardware (Chrome, Edge), 0 to 4% of frames dropped, unchanged with the CPU slowed 6x. Stepping back is exact (500 random click-jump sequences, 0 end-state mismatches). Without a graphics card (Linux runners) a normal slide holds 60 fps in Chromium and Firefox but a heavy slide does not in Chromium; software WebKit is slow. So fps budgets on the nightly runner must be relative, and 60 fps is confirmed by hand on a real laptop and a Mac. Real Safari untested.
 
 ### SP-5 Storage limits
 

@@ -174,6 +174,6 @@ async function run(name, options = {}) {
 
 window.__sp4 = { run };
 document.querySelectorAll('button[data-run]').forEach((button) => {
-  button.onclick = () => run(button.dataset.run);
+  button.onclick = () => run(button.dataset.run, { heavy: new URLSearchParams(location.search).has('heavy') });
 });
 document.title = 'SP-4 ready';
