@@ -20,7 +20,7 @@ export default defineConfig(
     ],
   },
   {
-    files: ['**/*.{ts,tsx,js}'],
+    files: ['**/*.{ts,tsx,js,mjs}'],
     extends: [js.configs.recommended],
   },
   {
@@ -52,7 +52,7 @@ export default defineConfig(
     languageOptions: { globals: globals.node },
   },
   {
-    files: ['**/*.js'],
+    files: ['**/*.{js,mjs}'],
     extends: [tseslint.configs.disableTypeChecked],
     languageOptions: { globals: globals.node },
   },

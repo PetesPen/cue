@@ -20,7 +20,7 @@ Story IDs (SL-1, EL-3, AN-5 ...) are the vocabulary: use them in branch names, c
 
 ## Current state
 
-Sprint 0 is in progress (started 2026-10-14, plan approved by Peter, repo at `C:\Users\peter\Projects\cue`). Done: F1, the scaffold (Vite, React, strict TypeScript, ESLint with the layering and accessibility rules, Prettier, module folders); F2, test tooling (Vitest unit, integration and component projects, Playwright on three engines, axe, a layering-rule test); F3, design tokens wired in with a contrast test, and the seven font families bundled with licences confirmed. F4, the empty app shell in the Studio layout (`src/editor`). Next: F5, CI files, `netlify.toml` and the bundle-size budget; then F6 and the spikes SP-1 to SP-6. No gate passed. Work sprint by sprint, in order. Use `/start-sprint N` to begin a sprint and `/finish-sprint N` to close it. Keep this section current: which sprint is active and which gate was last passed.
+Sprint 0 is in progress (started 2026-10-14, plan approved by Peter, repo at `C:\Users\peter\Projects\cue`). Done: F1, the scaffold (Vite, React, strict TypeScript, ESLint with the layering and accessibility rules, Prettier, module folders); F2, test tooling (Vitest unit, integration and component projects, Playwright on three engines, axe, a layering-rule test); F3, design tokens wired in with a contrast test, and the seven font families bundled with licences confirmed. F4, the empty app shell in the Studio layout (`src/editor`); F5, the CI workflows, `netlify.toml`, security headers and the bundle-size budget (written and checked locally; not yet run on GitHub or Netlify, see `docs/hosting.md`). Next: F6 and the spikes SP-1 to SP-6. No gate passed. Work sprint by sprint, in order. Use `/start-sprint N` to begin a sprint and `/finish-sprint N` to close it. Keep this section current: which sprint is active and which gate was last passed.
 
 ## Stack (proposed; confirmed or changed by the sprint 0 spikes, then recorded in `docs/decisions.md`)
 
@@ -66,7 +66,9 @@ Sprint 0 fills this list in. Scripts that exist today are marked "now"; the rest
 - `npm run e2e`: Playwright end-to-end on Chromium, Firefox and WebKit, against the production build (now). On Peter's Windows PC Firefox cannot start (see `docs/decisions.md`); run `npx playwright test --project=chromium --project=webkit` there. CI runs all three
 - `npm run e2e:visual`: visual regression, Chromium only, in the pinned container
 - `npm run perf`: performance budgets (60 fps drags with 50 elements, 2 s open for 50 slides, 10 s export for 30 slides)
-- `npm run build`: typecheck and production build (now); the bundle-size check is added with CI (F5)
+- `npm run build`: typecheck, production build and the bundle-size check (now). `npm run size` runs only the check; budgets are in `config/budgets.json`
+- `npm run audit`: dependency audit, high severity and up (now; CI runs it nightly)
+- `npm run preview`: serve the production build locally with the deployed security headers (now)
 
 ## Testing rules
 

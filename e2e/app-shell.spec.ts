@@ -41,6 +41,29 @@ test.describe('Given a first visit to the app', () => {
     for (const url of fontRequests) expect(new URL(url).hostname).toBe('127.0.0.1');
   });
 
+  // The hostname uses the reserved .invalid domain, which never resolves. If the policy were missing
+  // the fetch would still fail, but no violation would be reported, so this tells the two apart.
+  test('When a script tries to reach another host, Then the browser blocks it by policy (no external requests)', async ({
+    page,
+  }) => {
+    await page.goto('/');
+
+    const violated = await page.evaluate(
+      () =>
+        new Promise<string>((resolve) => {
+          document.addEventListener('securitypolicyviolation', (event) => {
+            resolve(event.effectiveDirective);
+          });
+          fetch('https://external-request-check.invalid/').catch(() => undefined);
+          setTimeout(() => {
+            resolve('no violation reported');
+          }, 3000);
+        }),
+    );
+
+    expect(violated).toBe('connect-src');
+  });
+
   test('When it loads, Then axe finds no accessibility violations', async ({ page }) => {
     await page.goto('/');
 

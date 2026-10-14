@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { isNumber, isRecord, isString } from './guards';
 
 export interface Tokens {
   color: Record<string, string>;
@@ -8,13 +9,6 @@ export interface Tokens {
   layout: Record<string, number | number[]>;
   textPairs: [string, string][];
 }
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-const isString = (value: unknown): value is string => typeof value === 'string';
-const isNumber = (value: unknown): value is number => typeof value === 'number';
 
 function isTokens(value: unknown): value is Tokens {
   if (!isRecord(value)) return false;

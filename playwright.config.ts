@@ -15,6 +15,10 @@ export default defineConfig({
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
     { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
     { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+    // Edge runs in the nightly job only (PW_EDGE=1), where Playwright installs it.
+    ...(process.env.PW_EDGE
+      ? [{ name: 'edge', use: { ...devices['Desktop Edge'], channel: 'msedge' } }]
+      : []),
   ],
   webServer: {
     command: `npm run build && npm run preview -- --host 127.0.0.1 --port ${PORT} --strictPort`,
