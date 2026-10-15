@@ -5,9 +5,12 @@ import {
   systemEnv,
   type Command,
   type Deck,
+  type ElementChange,
   type Env,
   type Id,
+  type ReorderMode,
   type Slide,
+  type SlideElement,
 } from '@/model';
 import { Autosaver, type DeckStore, type SaveState } from '@/storage';
 
@@ -28,6 +31,11 @@ export interface DeckSession {
   /** Add a blank slide after the current one and select it (SL-1). */
   readonly addSlide: () => void;
   readonly renameDeck: (title: string) => void;
+  /** Put a new element on top of the current slide (ZO-1). */
+  readonly addElement: (element: SlideElement) => void;
+  /** Change properties of elements on the current slide: one command, one step (decision 18). */
+  readonly updateElements: (changes: readonly ElementChange[]) => void;
+  readonly reorderElements: (ids: readonly Id[], mode: ReorderMode) => void;
   /** Try saving again after a failed save. */
   readonly retrySave: () => void;
 }
@@ -124,6 +132,33 @@ export function useDeckSession(
     [dispatch, env],
   );
 
+  const addElement = useCallback(
+    (element: SlideElement) => {
+      const slideId = currentRef.current;
+      if (slideId === undefined) return;
+      dispatch({ type: 'addElement', slideId, element, at: env.now() });
+    },
+    [dispatch, env],
+  );
+
+  const updateElements = useCallback(
+    (changes: readonly ElementChange[]) => {
+      const slideId = currentRef.current;
+      if (slideId === undefined || changes.length === 0) return;
+      dispatch({ type: 'updateElements', slideId, changes, at: env.now() });
+    },
+    [dispatch, env],
+  );
+
+  const reorderElements = useCallback(
+    (ids: readonly Id[], mode: ReorderMode) => {
+      const slideId = currentRef.current;
+      if (slideId === undefined || ids.length === 0) return;
+      dispatch({ type: 'reorderElements', slideId, ids, mode, at: env.now() });
+    },
+    [dispatch, env],
+  );
+
   const retrySave = useCallback(() => {
     void saver.current?.retry();
   }, []);
@@ -140,6 +175,9 @@ export function useDeckSession(
     selectSlide,
     addSlide,
     renameDeck,
+    addElement,
+    updateElements,
+    reorderElements,
     retrySave,
   };
 }

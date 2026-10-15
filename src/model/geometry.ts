@@ -223,15 +223,23 @@ function snappedEnd(fixed: Point, moving: Point, snapStep?: number): Point {
  * moves the end onto the nearest multiple of that angle, keeping the length.
  */
 export function lineBetween(start: Point, end: Point, snapStep?: number): Box {
-  const to = snappedEnd(start, end, snapStep);
-  const length = Math.hypot(to.x - start.x, to.y - start.y);
+  const length = Math.hypot(end.x - start.x, end.y - start.y);
+  const raw = Math.atan2(end.y - start.y, end.x - start.x) / RADIANS;
+  const angle = snapStep === undefined ? raw : snapTo(raw, snapStep);
+  const to =
+    snapStep === undefined
+      ? end
+      : {
+          x: start.x + Math.cos(angle * RADIANS) * length,
+          y: start.y + Math.sin(angle * RADIANS) * length,
+        };
   const centre = { x: (start.x + to.x) / 2, y: (start.y + to.y) / 2 };
   return {
     x: centre.x - length / 2,
     y: centre.y,
     width: length,
     height: 0,
-    rotation: normaliseAngle(Math.atan2(to.y - start.y, to.x - start.x) / RADIANS),
+    rotation: normaliseAngle(angle),
   };
 }
 
@@ -314,6 +322,19 @@ export function scaleBoxes(boxes: readonly Box[], anchor: Point, sx: number, sy:
       rotation: box.rotation,
     };
   });
+}
+
+/**
+ * Fit a whole selection into `target`: scale it about its top left corner to the target's size,
+ * then move it to the target's position. (How typing X, Y, W or H for a multi-selection works.)
+ */
+export function fitBoxesTo(boxes: readonly Box[], target: Rect): Box[] {
+  const bounds = groupBounds(boxes);
+  const sx = bounds.width === 0 ? 1 : target.width / bounds.width;
+  const sy = bounds.height === 0 ? 1 : target.height / bounds.height;
+  return scaleBoxes(boxes, { x: bounds.x, y: bounds.y }, sx, sy).map((box) =>
+    moveBox(box, target.x - bounds.x, target.y - bounds.y),
+  );
 }
 
 /** Drag a handle of the box around a whole selection: every member is scaled with it. */

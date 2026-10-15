@@ -8,6 +8,7 @@ import {
   centerOf,
   containsPoint,
   cornersOf,
+  fitBoxesTo,
   groupBounds,
   isCorner,
   lineBetween,
@@ -517,6 +518,38 @@ describe('groups (EL-5)', () => {
         },
       ),
     );
+  });
+
+  test('Given a selection, When it is fitted to a target rectangle, Then its group bounds become that rectangle', () => {
+    const target = { x: 50, y: 60, width: 900, height: 450 };
+
+    const fitted = fitBoxesTo(boxes, target);
+
+    const bounds = groupBounds(fitted);
+    expect(bounds.x).toBeCloseTo(50, 6);
+    expect(bounds.y).toBeCloseTo(60, 6);
+    expect(bounds.width).toBeCloseTo(900, 6);
+    expect(bounds.height).toBeCloseTo(450, 6);
+  });
+
+  test('Given a selection, When it is fitted to its own bounds, Then nothing changes', () => {
+    const fitted = fitBoxesTo(boxes, groupBounds(boxes));
+
+    fitted.forEach((box, i) => {
+      expect(box.x).toBeCloseTo(boxes[i]?.x ?? 0, 9);
+      expect(box.width).toBeCloseTo(boxes[i]?.width ?? 0, 9);
+    });
+  });
+
+  test('Given a flat selection, When it is fitted to a taller target, Then it keeps its height (nothing to scale)', () => {
+    const flat = [{ x: 0, y: 0, width: 100, height: 0, rotation: 0 }];
+
+    expect(fitBoxesTo(flat, { x: 10, y: 20, width: 200, height: 50 })[0]).toMatchObject({
+      x: 10,
+      y: 20,
+      width: 200,
+      height: 0,
+    });
   });
 
   test('Given a group with no size, When it is resized, Then nothing changes', () => {

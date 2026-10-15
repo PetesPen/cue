@@ -1,0 +1,361 @@
+import { useRef, useState, type KeyboardEvent, type PointerEvent, type RefObject } from 'react';
+import {
+  HANDLES,
+  SLIDE_HEIGHT,
+  SLIDE_WIDTH,
+  groupBounds,
+  systemEnv,
+  type ElementChange,
+  type Id,
+  type Point,
+  type Rect,
+  type ShapeElement,
+  type ShapeKind,
+  type Slide,
+} from '@/model';
+import {
+  DRAG_THRESHOLD,
+  applyDraft,
+  boxOf,
+  boxesOf,
+  changesFor,
+  drawnShape,
+  marqueeRect,
+  marqueeSelection,
+  pickElement,
+  type Gesture,
+} from './gestures';
+import { SelectionOverlay } from './SelectionOverlay';
+import { SlideView } from './SlideView';
+import { SHAPE_LABELS, describeSelection } from './shapeLabels';
+
+/** "an ellipse", "a rectangle". */
+function withArticle(label: string): string {
+  const lower = label.toLowerCase();
+  return `${/^[aeiou]/.test(lower) ? 'an' : 'a'} ${lower}`;
+}
+
+/** How near (in screen pixels) a click must be to pick a line. */
+const LINE_PICK_DISTANCE = 8;
+
+interface Active {
+  readonly gesture: Gesture;
+  readonly pointerId: number;
+  readonly startClient: Point;
+  moved: boolean;
+  /** For a click on one of several selected shapes: it becomes the only selection on release. */
+  readonly clickedId?: Id;
+}
+
+interface CanvasProps {
+  /** The slide as it is now, including any draft in progress (see `applyDraft`). */
+  readonly slide: Slide;
+  readonly label: string;
+  readonly selection: readonly Id[];
+  readonly onSelect: (ids: readonly Id[]) => void;
+  /** The shape tool that is armed: the next drag draws that shape. */
+  readonly tool: ShapeKind | undefined;
+  readonly onToolDone: () => void;
+  readonly onAddElement: (element: ShapeElement) => void;
+  /** One command per finished gesture or key press (decision 18). */
+  readonly onUpdate: (changes: readonly ElementChange[]) => void;
+  /** A drag in progress, to be shown but not saved. */
+  readonly onDraft: (changes: readonly ElementChange[] | undefined) => void;
+  readonly onDrawing: (shape: ShapeElement | undefined) => void;
+  readonly onContextMenu: (at: Point) => void;
+  readonly frameRef: RefObject<HTMLDivElement | null>;
+}
+
+function readoutFor(gesture: Gesture, changes: readonly ElementChange[], slide: Slide): string {
+  // The elements as the new changes leave them (not as the last frame drew them).
+  const now = applyDraft(slide, changes, undefined).elements.filter((e) =>
+    changes.some((c) => c.id === e.id),
+  );
+  const bounds = groupBounds(now.map(boxOf));
+  const round = (n: number) => String(Math.round(n));
+  switch (gesture.kind) {
+    case 'move':
+      return `X ${round(bounds.x)} · Y ${round(bounds.y)}`;
+    case 'resize':
+      return `W ${round(bounds.width)} · H ${round(bounds.height)}`;
+    case 'lineEnd': {
+      const line = now[0];
+      return line ? `${round(line.width)} px · ${round(line.rotation)}°` : '';
+    }
+    case 'rotate':
+      return `${round(now[0]?.rotation ?? 0)}°`;
+    default:
+      return '';
+  }
+}
+
+/**
+ * The slide on the canvas, with direct manipulation (EL-5, EL-3): click and Shift-click to select, a
+ * box to select several, drag to move, handles to resize and turn, arrow keys to nudge, and a shape
+ * tool to draw. Nothing is saved while a drag is going on: the drag is shown as a draft, and ONE
+ * command is committed when it ends (decision 18).
+ */
+export function Canvas({
+  slide,
+  label,
+  selection,
+  onSelect,
+  tool,
+  onToolDone,
+  onAddElement,
+  onUpdate,
+  onDraft,
+  onDrawing,
+  onContextMenu,
+  frameRef,
+}: CanvasProps) {
+  const active = useRef<Active | undefined>(undefined);
+  const [readout, setReadout] = useState<string | undefined>();
+  const [marquee, setMarquee] = useState<Rect | undefined>();
+
+  const selected = slide.elements.filter((element) => selection.includes(element.id));
+
+  /** The pointer in slide pixels, whatever the zoom. */
+  function toSlide(event: { clientX: number; clientY: number }): Point {
+    const rect = frameRef.current?.getBoundingClientRect();
+    if (!rect || rect.width === 0) return { x: 0, y: 0 };
+    return {
+      x: ((event.clientX - rect.left) / rect.width) * SLIDE_WIDTH,
+      y: ((event.clientY - rect.top) / rect.height) * SLIDE_HEIGHT,
+    };
+  }
+
+  function lineSlop(): number {
+    const width = frameRef.current?.getBoundingClientRect().width ?? SLIDE_WIDTH;
+    return (LINE_PICK_DISTANCE * SLIDE_WIDTH) / Math.max(width, 1);
+  }
+
+  function begin(event: PointerEvent<HTMLDivElement>, gesture: Gesture, clickedId?: Id) {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    active.current = {
+      gesture,
+      pointerId: event.pointerId,
+      startClient: { x: event.clientX, y: event.clientY },
+      moved: false,
+      ...(clickedId === undefined ? {} : { clickedId }),
+    };
+  }
+
+  function clearGesture() {
+    active.current = undefined;
+    onDraft(undefined);
+    onDrawing(undefined);
+    setReadout(undefined);
+    setMarquee(undefined);
+  }
+
+  function onPointerDown(event: PointerEvent<HTMLDivElement>) {
+    if (event.button !== 0) return;
+    const point = toSlide(event);
+    const handle =
+      event.target instanceof Element ? event.target.closest<HTMLElement>('[data-handle]') : null;
+
+    if (handle?.dataset.handle) {
+      const kind = handle.dataset.handle;
+      const boxes = boxesOf(selected);
+      const first = selected[0];
+      if (kind === 'rotate') begin(event, { kind: 'rotate', start: point, boxes });
+      else if ((kind === 'start' || kind === 'end') && first) {
+        begin(event, {
+          kind: 'lineEnd',
+          start: point,
+          which: kind,
+          id: first.id,
+          box: boxOf(first),
+        });
+      } else {
+        const resizeHandle = HANDLES.find((h) => h === kind);
+        if (resizeHandle)
+          begin(event, { kind: 'resize', start: point, handle: resizeHandle, boxes });
+      }
+      return;
+    }
+
+    if (tool) {
+      begin(event, { kind: 'draw', start: point, shape: tool, id: systemEnv.newId() });
+      return;
+    }
+
+    const hit = pickElement(slide.elements, point, lineSlop());
+    if (!hit) {
+      if (!event.shiftKey) onSelect([]);
+      begin(event, {
+        kind: 'marquee',
+        start: point,
+        additive: event.shiftKey,
+        previous: selection,
+      });
+      return;
+    }
+
+    let next = selection;
+    if (event.shiftKey) {
+      next = selection.includes(hit.id)
+        ? selection.filter((id) => id !== hit.id)
+        : [...selection, hit.id];
+      onSelect(next);
+      if (!next.includes(hit.id)) return;
+    } else if (!selection.includes(hit.id)) {
+      next = [hit.id];
+      onSelect(next);
+    }
+    const moving = slide.elements.filter((element) => next.includes(element.id));
+    begin(event, { kind: 'move', start: point, boxes: boxesOf(moving) }, hit.id);
+  }
+
+  function onPointerMove(event: PointerEvent<HTMLDivElement>) {
+    const current = active.current;
+    if (current?.pointerId !== event.pointerId) return;
+    if (!current.moved) {
+      const far =
+        Math.hypot(event.clientX - current.startClient.x, event.clientY - current.startClient.y) >=
+        DRAG_THRESHOLD;
+      if (!far) return;
+      current.moved = true;
+    }
+    const point = toSlide(event);
+    const { gesture } = current;
+
+    if (gesture.kind === 'marquee') {
+      const area = marqueeRect(gesture.start, point);
+      setMarquee(area);
+      onSelect(marqueeSelection(area, slide.elements, gesture.additive, gesture.previous));
+    } else if (gesture.kind === 'draw') {
+      const shape = drawnShape(gesture, point, event.shiftKey, true);
+      onDrawing(shape);
+      setReadout(
+        `${SHAPE_LABELS[shape.shape]} · W ${String(Math.round(shape.width))} · H ${String(Math.round(shape.height))}`,
+      );
+    } else {
+      const changes = changesFor(gesture, point, event.shiftKey);
+      onDraft(changes);
+      setReadout(readoutFor(gesture, changes, slide));
+    }
+  }
+
+  function onPointerUp(event: PointerEvent<HTMLDivElement>) {
+    const current = active.current;
+    if (current?.pointerId !== event.pointerId) return;
+    const { gesture, moved } = current;
+    const point = toSlide(event);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    clearGesture();
+
+    switch (gesture.kind) {
+      case 'move':
+        if (moved) onUpdate(changesFor(gesture, point, event.shiftKey));
+        else if (current.clickedId && selection.length > 1 && !event.shiftKey) {
+          onSelect([current.clickedId]);
+        }
+        break;
+      case 'resize':
+      case 'rotate':
+      case 'lineEnd':
+        if (moved) onUpdate(changesFor(gesture, point, event.shiftKey));
+        break;
+      case 'draw': {
+        const shape = drawnShape(gesture, point, event.shiftKey, moved);
+        onAddElement(shape);
+        onSelect([shape.id]);
+        onToolDone();
+        break;
+      }
+      case 'marquee':
+        break;
+    }
+  }
+
+  function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === 'Escape') {
+      if (active.current) {
+        event.preventDefault();
+        clearGesture();
+      } else if (tool) {
+        event.preventDefault();
+        onToolDone();
+      } else if (selection.length > 0) {
+        event.preventDefault();
+        onSelect([]);
+      }
+      return;
+    }
+
+    if (event.key.startsWith('Arrow') && selected.length > 0 && !active.current) {
+      event.preventDefault();
+      const step = event.shiftKey ? 10 : 1;
+      const dx = event.key === 'ArrowLeft' ? -step : event.key === 'ArrowRight' ? step : 0;
+      const dy = event.key === 'ArrowUp' ? -step : event.key === 'ArrowDown' ? step : 0;
+      onUpdate(selected.map((e) => ({ id: e.id, props: { x: e.x + dx, y: e.y + dy } })));
+      return;
+    }
+
+    // Tab walks through the shapes, back to front, then leaves the canvas.
+    if (event.key === 'Tab' && slide.elements.length > 0) {
+      const order = slide.elements.map((e) => e.id);
+      const only = selection.length === 1 ? order.indexOf(selection[0] ?? '') : -1;
+      const next = event.shiftKey ? (only === -1 ? order.length - 1 : only - 1) : only + 1;
+      const id = order[next];
+      if (id !== undefined) {
+        event.preventDefault();
+        onSelect([id]);
+      } else if (selection.length > 0) {
+        onSelect([]);
+      }
+    }
+  }
+
+  function handleContextMenu(event: React.MouseEvent<HTMLDivElement>) {
+    event.preventDefault();
+    const hit = pickElement(slide.elements, toSlide(event), lineSlop());
+    if (!hit) {
+      onSelect([]);
+      return;
+    }
+    if (!selection.includes(hit.id)) onSelect([hit.id]);
+    onContextMenu({ x: event.clientX, y: event.clientY });
+  }
+
+  const kinds = selected.map((e) => e.shape);
+  const opacity =
+    selected.length === 1 ? ` · ${String(Math.round((selected[0]?.opacity ?? 1) * 100))}%` : '';
+  const chip = readout ?? `${describeSelection(kinds)}${opacity}`;
+
+  return (
+    // The slide is one focus stop: Tab enters it, Tab again walks the shapes, arrow keys nudge.
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+    <div
+      ref={frameRef}
+      className={tool ? 'slide-frame slide-frame-drawing' : 'slide-frame'}
+      role="group"
+      aria-label={label}
+      aria-describedby={tool ? 'drawing-hint' : undefined}
+      tabIndex={-1}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={clearGesture}
+      onKeyDown={onKeyDown}
+      onContextMenu={handleContextMenu}
+    >
+      <SlideView slide={slide} />
+      {selected.length > 0 || marquee ? (
+        <SelectionOverlay elements={selected} chip={chip} marquee={marquee} />
+      ) : null}
+      {tool && (
+        <p id="drawing-hint" className="drawing-hint">
+          Drag on the slide to draw {withArticle(SHAPE_LABELS[tool])}. Esc cancels.
+        </p>
+      )}
+      <span className="visually-hidden" role="status" aria-live="polite">
+        {selected.length > 0 ? `${describeSelection(kinds)} selected` : ''}
+      </span>
+    </div>
+  );
+}

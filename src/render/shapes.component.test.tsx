@@ -79,6 +79,20 @@ describe('shapes are drawn as boxes in slide space (EL-3)', () => {
     expect(head?.getAttribute('points')?.startsWith('400,0')).toBe(true);
   });
 
+  test('Given a line and an arrow, When they are drawn, Then they really paint something (an SVG of no height is not drawn at all)', () => {
+    const { host } = draw(
+      slideWith(createShape('l', 'line', box), createShape('a', 'arrow', { ...box, y: 400 })),
+    );
+
+    for (const id of ['l', 'a']) {
+      const svg = nodeOf(host, id)?.querySelector('svg');
+      // An SVG with no size is not painted at all; a line's SVG is at least 1 px (half a pixel here).
+      expect(svg?.getBoundingClientRect().height, id).toBeGreaterThan(0.4);
+      expect(svg?.getBoundingClientRect().width, id).toBeGreaterThan(100);
+      expect(Number(svg?.getAttribute('height')), id).toBeGreaterThanOrEqual(1);
+    }
+  });
+
   test('Given a line, When it is drawn, Then its box has no height and it is a visible stroke of the border colour', () => {
     const { host } = draw(slideWith(createShape('a', 'line', box)));
 
