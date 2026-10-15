@@ -84,7 +84,7 @@ Every item on a slide is an element with a position, size, rotation, opacity and
 
 - Available shapes: rectangle, rounded rectangle, ellipse, triangle, line and arrow.
 - Style controls: fill colour, gradient (Could), border colour, width and dash style, and corner radius.
-- A shape can hold text, centred by default.
+- A shape can hold text, centred by default. (Built in sprint 3, once rich text exists; moved from sprint 2 with Peter's approval on 2026-10-16.)
 - Holding Shift while dragging keeps proportions; lines snap to 15° steps.
 
 **EL-4 Add images (Must).** As a presenter, I want to bring in images by upload, drag and drop or paste, so that adding pictures is effortless.

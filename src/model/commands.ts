@@ -1,5 +1,7 @@
 import { castDraft, enablePatches, produceWithPatches, type Patch } from 'immer';
-import { createSlide, normaliseTitle, type Deck, type Id } from './deck';
+import { createSlide, normaliseTitle, type Deck } from './deck';
+import { normaliseProps, type ElementChange, type Id, type SlideElement } from './elements';
+import { reorder, type ReorderMode } from './zorder';
 
 enablePatches();
 
@@ -15,7 +17,28 @@ export type Command =
       readonly afterSlideId: Id;
       readonly at: number;
     }
-  | { readonly type: 'renameDeck'; readonly title: string; readonly at: number };
+  | { readonly type: 'renameDeck'; readonly title: string; readonly at: number }
+  /** Put a new element on top of the slide (ZO-1: new elements are added on top). */
+  | {
+      readonly type: 'addElement';
+      readonly slideId: Id;
+      readonly element: SlideElement;
+      readonly at: number;
+    }
+  /** Change properties of elements: move, resize, rotate, fade, restyle. One command per gesture. */
+  | {
+      readonly type: 'updateElements';
+      readonly slideId: Id;
+      readonly changes: readonly ElementChange[];
+      readonly at: number;
+    }
+  | {
+      readonly type: 'reorderElements';
+      readonly slideId: Id;
+      readonly ids: readonly Id[];
+      readonly mode: ReorderMode;
+      readonly at: number;
+    };
 
 export interface Applied {
   readonly deck: Deck;
@@ -42,6 +65,37 @@ export function applyCommand(deck: Deck, command: Command): Applied {
       case 'renameDeck':
         draft.title = normaliseTitle(command.title);
         break;
+      case 'addElement': {
+        const slide = draft.slides.find((s) => s.id === command.slideId);
+        if (!slide) throw new CommandError(`Slide ${command.slideId} is not in deck ${deck.id}`);
+        if (slide.elements.some((e) => e.id === command.element.id)) {
+          throw new CommandError(`Element ${command.element.id} is already on slide ${slide.id}`);
+        }
+        slide.elements.push(castDraft(command.element));
+        break;
+      }
+      case 'updateElements': {
+        const slide = draft.slides.find((s) => s.id === command.slideId);
+        if (!slide) throw new CommandError(`Slide ${command.slideId} is not in deck ${deck.id}`);
+        for (const change of command.changes) {
+          const element = slide.elements.find((e) => e.id === change.id);
+          if (!element) throw new CommandError(`Element ${change.id} is not on slide ${slide.id}`);
+          Object.assign(element, normaliseProps(change.props));
+        }
+        break;
+      }
+      case 'reorderElements': {
+        const slide = draft.slides.find((s) => s.id === command.slideId);
+        if (!slide) throw new CommandError(`Slide ${command.slideId} is not in deck ${deck.id}`);
+        const order = reorder(
+          slide.elements.map((e) => e.id),
+          new Set(command.ids),
+          command.mode,
+        );
+        const byId = new Map(slide.elements.map((e) => [e.id, e]));
+        slide.elements = order.flatMap((id) => byId.get(id) ?? []);
+        break;
+      }
     }
     draft.updatedAt = command.at;
   });

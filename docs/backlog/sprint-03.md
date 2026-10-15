@@ -36,6 +36,10 @@ Design: [`Editor-Text`](../../design/screenshots/Editor-Text.png) ([source](../.
 
 Tests: write each criterion as a Given / When / Then example first; each example becomes a test name. At least one end-to-end test is required (Must story).
 
+### Carried from sprint 2 (EL-3, Must): text inside a shape
+
+- [ ] A shape can hold text, centred by default. Build it first, as soon as the text element of EL-1 exists: a shape gets a text part that uses the same editor and the same static renderer, and fading the shape fades its text with it (TR-1).
+
 ### EL-2 Choose fonts (Must)
 
 As a presenter, I want to pick from a good set of fonts, so that decks look distinctive.

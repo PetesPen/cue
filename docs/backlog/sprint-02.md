@@ -42,7 +42,7 @@ As a presenter, I want to insert and style shapes, so that I can build diagrams 
 Acceptance criteria:
 - [ ] Available shapes: rectangle, rounded rectangle, ellipse, triangle, line and arrow.
 - [ ] Style controls: fill colour, gradient (Could), border colour, width and dash style, and corner radius.
-- [ ] A shape can hold text, centred by default.
+- [ ] ~~A shape can hold text, centred by default.~~ Moved to sprint 3 (Peter, 2026-10-16): it needs the rich-text editor of EL-1. Not part of sprint 2.
 - [ ] Holding Shift while dragging keeps proportions; lines snap to 15° steps.
 
 Design: [`Main`](../../design/screenshots/Main.png) ([source](../../design/boards/Main.dc.html))
