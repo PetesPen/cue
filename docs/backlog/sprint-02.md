@@ -1,6 +1,6 @@
 # Sprint 2: Elements you can move
 
-- Capacity: 16 engineering days (2 engineers, about 80% focus, 2 weeks)
+- Capacity: 16 engineering days (2 engineers, about 80% focus, 2 weeks). Planned load is 18: SV-7 (2 days) was added on 2026-10-15 by decision 16, and velocity is re-estimated after this sprint
 - Next: [sprint-03.md](sprint-03.md) · Previous: [sprint-01.md](sprint-01.md)
 
 Work only on this sprint's goal. New ideas go to the backlog, not into the sprint (see `CLAUDE.md`). Tick the boxes as criteria are shown working on the preview deployment.
@@ -17,9 +17,9 @@ Draw shapes, then move, resize, rotate, layer and fade them.
 
 Z-order property tests; drag and resize end to end; opacity snapshots.
 
-## Stories (4)
+## Stories (5)
 
-4 Must, 0 Should. Story order below is the suggested build order.
+5 Must, 0 Should. Story order below is the suggested build order.
 
 ### EL-5 Move, resize and rotate (Must)
 
@@ -76,6 +76,20 @@ Acceptance criteria:
 Design: [`Main`](../../design/screenshots/Main.png) ([source](../../design/boards/Main.dc.html))
 
 Tests: write each criterion as a Given / When / Then example first; each example becomes a test name. At least one end-to-end test is required (Must story).
+
+### SV-7 One tab per deck (Must)
+
+As a presenter, I want to be told when a deck is already open in another tab, so that two tabs never overwrite each other's edits.
+
+Acceptance criteria:
+- [ ] Opening a deck that is already open in another tab of the same browser shows "This deck is open in another tab" and does not let this tab edit it; a link goes back to the library.
+- [ ] When the other tab is closed, this tab becomes editable by itself, with no reload, and shows the deck as the other tab left it.
+- [ ] Different decks can be open in different tabs, and the library can be open in as many tabs as you like.
+- [ ] Where the browser has no Web Locks, nothing changes and nothing breaks.
+
+Design: none yet. It reuses the "This deck isn't here" screen of sprint 1 (a message and a link back); the wording is Claude's, for Peter to review.
+
+Tests: write each criterion as a Given / When / Then example first; each example becomes a test name. At least one end-to-end test is required (Must story): two pages in one browser context, the same deck in both.
 
 ## Definition of done reminder
 

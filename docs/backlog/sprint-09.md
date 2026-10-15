@@ -30,6 +30,7 @@ Acceptance criteria:
 - [ ] Opening the file recreates the deck exactly, including animations, transitions and notes.
 - [ ] Files from a newer version of the app open with a clear message if some features are unsupported.
 - [ ] A corrupt or foreign file is rejected with a clear message and nothing is overwritten.
+- [ ] Carried over from sprint 1 (SV-1): the "Storage is almost full" and "Changes can't be saved" banners offer **Export deck** (today they offer Manage storage and Try again), and the delete confirmation says "Export a copy first if you might want it back". Also show a deck Cue cannot read as a card with a Delete action (decision 17).
 
 Design: [`Home`](../../design/screenshots/Home.png) ([source](../../design/boards/Home.dc.html)), [`Export-Dialog`](../../design/screenshots/Export-Dialog.png) ([source](../../design/boards/Export-Dialog.dc.html)), [`States`](../../design/screenshots/States.png) ([source](../../design/boards/States.dc.html))
 

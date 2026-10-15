@@ -169,3 +169,20 @@ Use https://cue-presentations.netlify.app/ (or the preview link on pull request 
 1. This sprint was planned in a summary and built straight through. Did the summary give you enough to approve, or would you want to see the screens (a mock-up or the first build) before the sprint is far along?
 2. Pull requests with previews are now the default. Do you want the app to fix failing checks automatically and tell you (an option in this app), or only be told when a pull request is ready?
 3. The library leaves out search, starter layouts and Open file until their stories. Do you want any of them earlier than planned?
+
+### Peter's answers (2026-10-15)
+
+1. "I'm happy with everything": accepted every story. Retrospective questions 1 and 3 (was the summary enough, and any library features earlier) were not answered separately; nothing suggests a change.
+2. Decision 15 (Cmd+M on a Mac): keep as it is; he uses only Windows and Linux, so macOS is not a concern for him.
+3. Decision 16 (same deck in two tabs): agreed. New story SV-7 in sprint 2.
+4. Decision 17 (decks Cue cannot read): agreed. Sprint 9.
+5. Pull-request Auto-fix: no thank you. Claude reads the checks itself.
+6. Can arrange a second display and Docker.
+
+### Review outcome (2026-10-15)
+
+- **Sprint 1 accepted** (UX-1, SL-1, SL-2, SV-2 complete; SV-1 accepted as complete for now, with its image and Export deck parts carried to sprints 4 and 9).
+- Pull requests 1 and 2 are merged (squash) after green CI; the live site serves the sprint 1 build.
+- **One thing found on the live site after the merge:** the production page still logs one console error, so four of the end-to-end tests fail when run against production (they pass against the pull-request preview). The cause is Netlify's "Powered by Netlify" badge, which Netlify adds to public sites on the free plan; our content policy blocks its inline script, so nothing shows and nothing breaks, but the error is logged. It is switched off with one project setting (see `docs/hosting.md`).
+- Story SV-7 added from decision 16; totals are now 58 stories, 39 Must, 214 days.
+- The sprint 2 plan is in `docs/plans/sprint-02.md` and waits for Peter's approval.
