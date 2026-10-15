@@ -442,6 +442,27 @@ test.describe('Given a shape, When its opacity changes (TR-1)', () => {
     await expect(chip(page)).toHaveText('Rectangle · 25%');
   });
 
+  test('Then a selection of several is faded together, and values that differ read Mixed', async ({
+    page,
+  }) => {
+    const slide = await openNewDeck(page);
+    await draw(page, slide, 'Rectangle', [100, 100], [400, 300]);
+    await field(page, 'Opacity percent').fill('50');
+    await page.keyboard.press('Enter');
+    await draw(page, slide, 'Ellipse', [600, 100], [900, 300]);
+
+    await drag(page, slide, [50, 50], [1000, 400]);
+    await expect(chip(page)).toHaveText('2 shapes');
+    await expect(field(page, 'Opacity percent')).toHaveValue('');
+    await expect(field(page, 'Opacity percent')).toHaveAttribute('placeholder', 'Mixed');
+    await field(page, 'Opacity percent').fill('30');
+    await page.keyboard.press('Enter');
+
+    await expect(nodes(page).nth(0)).toHaveCSS('opacity', '0.3');
+    await expect(nodes(page).nth(1)).toHaveCSS('opacity', '0.3');
+    await expect(field(page, 'Opacity percent')).toHaveValue('30');
+  });
+
   test('Then fading applies to the whole shape, fill and border together', async ({ page }) => {
     const slide = await openNewDeck(page);
     await draw(page, slide, 'Rectangle', [300, 300], [900, 700]);
