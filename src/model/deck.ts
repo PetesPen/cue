@@ -1,4 +1,5 @@
 import { freeze } from 'immer';
+import type { Id, SlideElement } from './elements';
 
 /** Bump when the stored shape changes, and add a migration in `parse.ts` (SV-3, SV-5). */
 export const SCHEMA_VERSION = 1;
@@ -9,13 +10,6 @@ export const SLIDE_HEIGHT = 1080;
 
 export const DEFAULT_DECK_TITLE = 'Untitled deck';
 export const DEFAULT_SLIDE_BACKGROUND = '#FFFFFF';
-
-export type Id = string;
-
-/** What a slide holds. Text, shapes and images arrive with the EL stories; each has an id. */
-export interface SlideElement {
-  readonly id: Id;
-}
 
 export interface Slide {
   readonly id: Id;

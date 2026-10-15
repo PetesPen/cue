@@ -11,7 +11,57 @@ export {
   normaliseTitle,
   systemEnv,
 } from './deck';
-export type { Deck, Env, Id, Slide, SlideElement } from './deck';
+export type { Deck, Env, Slide } from './deck';
+export {
+  DASH_STYLES,
+  DEFAULT_BORDER_COLOR,
+  DEFAULT_CORNER_RADIUS,
+  DEFAULT_FILL,
+  DEFAULT_LINE_WIDTH,
+  SHAPE_KINDS,
+  createShape,
+  isLine,
+  normaliseProps,
+} from './elements';
+export type {
+  Border,
+  BoxInput,
+  DashStyle,
+  ElementChange,
+  ElementProps,
+  Id,
+  ShapeElement,
+  ShapeKind,
+  SlideElement,
+} from './elements';
 export { CommandError, applyCommand } from './commands';
 export type { Applied, Command } from './commands';
 export { InvalidDeckError, UnsupportedVersionError, parseDeck } from './parse';
+export {
+  HANDLES,
+  angleOf,
+  boundsOf,
+  boxFromDrag,
+  centerOf,
+  containsPoint,
+  cornersOf,
+  groupBounds,
+  isCorner,
+  lineBetween,
+  lineEnds,
+  moveBox,
+  moveLineEnd,
+  normaliseAngle,
+  rectEncloses,
+  resizeBox,
+  resizeGroup,
+  rotateBoxes,
+  rotatePoint,
+  rotationAfterDrag,
+  scaleBoxes,
+  snapTo,
+  unionRect,
+} from './geometry';
+export type { Box, Handle, Point, Rect, ResizeOptions } from './geometry';
+export { canReorder, reorder } from './zorder';
+export type { ReorderMode } from './zorder';

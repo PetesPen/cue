@@ -1,5 +1,6 @@
 import { freeze } from 'immer';
-import { SCHEMA_VERSION, type Deck, type Slide, type SlideElement } from './deck';
+import { SCHEMA_VERSION, type Deck, type Slide } from './deck';
+import { DASH_STYLES, SHAPE_KINDS, type SlideElement } from './elements';
 
 /** The stored deck was written by a newer Cue than this one. Say so; never guess (SV-3). */
 export class UnsupportedVersionError extends Error {
@@ -17,11 +18,51 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function isNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
 function parseElement(value: unknown): SlideElement {
   if (!isRecord(value) || typeof value.id !== 'string') {
     throw new InvalidDeckError('A slide element has no id');
   }
-  return { ...value, id: value.id };
+  const { border } = value;
+  if (
+    value.kind !== 'shape' ||
+    !SHAPE_KINDS.some((shape) => shape === value.shape) ||
+    !isNumber(value.x) ||
+    !isNumber(value.y) ||
+    !isNumber(value.width) ||
+    !isNumber(value.height) ||
+    !isNumber(value.rotation) ||
+    !isNumber(value.opacity) ||
+    !isNumber(value.cornerRadius) ||
+    typeof value.fill !== 'string' ||
+    !isRecord(border) ||
+    typeof border.color !== 'string' ||
+    !isNumber(border.width) ||
+    !DASH_STYLES.some((dash) => dash === border.dash)
+  ) {
+    throw new InvalidDeckError(`Slide element ${value.id} is not a valid shape`);
+  }
+  return {
+    id: value.id,
+    kind: 'shape',
+    shape: SHAPE_KINDS.find((shape) => shape === value.shape) ?? 'rectangle',
+    x: value.x,
+    y: value.y,
+    width: value.width,
+    height: value.height,
+    rotation: value.rotation,
+    opacity: value.opacity,
+    fill: value.fill,
+    border: {
+      color: border.color,
+      width: border.width,
+      dash: DASH_STYLES.find((dash) => dash === border.dash) ?? 'solid',
+    },
+    cornerRadius: value.cornerRadius,
+  };
 }
 
 function parseSlide(value: unknown): Slide {
