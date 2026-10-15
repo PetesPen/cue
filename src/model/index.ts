@@ -45,6 +45,7 @@ export {
   centerOf,
   containsPoint,
   cornersOf,
+  fitBoxesTo,
   groupBounds,
   isCorner,
   lineBetween,

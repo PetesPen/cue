@@ -52,8 +52,10 @@ export function arrowHead(borderWidth: number): {
 /** Draw (or redraw) a shape into its SVG, and set the SVG's size. */
 export function drawShape(svg: SVGSVGElement, shape: ShapeElement): void {
   const { width, height, border } = shape;
-  svg.setAttribute('width', String(width));
-  svg.setAttribute('height', String(height));
+  // An SVG with no width or height is not drawn at all, so a line (height 0) gets 1 px; its stroke
+  // still shows because the SVG's overflow is visible.
+  svg.setAttribute('width', String(Math.max(width, 1)));
+  svg.setAttribute('height', String(Math.max(height, 1)));
   const inset = border.width / 2;
   const style = outline(shape);
 

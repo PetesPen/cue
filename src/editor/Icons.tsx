@@ -33,6 +33,12 @@ export const PlusIcon = (props: IconProps) => (
   </Stroke>
 );
 
+export const ShapeIcon = (props: IconProps) => (
+  <Stroke {...props}>
+    <rect x="4" y="4" width="16" height="16" rx="2" />
+  </Stroke>
+);
+
 export const CheckIcon = (props: IconProps) => (
   <Stroke strokeWidth={2.4} {...props}>
     <path d="m5 12 5 5L20 7" />

@@ -211,6 +211,7 @@ test.describe('Given any screen', () => {
   test('When the empty library, the library with a menu open, a dialog and the editor are checked, Then axe finds no violations', async ({
     page,
   }) => {
+    test.slow(); // several full accessibility scans in a row
     const check = async () => {
       const results = await new AxeBuilder({ page }).analyze();
       expect(results.violations).toEqual([]);

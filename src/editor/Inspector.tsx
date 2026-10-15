@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type KeyboardEvent } from 'react';
+import { useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 
 const TABS = [
   { id: 'design', label: 'Design', placeholder: 'Nothing selected.' },
@@ -8,8 +8,11 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]['id'];
 
-/** The right-hand panel: three tabs (Design, Animate, Transition) with empty panels for now. */
-export function Inspector() {
+/**
+ * The right-hand panel: three tabs (Design, Animate, Transition). The Design tab shows `design`
+ * when something is selected; the other panels are still empty.
+ */
+export function Inspector({ design }: { readonly design?: ReactNode }) {
   const [active, setActive] = useState<TabId>('design');
   const baseId = useId();
   const tabs = useRef(new Map<TabId, HTMLButtonElement>());
@@ -77,12 +80,16 @@ export function Inspector() {
           role="tabpanel"
           aria-labelledby={tabId(tab.id)}
           // WAI-ARIA tabs pattern: a panel with no focusable content must be focusable itself.
-          // Remove this once the panels hold controls (the first control then takes focus).
+          // The Design panel holds controls while something is selected (the first takes focus).
           // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
-          tabIndex={0}
+          tabIndex={tab.id === 'design' && design ? undefined : 0}
           hidden={active !== tab.id}
         >
-          <p className="placeholder">{tab.placeholder}</p>
+          {tab.id === 'design' && design ? (
+            design
+          ) : (
+            <p className="placeholder">{tab.placeholder}</p>
+          )}
         </div>
       ))}
     </aside>
