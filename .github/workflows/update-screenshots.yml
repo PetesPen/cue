@@ -1,0 +1,58 @@
+name: Update screenshots
+
+# Makes the reference screenshots for the visual tests, in the one pinned container (config/visual.json),
+# and opens a pull request with them for Peter to review (decision 13). Screenshots made anywhere else
+# would differ in font rendering. Run it by hand: Actions, "Update screenshots", Run workflow, and pick
+# the branch whose screenshots should change. The pull request goes into that same branch.
+#
+# Pull requests made with the built-in token do not start the other checks by themselves; the checks
+# run on the branch once the screenshots are merged into it. Every action is pinned to a commit and the
+# container image to its digest; tests/ci.test.ts checks both.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  update:
+    name: Regenerate screenshots in the pinned container
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Only this job may write: it pushes one new branch and opens one pull request.
+    permissions:
+      contents: write
+      pull-requests: write
+    # Keep in step with config/visual.json (tests/visual-container.test.ts checks it).
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
+      options: --ipc=host
+    env:
+      CUE_VISUAL_CONTAINER: '1'
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: npm ci
+      - name: Make the screenshots
+        run: npx playwright test -c playwright.visual.config.ts --update-snapshots
+      - name: Open a pull request with what changed
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -z "$(git status --porcelain -- e2e/visual)" ]; then
+            echo "No screenshot changed; nothing to review."
+            exit 0
+          fi
+          BRANCH="screenshots/run-${GITHUB_RUN_ID}"
+          git checkout -b "$BRANCH"
+          git add e2e/visual
+          git commit -m "chore: update screenshots (run ${GITHUB_RUN_ID})"
+          git push origin "$BRANCH"
+          BODY="Screenshots regenerated in the pinned container (workflow run ${GITHUB_RUN_ID}). Open Files changed to see each image next to the old one. Check that every image shows what its name says, then merge. These are the pictures later runs are compared against, so a wrong one would be accepted as truth."
+          curl --fail-with-body -sS -X POST \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls" \
+            -d "{\"title\":\"chore: update screenshots\",\"head\":\"${BRANCH}\",\"base\":\"${GITHUB_REF_NAME}\",\"body\":\"${BODY}\"}"
