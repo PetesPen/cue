@@ -16,3 +16,15 @@
   /* Same on every platform, so lines wrap the same everywhere (docs/spikes/SP-2.md). */
   text-rendering: geometricPrecision;
 }
+
+/* An element is a box in slide pixels; it turns about its centre. Its fade (opacity) is on the box,
+   so fill, border and any text fade as one. */
+.cue-element {
+  position: absolute;
+  transform-origin: 50% 50%;
+}
+
+.cue-shape {
+  display: block;
+  overflow: visible;
+}
