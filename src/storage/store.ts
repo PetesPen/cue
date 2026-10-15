@@ -33,35 +33,66 @@ export interface DeckStore {
 export function createDeckStore(databaseName = 'cue'): DeckStore {
   const db = new CueDatabase(databaseName);
 
+  // Writes still running. A read waits for them, so what was just saved is what comes back, even
+  // when the editor is left (and the library opened) the moment an edit is on its way to disk.
+  const writes = new Set<Promise<unknown>>();
+  const write = <T>(operation: () => Promise<T>): Promise<T> => {
+    const running = operation();
+    writes.add(running);
+    const forget = () => {
+      writes.delete(running);
+    };
+    running.then(forget, forget);
+    return running;
+  };
+  const writesSettled = async () => {
+    await Promise.allSettled([...writes]);
+  };
+
   return {
     async list() {
-      const decks = await db.decks.orderBy('updatedAt').reverse().toArray();
-      return decks.map((raw) => {
-        const deck = parseDeck(raw);
-        return {
+      await writesSettled();
+      const stored = await db.decks.orderBy('updatedAt').reverse().toArray();
+      const summaries: DeckSummary[] = [];
+      for (const raw of stored) {
+        // One damaged record, or one saved by a newer Cue, must not hide every other deck. It is
+        // left in storage untouched (and listed again by a Cue that can read it).
+        let deck: Deck;
+        try {
+          deck = parseDeck(raw);
+        } catch {
+          continue;
+        }
+        const [firstSlide] = deck.slides;
+        if (firstSlide === undefined) continue;
+        summaries.push({
           id: deck.id,
           title: deck.title,
           updatedAt: deck.updatedAt,
           slideCount: deck.slides.length,
-          firstSlide: deck.slides[0] ?? unreachable(),
-        };
-      });
+          firstSlide,
+        });
+      }
+      return summaries;
     },
 
     async load(id) {
+      await writesSettled();
       const raw = await db.decks.get(id);
       return raw === undefined ? undefined : parseDeck(raw);
     },
 
     async save(deck, newImages = []) {
-      await db.transaction('rw', db.decks, db.images, async () => {
-        await db.images.bulkPut([...newImages]);
-        await db.decks.put(deck);
-      });
+      await write(() =>
+        db.transaction('rw', db.decks, db.images, async () => {
+          await db.images.bulkPut([...newImages]);
+          await db.decks.put(deck);
+        }),
+      );
     },
 
     async remove(id) {
-      await db.decks.delete(id);
+      await write(() => db.decks.delete(id));
     },
 
     async duplicate(id, env) {
@@ -72,25 +103,24 @@ export function createDeckStore(databaseName = 'cue'): DeckStore {
       return copy;
     },
 
-    loadImage(hash) {
+    async loadImage(hash) {
+      await writesSettled();
       return db.images.get(hash);
     },
 
-    async sweepOrphanImages(referencedHashes) {
-      return db.transaction('rw', db.images, async () => {
-        const stored = await db.images.toCollection().primaryKeys();
-        const orphans = stored.filter((hash) => !referencedHashes.has(hash));
-        await db.images.bulkDelete(orphans);
-        return orphans.length;
-      });
+    sweepOrphanImages(referencedHashes) {
+      return write(() =>
+        db.transaction('rw', db.images, async () => {
+          const stored = await db.images.toCollection().primaryKeys();
+          const orphans = stored.filter((hash) => !referencedHashes.has(hash));
+          await db.images.bulkDelete(orphans);
+          return orphans.length;
+        }),
+      );
     },
 
     close() {
       db.close();
     },
   };
-}
-
-function unreachable(): never {
-  throw new Error('A parsed deck always has a first slide');
 }

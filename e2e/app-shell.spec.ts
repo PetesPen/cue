@@ -2,7 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
 test.describe('Given a first visit to the app', () => {
-  test('When it loads, Then it is titled Cue, shows the heading and logs no console errors', async ({
+  test('When it loads, Then it is titled Cue, shows the deck library and logs no console errors', async ({
     page,
   }) => {
     const errors: string[] = [];
@@ -16,7 +16,7 @@ test.describe('Given a first visit to the app', () => {
     await page.goto('/');
 
     await expect(page).toHaveTitle('Cue');
-    await expect(page.getByRole('heading', { name: 'Cue', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Your decks', level: 1 })).toBeVisible();
     expect(errors).toEqual([]);
   });
 

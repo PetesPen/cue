@@ -32,14 +32,18 @@ export default mergeConfig(
         },
         {
           extends: true,
+          // Bundle these up front: finding them mid-run makes Vite reload the page under a test.
+          optimizeDeps: { include: ['dexie', 'immer'] },
           test: {
             name: 'component',
             include: ['src/**/*.component.test.tsx'],
+            setupFiles: ['tests/component-setup.ts'],
             browser: {
               enabled: true,
               headless: true,
               provider: playwright(),
-              instances: [{ browser: 'chromium' }],
+              // A desktop-sized window: the editor has three columns and is not built for a phone.
+              instances: [{ browser: 'chromium', viewport: { width: 1440, height: 900 } }],
             },
           },
         },

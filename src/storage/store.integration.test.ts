@@ -46,6 +46,31 @@ describe('the deck store (SV-1, SV-2)', () => {
     expect(await reopened.load(deck.id)).toEqual(deck);
   });
 
+  test('Given a save that is still running, When the library is listed and the deck loaded, Then they already include it', async () => {
+    const store = openStore();
+    const deck = deckAt(1000, 'Just saved');
+
+    const saving = store.save(deck); // not awaited: the editor was left with an edit on its way
+    const listed = await store.list();
+    const loaded = await store.load(deck.id);
+    await saving;
+
+    expect(listed.map((s) => s.title)).toEqual(['Just saved']);
+    expect(loaded).toEqual(deck);
+  });
+
+  test('Given a remove that is still running, When the library is listed, Then the deck is already gone', async () => {
+    const store = openStore();
+    const deck = deckAt(1000, 'Doomed');
+    await store.save(deck);
+
+    const removing = store.remove(deck.id);
+    const listed = await store.list();
+    await removing;
+
+    expect(listed).toEqual([]);
+  });
+
   test('Given no such deck, When it is loaded, Then the answer is "not found", not an error', async () => {
     expect(await openStore().load('nope')).toBeUndefined();
   });
@@ -140,6 +165,25 @@ describe('the deck store (SV-1, SV-2)', () => {
     raw.close();
 
     await expect(store.load('broken')).rejects.toThrow(/missing a field/);
+  });
+
+  test('Given one damaged record and one deck from a newer Cue, When the library is listed, Then the readable decks still show and nothing is deleted', async () => {
+    const name = `mixed-${crypto.randomUUID()}`;
+    const store = openStore(name);
+    await store.save(deckAt(3000, 'Readable'));
+    const Dexie = (await import('dexie')).default;
+    const raw = new Dexie(name);
+    await raw.open();
+    await raw.table('decks').put({ id: 'broken', updatedAt: 2000, schemaVersion: 1 });
+    await raw.table('decks').put({ ...deckAt(1000, 'From the future'), schemaVersion: 99 });
+    raw.close();
+
+    expect((await store.list()).map((s) => s.title)).toEqual(['Readable']);
+    await expect(store.load('broken')).rejects.toThrow();
+    const kept = new Dexie(name);
+    await kept.open();
+    expect(await kept.table('decks').count()).toBe(3);
+    kept.close();
   });
 });
 

@@ -1,0 +1,139 @@
+/* The deck library (design: Home, design/screenshots/Home.png). */
+
+.home {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.home-bar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--layout-topbar);
+  padding: 0 var(--space-5);
+  background: var(--color-white);
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.home-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* board: Home */
+}
+
+.wordmark {
+  font-weight: 700;
+  font-size: 15px; /* board: Home */
+  letter-spacing: -0.01em;
+}
+
+.home-main {
+  flex: 1;
+  width: 100%;
+  max-width: 1180px; /* board: Home */
+  margin: 0 auto;
+  padding: 28px 40px; /* board: Home */
+}
+
+.library-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: var(--space-5) 0 var(--space-3);
+}
+
+.library-header .section-label {
+  margin: 0;
+}
+
+.storage-meter {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px; /* board: Home */
+  font: var(--type-caption);
+  color: var(--color-muted);
+}
+
+.deck-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px var(--space-4); /* board: Home */
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.deck-card {
+  position: relative;
+}
+
+.deck-open {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.deck-thumb {
+  display: block;
+  overflow: hidden;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-field);
+}
+
+.deck-open:hover .deck-thumb {
+  border-color: var(--color-dashed-border);
+}
+
+/* The open link carries the card's focus ring, drawn round the thumbnail as in the board. */
+.deck-open:focus-visible {
+  box-shadow: none;
+}
+
+.deck-open:focus-visible .deck-thumb {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.deck-title {
+  display: block;
+  margin-top: var(--space-2);
+  font-weight: 600;
+  font-size: 14px; /* board: Home */
+}
+
+.deck-meta {
+  display: block;
+  margin-top: 2px;
+  font: var(--type-caption);
+  color: var(--color-muted);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-4);
+  border: 1px dashed var(--color-dashed-border);
+  border-radius: var(--radius-card);
+  background: #f9fbf7; /* board: States */
+  text-align: center;
+}
+
+.empty-state h2 {
+  margin: 0;
+  font-weight: 700;
+  font-size: 14px; /* board: States */
+}
+
+.empty-state p {
+  margin: 0;
+  font: var(--type-caption);
+  color: var(--color-muted);
+}
+
+.home-main > .banner {
+  margin-bottom: var(--space-2);
+}

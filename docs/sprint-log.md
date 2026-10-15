@@ -88,3 +88,84 @@ Also on 2026-10-15: Peter linked Netlify to the repository, and asked where Gate
 - Decisions 11, 12 and 13 settled (see `docs/decisions.md`); the two design changes to the States board were approved and made in the board source.
 - Netlify linked: https://cue-presentations.netlify.app/ serves the current build with our security headers. Our end-to-end tests pass against it except two that catch a script Netlify injects (the Netlify Drawer). Peter to switch it off.
 - Sprint 0's last open item, the preview deployment, is therefore met for the live site; previews of pull requests start in sprint 1.
+
+## Sprint 1: Decks, shell and saving
+
+**Dates:** started 2026-10-15 after Peter approved the plan (dark mode dropped: decision 14), built the same day.
+
+**Goal:** create decks, add slides, close the tab and find everything again. **Met.** The five stories are built and shown working on the Netlify preview of pull request 2 (the same build that is on the live site once merged). Four stories are complete; SV-1 is complete except two criteria that cannot be met yet (see "Not done").
+
+### What finished
+
+| Story | Status | How it is shown |
+|---|---|---|
+| UX-1 A sleek, uncluttered editor | done | `e2e/layout.spec.ts` measures rail 208, inspector 296, notes 124 px; `tests/styles.test.ts` keeps colours, the UI font and motion within the design; axe clean |
+| SL-1 Add a slide | done | button, New slide, Ctrl+M and Cmd+M (component and end-to-end tests); property tests on the command |
+| SL-2 Navigate between slides | done | listbox with Up, Down, Home, End; current slide marked by outline, bold number and `aria-selected` |
+| SV-1 Autosave locally | **partly** | saved within 2 s, indicator, reopen restores decks (end to end on every engine), IndexedDB only, warning at 90% of the real quota, "Changes can't be saved" banner |
+| SV-2 Manage multiple decks | done | library newest first with thumbnail, count and date; new, open, rename, duplicate, delete with confirmation; title edited in place |
+
+Tests now: 347 Vitest tests (178 at the end of sprint 0): unit, integration with a fake IndexedDB, and 54 component tests in a real Chromium window of 1440 x 900 with the app's own styles. End to end: 17 tests per browser engine, run on Chromium and WebKit locally (34 pass), on all three engines in CI, and against the preview (34 pass). Coverage on `model` and `render`: above 90% (model 96%, render 100%). First-load bundle: 108 KB of 300 KB, CSS 3.7 KB of 30 KB.
+
+### Not done
+
+- **SV-1: images in a reopened deck.** The store saves and returns photos byte for byte in the same transaction as the deck (integration tests), but there is no way to put a photo on a slide until EL-4 (sprint 4), so "including images" cannot be shown end to end yet.
+- **SV-1: the Export deck action** on the "almost full" and "can't be saved" banners. Export is SV-3 (sprint 9). Until then the banners offer **Manage storage** (opens the library in a new tab so the open deck keeps its unsaved edits) and **Try again**. The delete confirmation also lacks the design's "Export a copy first" sentence for the same reason.
+- Library features that belong to other stories and were left out on purpose: search, the starter layouts row (TH-2), Open file and the backup reminder (SV-3), the Recent / Name toggle.
+
+### Where the screens differ from the boards
+
+`design/` was not touched. These are deliberate, for you to confirm or change:
+
+- The library's wordmark reads "Cue" (the board says "Slides"), as in the editor shell.
+- The "almost full" and "can't be saved" banners offer Manage storage and Try again, not Export deck (SV-3, sprint 9).
+- The delete confirmation drops "Export a copy first if you might want it back" until export exists.
+- The library has no search, starter layouts, Open file, backup reminder or Recent / Name toggle (other stories).
+- The editor top bar has only Add slide and the save status; Text, Shape, Image, Undo, Redo, Export and Present arrive with their stories.
+- The deck title in the editor is an input that looks like plain text until hovered or focused.
+- A dialog dims the page behind it (a 40% forest tint); the boards show the dialog on its own.
+- "Rename" is a small dialog; the boards show the menu item but not what it opens.
+
+### Engineering days
+
+Not measured (same reason as sprint 0: one continuous session). The plan's 16 days cannot be compared with anything real. From here the unit is stories accepted per sprint.
+
+### Problems found along the way (and fixed)
+
+- **A real data-freshness bug**, found by a component test written for it: leaving the editor straight after an edit could open the library before the save landed and show the old title. The store now makes every read wait for writes already running, with an integration test.
+- **One damaged deck, or one saved by a newer Cue, hid the whole library.** The library now skips a deck it cannot read and leaves it untouched in storage (decision 17 asks how to show such decks later).
+- Component tests were running in a 414 px window, where the three-column editor collapses, so some "visible" checks failed for the wrong reason. They now run at 1440 x 900 with the app's tokens and fonts.
+- The first CI run failed on two checks: the WebKit-on-Linux engine ignored the way a test replaced the browser's storage report, and the visual job still looked for the old page heading. Both fixed.
+- Installing the GitHub tool needed a Windows administrator prompt, which a background shell cannot show; it was run in your Terminal tab.
+- Netlify's injected Drawer script is off (you switched it off), and the end-to-end suite now passes against the preview including "no console errors".
+
+### What stays manual (please check by hand)
+
+1. **Real Safari on a Mac**: everything in the demo script, and **Cmd+M** (macOS keeps it for Minimize; Ctrl+M is the one that should work there; decision 15).
+2. **Your own Firefox** (it cannot start through our test tool on your PC): the demo script.
+3. **How it feels and looks** against `Main.png` and `Home.png`: spacing, the weight of the thumbnails' outline, the dialog's dimmed backdrop (the boards do not show one).
+4. **Keyboard only and a screen reader**: Tab through the library and the editor; the rail is one Tab stop and Up and Down move inside it; menus close with Escape. Automated checks cover the roles and names, not how a screen reader sounds.
+5. **Zoom to 200%** and your system's **reduced motion** setting (the only moving thing is the Saving spinner, which then stops).
+6. **Two tabs on the same deck** (decision 16): edit the same deck in two tabs and see that the later save wins. Known, not handled yet.
+
+### Demo script (45 minutes)
+
+Use https://cue-presentations.netlify.app/ (or the preview link on pull request 2). Use a private window first if you want to start from an empty library.
+
+1. (2 min) Open the site. Expect "Your decks" with "No decks yet" and a New deck button. Compare with `design/screenshots/Home.png` (it has more than this sprint builds: search, starter layouts, backup reminder).
+2. (4 min) New deck. Expect the editor with one blank slide titled "Untitled deck". Compare with `Main.png`: rail, slide, notes strip, inspector. Click the title, type "Autumn Launch", press Enter. Watch the top right: "Saving…", then "Saved".
+3. (5 min) Add slides: the "+ Slide" button, then Ctrl+M (also Cmd+M on a Mac, which may only minimise the window), then "New slide" under the rail. Each new slide appears after the current one, is highlighted, and the canvas has the focus ring.
+4. (4 min) Click thumbnails. Then with a thumbnail focused press Up, Down, Home and End: the selection and the canvas follow and stop at the ends.
+5. (4 min) Close the tab, reopen the site: Autumn Launch is in the library with its slide count and "Edited just now". Open it: every slide is there.
+6. (8 min) In the library: make two more decks. Use each card's "..." menu: Rename (try Cancel and Escape too), Duplicate, Delete (try Cancel first, then Delete deck). Reload to confirm it all stayed. Note the order: newest edit first.
+7. (4 min) Keyboard only: Tab to a card's "..." button, open the menu with Enter, move with Up and Down, close with Escape (focus returns to the button).
+8. (3 min) Look at "Stored on this device" in the library: it is the browser's own figure.
+9. (5 min) The "almost full" and "Changes can't be saved" banners need a nearly full store, which is hard to reach by hand; the automated tests cover them. If you want to see them, in Chrome's DevTools use Application, Storage, "Simulate custom storage quota".
+10. (4 min) Open the same deck in two tabs and edit both (decision 16), then read decisions 15, 16 and 17.
+11. (2 min) Decide what to accept (see "Retrospective questions" below).
+
+### Retrospective questions
+
+1. This sprint was planned in a summary and built straight through. Did the summary give you enough to approve, or would you want to see the screens (a mock-up or the first build) before the sprint is far along?
+2. Pull requests with previews are now the default. Do you want the app to fix failing checks automatically and tell you (an option in this app), or only be told when a pull request is ready?
+3. The library leaves out search, starter layouts and Open file until their stories. Do you want any of them earlier than planned?

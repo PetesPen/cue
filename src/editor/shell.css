@@ -6,27 +6,103 @@
   display: grid;
   height: 100%;
   grid-template-columns: var(--layout-slide-rail) minmax(0, 1fr) var(--layout-inspector);
-  grid-template-rows: var(--layout-topbar) minmax(0, 1fr) var(--layout-notes-strip);
+  grid-template-rows: var(--layout-topbar) auto minmax(0, 1fr) var(--layout-notes-strip);
   grid-template-areas:
     'top top top'
+    'banner banner banner'
     'rail canvas inspector'
     'rail notes inspector';
 }
 
 .top-bar {
   grid-area: top;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  gap: 10px; /* board: Main, logo to title */
+  gap: var(--space-4);
   padding: 0 var(--space-4);
   background: var(--color-white);
   border-bottom: 1px solid var(--color-hairline);
 }
 
-.app-name {
-  margin: 0;
+.top-left {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* board: Main, logo to title */
+  min-width: 0;
+}
+
+.top-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px; /* board: Main */
+}
+
+.top-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px; /* board: Main */
+}
+
+.logo-link {
+  display: inline-flex;
+  flex: none;
+  border-radius: var(--radius-field);
+}
+
+/* The deck title is edited in place: it looks like text until it is hovered or focused (SV-2). */
+.title-input {
+  width: min(100%, 360px);
+  height: var(--control-field-height);
+  margin-left: calc(-1 * var(--space-2));
+  padding: 0 var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-field);
+  background: transparent;
+  color: inherit;
   font: var(--type-panel-heading);
-  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.title-input:hover {
+  border-color: var(--color-hairline);
+}
+
+.title-input:focus {
+  border-color: var(--color-accent);
+  background: var(--color-white);
+}
+
+.toolbar-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px; /* board: Main */
+  height: var(--control-toolbar-height);
+  padding: 0 10px; /* board: Main */
+  border: 0;
+  border-radius: var(--radius-field);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.toolbar-button:hover {
+  background: var(--color-sage);
+}
+
+.banner-area:empty {
+  display: none;
+}
+
+.banner-area {
+  grid-area: banner;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-white);
+  border-bottom: 1px solid var(--color-hairline);
 }
 
 .logo {
@@ -76,6 +152,77 @@
   padding: var(--space-4) var(--space-4) 10px; /* board: Main */
 }
 
+.rail-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-height: 0;
+  padding: var(--space-1) var(--space-3);
+  overflow-y: auto;
+}
+
+.rail-item {
+  display: flex;
+  flex: none;
+  align-items: flex-start;
+  gap: var(--space-2);
+  border-radius: var(--radius-thumb);
+  cursor: pointer;
+}
+
+.rail-number {
+  width: 16px; /* board: Main */
+  padding-top: var(--space-1);
+  text-align: right;
+  font-size: 11px; /* board: Main */
+  color: var(--color-muted);
+}
+
+.rail-thumb {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-thumb);
+}
+
+.rail-item:hover .rail-thumb {
+  border-color: var(--color-dashed-border);
+}
+
+/* The current slide: an accent outline, a bold accent number and aria-selected (not colour alone). */
+.rail-item[aria-selected='true'] .rail-thumb {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.rail-item[aria-selected='true'] .rail-number {
+  color: var(--color-accent-tint-text);
+  font-weight: 700;
+}
+
+.rail-footer {
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-hairline);
+}
+
+.new-slide-button {
+  width: 100%;
+  height: var(--control-button-height);
+  border: 1px dashed var(--color-dashed-border);
+  border-radius: var(--radius-button);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.new-slide-button:hover {
+  background: var(--color-sage);
+}
+
 /* The sage well behind the slide. The slide frame is as large as fits while staying 16:9 (UX-4 fit). */
 .canvas {
   grid-area: canvas;
@@ -91,7 +238,6 @@
 .slide-frame {
   aspect-ratio: 16 / 9;
   width: min(100cqw, calc(100cqh * 16 / 9));
-  background: var(--color-white);
   box-shadow: var(--shadow-slide);
 }
 
@@ -157,4 +303,9 @@
   margin: 0;
   font: var(--type-caption);
   color: var(--color-muted);
+}
+
+/* Keep the slide's shadow and add the focus ring when the canvas has keyboard focus. */
+.slide-frame:focus-visible {
+  box-shadow: var(--shadow-slide), var(--focus-ring);
 }
