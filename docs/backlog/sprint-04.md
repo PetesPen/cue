@@ -31,6 +31,7 @@ Acceptance criteria:
 - [ ] Images keep their aspect ratio by default and are scaled to fit the slide on insert.
 - [ ] Large images are downscaled on import to protect local storage, with the original resolution kept for export where space allows.
 - [ ] A friendly message appears if an image cannot be read or storage is full.
+- [ ] Carried over from sprint 1 (SV-1): a deck with an image on a slide is restored exactly, image included, after the tab is closed and reopened (end-to-end test). The store already saves photos with the deck in one transaction; this story is the first that can put one on a slide. Also call `sweepOrphanImages` at startup with the hashes the decks refer to.
 
 Design: [`Main`](../../design/screenshots/Main.png) ([source](../../design/boards/Main.dc.html)), [`States`](../../design/screenshots/States.png) ([source](../../design/boards/States.dc.html))
 

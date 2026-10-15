@@ -19,6 +19,12 @@ CI run #1 on `main` (https://github.com/PetesPen/cue/actions/runs/38513587547) p
 
 Pull request 2 got a Netlify deploy preview at `https://deploy-preview-2--cue-presentations.netlify.app` (the pattern is `deploy-preview-<number>--cue-presentations.netlify.app`; the link also shows as a check on the pull request). It serves the same bundle as a local build and the headers in `netlify.toml`. After Peter switched the Netlify Drawer off, `E2E_BASE_URL=<preview address> npm run e2e:deployed` passed in full on Chromium and WebKit (34 tests), including "no console errors". From sprint 1 on, every story is checked this way before it is called done.
 
+## Found after the first merge to `main` (2026-10-15)
+
+The live site (production) serves a page with one extra script that the deploy previews do not have: `/.netlify/scripts/hud?variant=public`. It is Netlify's **Powered by Netlify badge**, which Netlify turns on by default for public projects on its free plans. The badge needs an inline script, our content policy forbids inline scripts, so the browser blocks it and logs one console error on every page load. Visitors see nothing and nothing else breaks. It is not the Netlify Drawer (Peter switched that off, and the previews are clean). Four end-to-end tests ("no console errors") fail when run against production for this reason: `E2E_BASE_URL=https://cue-presentations.netlify.app npm run e2e:deployed` gives 30 of 34 passing on Chromium and WebKit.
+
+To switch it off (no redeploy needed, per Netlify's documentation): Netlify, Project configuration, General, "Powered by Netlify badge", turn off, save. We do not weaken the content policy for it.
+
 ## Left: needs Peter (accounts and permissions, so Claude cannot do these)
 
 1. Create a GitHub repository for Cue (an empty one, with no README or licence). Done: https://github.com/PetesPen/cue. When it was checked on 2026-10-14 it was **public**, but the plan was a private one. Peter decides which; to make it private: repository Settings, General, Danger Zone, Change visibility.

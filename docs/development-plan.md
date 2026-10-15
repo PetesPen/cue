@@ -6,7 +6,7 @@
 
 ## Summary
 
-Slides can reach a v1.0 release in about 14 two-week sprints (about 28 weeks) with two engineers, with a working, tested app at the end of every sprint. This plan turns the 57 user stories and the Studio design canvas into that sequence.
+Slides can reach a v1.0 release in about 14 two-week sprints (about 28 weeks) with two engineers, with a working, tested app at the end of every sprint. This plan turns the 58 user stories and the Studio design canvas into that sequence.
 
 **How we work**
 
@@ -174,7 +174,7 @@ A gate is a checkpoint at the end of a phase. At the sprint review the product o
 | 1 | Stack confirmed | 0 | Is the technology good enough to build everything on, given what the spikes found? |
 | 2 | Editor alpha | 4 | Can you build and save a real deck of text, shapes and images, with undo? (The plan also rebuilds a second real deck here, decision 4: this plan says "milestone 2", `docs/decisions.md` says Gate 3; decide when the deck is chosen.) |
 | 3 | Motion beta | 7 | Do animations, transitions and the two windows work well enough to try a real talk? |
-| 4 | First full show | 10 | Can you deliver a real talk from start to finish, with all 38 Must stories working? |
+| 4 | First full show | 10 | Can you deliver a real talk from start to finish, with all 39 Must stories working? |
 | 5 | v1.0 | 13 | Is the release candidate good on all four browsers, with every budget met? |
 
 **Status:** Gate 1 passed on 2026-10-15 (accepted by Peter). Gates 2 to 5 are open. Only Gate 1's criteria are written so far. The criteria for each later gate are written at the start of the sprint that ends in it.
@@ -196,7 +196,7 @@ If a gate's criteria are not met, the next sprint closes the gap before any new 
 |---|---|---|---|---|---|
 | 0 | Foundations and risk spikes | None. Spikes SP-1 to SP-6, app shell, CI pipeline, design tokens | 16 | Empty app deployed with previews; spike findings and a go or no-go on the stack | CI green end to end on an empty app; throwaway Playwright checks for each spike |
 | 1 | Decks, shell and saving | UX-1, SL-1, SL-2, SV-1, SV-2 | 16 | Create decks, add slides, close the tab and find everything again | Persistence integration tests; create-and-reload end to end; axe on the shell |
-| 2 | Elements you can move | EL-5, EL-3, ZO-1, TR-1 | 16 | Draw shapes, then move, resize, rotate, layer and fade them | Z-order property tests; drag and resize end to end; opacity snapshots |
+| 2 | Elements you can move | EL-5, EL-3, ZO-1, TR-1, SV-7 | 18 | Draw shapes, then move, resize, rotate, layer and fade them | Z-order property tests; drag and resize end to end; opacity snapshots |
 | 3 | Rich text and notes | EL-1, EL-2, SL-6, EL-7 | 16 | Format mixed text in several fonts, paste, write notes | Text JSON round trip; typing and font picker end to end; font loading check |
 | 4 | Images, undo and slide management | EL-4, EL-8, SL-3, SL-4 | 16 | Drop in images, undo anything, reorder and duplicate slides | Undo-redo property test; image drop end to end; storage-full mock |
 | 5 | Keyboard, speed and first animations | UX-2, UX-3, AN-1, AN-2, TR-3 | 14 | Drive the editor by keyboard; elements fade in and out on click in preview | Performance budgets for 50 elements and 50 slides; motion resolver unit tests; opacity match across renderers |
@@ -213,7 +213,7 @@ Sprints loaded below 16 days keep a few days free for bugs and surprises. Stretc
 
 ## Backlog
 
-The backlog is the 57 stories from [user-stories.md](user-stories.md), grouped into ten epics, and 38 of them are Must. The estimate is in engineering days (small = 2, medium = 4, large = 8) and covers Must and Should stories only.
+The backlog is the 58 stories from [user-stories.md](user-stories.md), grouped into ten epics, and 39 of them are Must. The estimate is in engineering days (small = 2, medium = 4, large = 8) and covers Must and Should stories only.
 
 | Epic | Stories | Must | Should | Could | Estimate (days) | Sprints |
 |---|---|---|---|---|---|---|
@@ -224,11 +224,11 @@ The backlog is the 57 stories from [user-stories.md](user-stories.md), grouped i
 | Animations | AN-1 to AN-7 | 5 | 2 | 0 | 22 | 5, 6, 11 |
 | Transitions | TN-1 to TN-5 | 3 | 2 | 0 | 14 | 6, 7, 11 |
 | Presenting | PM-1 to PM-8 | 6 | 1 | 1 | 24 | 7, 8, 12 |
-| Saving and export | SV-1 to SV-6 | 4 | 1 | 1 | 28 | 1, 9, 10 |
+| Saving and export | SV-1 to SV-7 | 5 | 1 | 1 | 30 | 1, 2, 9, 10 |
 | Look, feel and quality | UX-1 to UX-7 | 5 | 2 | 0 | 24 | 1, 5, 9, 12 |
 | Themes and templates | TH-1 to TH-3 | 0 | 0 | 3 | 0 | After v1.0 |
 | Foundations and hardening | Not user stories | n/a | n/a | n/a | 32 | 0, 13 |
-| Total | 57 stories | 38 | 13 | 6 | 212 | 14 sprints |
+| Total | 58 stories | 39 | 13 | 6 | 214 | 14 sprints |
 
 **How the backlog is managed**
 
@@ -268,7 +268,7 @@ Progress is judged first by working software at each review, then by seven numbe
 
 | Measure | Target | Source |
 |---|---|---|
-| Burn-up of finished engineering days against 212 | On or above the plan line at each review | Board |
+| Burn-up of finished engineering days against 214 | On or above the plan line at each review | Board |
 | Velocity (days finished per sprint) | About 14 to 16; re-plan if two sprints in a row fall below 12 | Board |
 | Pull request check time | Under 10 minutes | CI |
 | Flaky test rate | Below 2% of runs | CI history |

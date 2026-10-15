@@ -334,6 +334,13 @@ Decks are stored in the browser. Files are how a deck is backed up, moved to ano
 
 - Use the browser's print dialog with a one-slide-per-page layout, or export PNG images.
 
+**SV-7 One tab per deck (Must).** As a presenter, I want to be told when a deck is already open in another tab, so that two tabs never overwrite each other's edits. (Added 2026-10-15, decision 16.)
+
+- Opening a deck that is already open in another tab of the same browser shows "This deck is open in another tab" and does not let this tab edit it; a link goes back to the library.
+- When the other tab is closed, this tab becomes editable by itself, with no reload, and shows the deck as the other tab left it.
+- Different decks can be open in different tabs, and the library can be open in as many tabs as you like.
+- Where the browser has no Web Locks, nothing changes and nothing breaks.
+
 ## Themes and templates (stretch)
 
 These are included only if they stay simple. A theme is a small set of colours and fonts; a template is a starter deck.
