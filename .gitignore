@@ -22,3 +22,6 @@ spikes/**/results/
 spikes/**/dist-*/
 spikes/**/dist/
 spikes/sp-6/public/
+
+# Vitest browser-mode failure screenshots
+.vitest

@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
 import { parse } from 'yaml';
-import { isRecord } from './support/guards';
+import { isRecord, isString } from './support/guards';
 
 const DIR = '.github/workflows';
 
@@ -33,8 +33,12 @@ function jobsOf(document: Record<string, unknown>): [string, Record<string, unkn
 }
 
 describe('Given the GitHub workflows (docs/development-plan.md, pipeline)', () => {
-  test('When the folder is read, Then there is a CI workflow and a nightly workflow', () => {
-    expect(workflows.map((w) => w.file).sort()).toEqual(['ci.yml', 'nightly.yml']);
+  test('When the folder is read, Then there is a CI workflow, a nightly workflow and the screenshot updater', () => {
+    expect(workflows.map((w) => w.file).sort()).toEqual([
+      'ci.yml',
+      'nightly.yml',
+      'update-screenshots.yml',
+    ]);
   });
 
   describe.each(workflows)('workflow $file', ({ document }) => {
@@ -72,5 +76,38 @@ describe('Given the GitHub workflows (docs/development-plan.md, pipeline)', () =
     const strategy = e2e?.strategy;
     const matrix = isRecord(strategy) ? strategy.matrix : undefined;
     expect(isRecord(matrix) && matrix.browser).toEqual(['chromium', 'firefox', 'webkit']);
+  });
+
+  describe('the screenshot updater (decision 13)', () => {
+    const updater = workflows.find((w) => w.file === 'update-screenshots.yml');
+    const job = updater ? jobsOf(updater.document)[0]?.[1] : undefined;
+
+    test('When it is read, Then it only runs when started by hand', () => {
+      expect(updater?.document.on).toEqual({ workflow_dispatch: null });
+    });
+
+    test('When its job is read, Then it alone may write, and only to contents and pull requests', () => {
+      expect(job?.permissions).toEqual({ contents: 'write', 'pull-requests': 'write' });
+    });
+
+    test('When its job is read, Then it runs in the same pinned container as the visual checks', () => {
+      const config: unknown = JSON.parse(readFileSync('config/visual.json', 'utf8'));
+      const reference =
+        isRecord(config) &&
+        isString(config.image) &&
+        isString(config.tag) &&
+        isString(config.digest)
+          ? `${config.image}:${config.tag}@${config.digest}`
+          : '';
+      const container = job?.container;
+      expect(isRecord(container) && container.image).toBe(reference);
+    });
+
+    test('When its steps are read, Then it opens a pull request and never pushes to the branch it ran on', () => {
+      const source = readFileSync(join(DIR, 'update-screenshots.yml'), 'utf8');
+      expect(source).toContain('/pulls');
+      expect(source).toContain('screenshots/run-');
+      expect(source).not.toMatch(/git push origin (main|HEAD|"$GITHUB_REF_NAME")/);
+    });
   });
 });
