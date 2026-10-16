@@ -35,7 +35,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: npm ci
       - name: Make the screenshots
-        run: npx playwright test -c playwright.visual.config.ts --update-snapshots
+        # "all": make every picture again. Without it Playwright rewrites only the ones that differ by more
+        # than the 0.1% the checks allow, so a picture that has drifted a little would never be refreshed.
+        run: npx playwright test -c playwright.visual.config.ts --update-snapshots=all
       - name: Open a pull request with what changed
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
