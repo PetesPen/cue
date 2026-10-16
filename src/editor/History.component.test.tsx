@@ -100,11 +100,15 @@ test('Given a shape changed in the Design panel, When the undo button is pressed
   await userEvent.keyboard('{Enter}');
   await expect.poll(() => node('a')?.style.left).toBe('900px');
 
-  await expect.element(undoButton(screen)).toHaveAttribute('title', 'Undo Move (Ctrl+Z)');
+  await userEvent.hover(undoButton(screen));
+  await expect.poll(() => screen.getByRole('tooltip').element().textContent).toBe('Undo MoveCtrlZ');
   await undoButton(screen).click();
 
   await expect.poll(() => node('a')?.style.left).toBe('400px');
-  await expect.element(redoButton(screen)).toHaveAttribute('title', 'Redo Move (Ctrl+Shift+Z)');
+  await userEvent.hover(redoButton(screen));
+  await expect
+    .poll(() => screen.getByRole('tooltip').element().textContent)
+    .toBe('Redo MoveCtrlShiftZ');
 });
 
 test('Given a deleted shape, When Ctrl+Z is pressed, Then it is back where it was, in the same order, and selected', async () => {

@@ -613,8 +613,11 @@
   cursor: pointer;
 }
 
-.arrange-button:first-child,
-.segment:first-child {
+/* The first button of a row has no divider before it. (An Arrange button may sit in the wrapper of its
+   hint, which takes no part in the layout but is still the button's parent.) */
+.arrange > .arrange-button:first-child,
+.arrange > .hint-host:first-child > .arrange-button,
+.segmented > .segment:first-child {
   border-left: 0;
 }
 

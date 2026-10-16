@@ -8,6 +8,7 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
+import { Hint } from './Hint';
 import { DotsIcon } from './Icons';
 
 export interface MenuItem {
@@ -122,6 +123,8 @@ interface MenuButtonProps {
   readonly triggerRef?: RefObject<HTMLButtonElement | null>;
   /** `card`: the three dots on a deck card. `toolbar`: a toolbar button with its own content. */
   readonly variant?: 'card' | 'toolbar';
+  /** A hint for the toolbar button: its name, and the id of its shortcut in the table. */
+  readonly hint?: { readonly label: string; readonly shortcut?: string };
   readonly children?: ReactNode;
 }
 
@@ -130,6 +133,7 @@ export function MenuButton({
   items,
   triggerRef,
   variant = 'card',
+  hint,
   children,
 }: MenuButtonProps) {
   const [open, setOpen] = useState(false);
@@ -177,7 +181,13 @@ export function MenuButton({
   }
   return (
     <span className="menu-anchor">
-      {trigger}
+      {hint ? (
+        <Hint label={hint.label} {...(hint.shortcut ? { shortcut: hint.shortcut } : {})}>
+          {trigger}
+        </Hint>
+      ) : (
+        trigger
+      )}
       {panel}
     </span>
   );

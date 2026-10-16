@@ -39,7 +39,9 @@ import {
   importImage,
   placeCentred,
 } from './importImage';
+import { Hint } from './Hint';
 import { Inspector, type TabId } from './Inspector';
+import { ShortcutsDialog } from './ShortcutsDialog';
 import { AnimatePanel } from './animation/AnimatePanel';
 import { PreviewBar } from './animation/PreviewBar';
 import { usePreview } from './animation/usePreview';
@@ -68,8 +70,6 @@ import './text.css';
 
 // TipTap is large, so it is fetched only when text is first edited.
 const TextEditor = lazy(() => import('./text/TextEditor'));
-
-const ADD_SLIDE_SHORTCUT = 'Ctrl+M';
 
 /**
  * The deck editor at `#/deck/<id>` (design: Main). A deck is edited in one tab at a time (SV-7): this
@@ -334,7 +334,12 @@ function Editor({
     focusCanvas();
   }
 
+  // S arms the shape drawn last (a rectangle at first).
+  const lastShape = useRef<Tool>('rectangle');
+  const [helpOpen, setHelpOpen] = useState(false);
+
   function pickTool(next: Tool) {
+    if (next !== 'text') lastShape.current = next;
     text.finish();
     select([]);
     setTool(next);
@@ -505,12 +510,71 @@ function Editor({
     }
   }
 
-  const latest = useRef({ add, arrange, pickTool, clipboard, stepHistory });
+  const latest = useRef({
+    add,
+    arrange,
+    pickTool,
+    clipboard,
+    stepHistory,
+    duplicateCurrentSlide: () => {
+      duplicateSlide(currentSlide.id);
+    },
+    chooseImage: () => {
+      fileInput.current?.click();
+    },
+    saveNow: session.saveNow,
+  });
   useEffect(() => {
-    latest.current = { add, arrange, pickTool, clipboard, stepHistory };
+    latest.current = {
+      add,
+      arrange,
+      pickTool,
+      clipboard,
+      stepHistory,
+      duplicateCurrentSlide: () => {
+        duplicateSlide(currentSlide.id);
+      },
+      chooseImage: () => {
+        fileInput.current?.click();
+      },
+      saveNow: session.saveNow,
+    };
   });
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
+      const mod = event.ctrlKey || event.metaKey;
+      const key = event.key.toLowerCase();
+      // Save now: the page saves itself, so this only makes sure, and keeps the browser's Save Page away.
+      if (mod && !event.altKey && !event.shiftKey && key === 's') {
+        event.preventDefault();
+        latest.current.saveNow();
+        return;
+      }
+      // Duplicate the slide, from anywhere.
+      if (mod && !event.altKey && event.shiftKey && key === 'd') {
+        event.preventDefault();
+        if (!event.repeat) latest.current.duplicateCurrentSlide();
+        return;
+      }
+      // The shortcut list. (The question mark needs Shift on most keyboards.)
+      if (event.key === '?' && !mod && !event.altKey && !isTyping(event.target)) {
+        event.preventDefault();
+        setHelpOpen(true);
+        return;
+      }
+      // S arms the shape tool and I opens the picture chooser, unless the key is being typed.
+      if (!mod && !event.altKey && !event.shiftKey && !isTyping(event.target)) {
+        if (key === 's') {
+          event.preventDefault();
+          latest.current.pickTool(lastShape.current);
+          return;
+        }
+        if (key === 'i') {
+          event.preventDefault();
+          latest.current.chooseImage();
+          return;
+        }
+      }
       // T arms the text tool, unless the key is being typed into a field or a text.
       if (
         event.key.toLowerCase() === 't' &&
@@ -703,47 +767,56 @@ function Editor({
             <TitleField key={session.revision} title={deck.title} onChange={session.renameDeck} />
           </div>
           <div className="top-center">
-            <button
-              type="button"
-              className="toolbar-button"
-              aria-label="Add slide"
-              aria-keyshortcuts="Control+M Meta+M"
-              title={`Add slide (${ADD_SLIDE_SHORTCUT})`}
-              onClick={add}
+            <Hint label="Add slide" shortcut="slide.new">
+              <button
+                type="button"
+                className="toolbar-button"
+                aria-label="Add slide"
+                aria-keyshortcuts="Control+M Meta+M"
+                onClick={add}
+              >
+                <PlusIcon />
+                Slide
+              </button>
+            </Hint>
+            <Hint label="Text box" shortcut="element.text">
+              <button
+                type="button"
+                className="toolbar-button"
+                aria-label="Text"
+                aria-keyshortcuts="T"
+                aria-pressed={tool === 'text'}
+                onClick={() => {
+                  pickTool('text');
+                }}
+              >
+                <TextIcon />
+                Text
+              </button>
+            </Hint>
+            <MenuButton
+              variant="toolbar"
+              label="Shape"
+              items={shapeItems}
+              hint={{ label: 'Shape', shortcut: 'element.shape' }}
             >
-              <PlusIcon />
-              Slide
-            </button>
-            <button
-              type="button"
-              className="toolbar-button"
-              aria-label="Text"
-              aria-keyshortcuts="T"
-              aria-pressed={tool === 'text'}
-              title="Text (T)"
-              onClick={() => {
-                pickTool('text');
-              }}
-            >
-              <TextIcon />
-              Text
-            </button>
-            <MenuButton variant="toolbar" label="Shape" items={shapeItems}>
               <ShapeIcon />
               Shape
             </MenuButton>
-            <button
-              type="button"
-              className="toolbar-button"
-              aria-label="Add image"
-              title="Add image"
-              onClick={() => {
-                fileInput.current?.click();
-              }}
-            >
-              <ImageIcon />
-              Image
-            </button>
+            <Hint label="Add image" shortcut="element.image">
+              <button
+                type="button"
+                className="toolbar-button"
+                aria-label="Add image"
+                aria-keyshortcuts="I"
+                onClick={() => {
+                  fileInput.current?.click();
+                }}
+              >
+                <ImageIcon />
+                Image
+              </button>
+            </Hint>
             <input
               ref={fileInput}
               type="file"
@@ -760,36 +833,40 @@ function Editor({
               }}
             />
             <span className="toolbar-divider" aria-hidden="true" />
-            <button
-              type="button"
-              className="toolbar-button toolbar-icon"
-              aria-label="Undo"
-              aria-keyshortcuts="Control+Z Meta+Z"
-              title={session.undoLabel ? `Undo ${session.undoLabel} (Ctrl+Z)` : 'Undo (Ctrl+Z)'}
-              disabled={!session.canUndo}
-              onClick={() => {
-                stepHistory('undo');
-              }}
+            <Hint
+              label={session.undoLabel ? `Undo ${session.undoLabel}` : 'Undo'}
+              shortcut="general.undo"
             >
-              <UndoIcon />
-            </button>
-            <button
-              type="button"
-              className="toolbar-button toolbar-icon"
-              aria-label="Redo"
-              aria-keyshortcuts="Control+Shift+Z Control+Y Meta+Shift+Z"
-              title={
-                session.redoLabel
-                  ? `Redo ${session.redoLabel} (Ctrl+Shift+Z)`
-                  : 'Redo (Ctrl+Shift+Z)'
-              }
-              disabled={!session.canRedo}
-              onClick={() => {
-                stepHistory('redo');
-              }}
+              <button
+                type="button"
+                className="toolbar-button toolbar-icon"
+                aria-label="Undo"
+                aria-keyshortcuts="Control+Z Meta+Z"
+                disabled={!session.canUndo}
+                onClick={() => {
+                  stepHistory('undo');
+                }}
+              >
+                <UndoIcon />
+              </button>
+            </Hint>
+            <Hint
+              label={session.redoLabel ? `Redo ${session.redoLabel}` : 'Redo'}
+              shortcut="general.redo"
             >
-              <RedoIcon />
-            </button>
+              <button
+                type="button"
+                className="toolbar-button toolbar-icon"
+                aria-label="Redo"
+                aria-keyshortcuts="Control+Shift+Z Control+Y Meta+Shift+Z"
+                disabled={!session.canRedo}
+                onClick={() => {
+                  stepHistory('redo');
+                }}
+              >
+                <RedoIcon />
+              </button>
+            </Hint>
           </div>
           <div className="top-right">
             <SaveIndicator state={saveState} />
@@ -847,6 +924,10 @@ function Editor({
             viewRef={viewRef}
             badges={tab === 'animate' ? { activeStepId: activeStep?.id } : undefined}
             onPreviewAdvance={previewing ? previewForward : undefined}
+            onStepSlide={(by) => {
+              const next = deck.slides[index + by];
+              if (next) goToSlide(next.id);
+            }}
           />
           {preview.click !== undefined && (
             <PreviewBar
@@ -877,6 +958,15 @@ function Editor({
         </main>
 
         <Toasts toasts={liveToasts} onDismiss={dismissToast} />
+
+        {helpOpen && (
+          <ShortcutsDialog
+            returnFocusTo={frame}
+            onClose={() => {
+              setHelpOpen(false);
+            }}
+          />
+        )}
 
         <section className="notes" aria-label="Speaker notes">
           <div className="notes-header">

@@ -92,6 +92,8 @@ interface CanvasProps {
   readonly badges: { readonly activeStepId: Id | undefined } | undefined;
   /** While Preview plays: a click on the slide plays the next click, and nothing can be picked up. */
   readonly onPreviewAdvance: (() => void) | undefined;
+  /** With nothing selected, the up and down arrows go to the previous and next slide (UX-2). */
+  readonly onStepSlide: (by: -1 | 1) => void;
 }
 
 function readoutFor(gesture: Gesture, changes: readonly ElementChange[], slide: Slide): string {
@@ -145,6 +147,7 @@ export function Canvas({
   viewRef,
   badges,
   onPreviewAdvance,
+  onStepSlide,
 }: CanvasProps) {
   const active = useRef<Active | undefined>(undefined);
   const [readout, setReadout] = useState<string | undefined>();
@@ -386,6 +389,20 @@ export function Canvas({
         // Presses of the arrow keys close together are one step to undo.
         { label: 'Move', mergeKey: `nudge:${selected.map((e) => e.id).join(',')}` },
       );
+      return;
+    }
+
+    if (
+      (event.key === 'ArrowUp' || event.key === 'ArrowDown') &&
+      selected.length === 0 &&
+      !active.current &&
+      !event.shiftKey &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.altKey
+    ) {
+      event.preventDefault();
+      onStepSlide(event.key === 'ArrowUp' ? -1 : 1);
       return;
     }
 
