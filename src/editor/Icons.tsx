@@ -68,6 +68,21 @@ export function DotsIcon({ size = 16 }: IconProps) {
   );
 }
 
+export const ImageIcon = (props: IconProps) => (
+  <Stroke strokeWidth={1.8} {...props}>
+    <rect x="3.5" y="4.5" width="17" height="15" rx="2" />
+    <circle cx="9" cy="10" r="1.6" />
+    <path d="m4 17 5-4.5 3.5 3L16 12l4.5 4.5" />
+  </Stroke>
+);
+
+export const InfoIcon = (props: IconProps) => (
+  <Stroke strokeWidth={2} {...props}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 11v5M12 8h.01" />
+  </Stroke>
+);
+
 export const UndoIcon = (props: IconProps) => (
   <Stroke strokeWidth={2} {...props}>
     <path d="M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11" />

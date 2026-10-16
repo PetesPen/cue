@@ -1,5 +1,6 @@
 import {
   indentText,
+  isShape,
   isTextBox,
   restyleText,
   setListKind,
@@ -29,7 +30,8 @@ export interface TextFormat {
 
 /** The text a box holds: a text box's text, or the text inside a shape (if it has any). */
 export function textOf(element: SlideElement): RichText | undefined {
-  return isTextBox(element) ? element.doc : element.text;
+  if (isTextBox(element)) return element.doc;
+  return isShape(element) ? element.text : undefined;
 }
 
 /**

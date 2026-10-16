@@ -4,6 +4,7 @@ import {
   canReorder,
   fitBoxesTo,
   groupBounds,
+  isImage,
   isShape,
   isTextBox,
   type Border,
@@ -16,10 +17,11 @@ import {
   type SlideElement,
   type TextElement,
 } from '@/model';
+import { AltField } from './AltField';
 import { ColourField } from './colour/ColourField';
 import { MIXED, NumberField, Segmented, common } from './fields';
 import { boxOf } from './gestures';
-import { describeSelection, isLineElement } from './shapeLabels';
+import { describeSelection, hasFill as canFill, isLineElement } from './shapeLabels';
 import type { TextFormat } from './text/format';
 import { TextSection } from './text/TextSection';
 
@@ -90,7 +92,11 @@ export function DesignPanel({
   const textBoxes = elements.filter(isTextBox);
   // A text box is as tall as its text needs, so it has no height to set.
   const autoHeight = elements.every(isTextBox);
-  const hasFill = elements.some((e) => !isLineElement(e));
+  const hasFill = elements.some(canFill);
+  const picture =
+    elements.length === 1 && elements[0] !== undefined && isImage(elements[0])
+      ? elements[0]
+      : undefined;
   const pending = useRef<readonly ElementChange[] | undefined>(undefined);
 
   const apply = (props: ElementProps) => {
@@ -144,6 +150,18 @@ export function DesignPanel({
       {textFormat && (
         <Section title="Text">
           <TextSection format={textFormat} deckFonts={deckFonts} />
+        </Section>
+      )}
+
+      {picture && (
+        <Section title="Description">
+          <AltField
+            key={picture.id}
+            alt={picture.alt}
+            onCommit={(alt) => {
+              onCommit([{ id: picture.id, props: { alt } }]);
+            }}
+          />
         </Section>
       )}
 
@@ -253,23 +271,12 @@ export function DesignPanel({
           <ColourField
             label="Fill"
             allowNone
-            value={common(
-              elements.filter((e) => !isLineElement(e)),
-              (e) => e.fill,
-            )}
+            value={common(elements.filter(canFill), (e) => e.fill)}
             onPreview={(fill) => {
-              onPreview(
-                elements
-                  .filter((e) => !isLineElement(e))
-                  .map((e) => ({ id: e.id, props: { fill } })),
-              );
+              onPreview(elements.filter(canFill).map((e) => ({ id: e.id, props: { fill } })));
             }}
             onChange={(fill) => {
-              onCommit(
-                elements
-                  .filter((e) => !isLineElement(e))
-                  .map((e) => ({ id: e.id, props: { fill } })),
-              );
+              onCommit(elements.filter(canFill).map((e) => ({ id: e.id, props: { fill } })));
             }}
           />
         </Section>

@@ -1,4 +1,4 @@
-import { isLine, isShape, isTextBox, type ShapeKind, type SlideElement } from '@/model';
+import { isImage, isLine, isShape, isTextBox, type ShapeKind, type SlideElement } from '@/model';
 
 export const SHAPE_LABELS: Readonly<Record<ShapeKind, string>> = {
   rectangle: 'Rectangle',
@@ -18,7 +18,13 @@ export function describeSelection(elements: readonly SlideElement[]): string {
       ? `${String(elements.length)} shapes`
       : `${String(elements.length)} elements`;
   }
-  return isShape(first) ? SHAPE_LABELS[first.shape] : 'Text';
+  if (isShape(first)) return SHAPE_LABELS[first.shape];
+  return isImage(first) ? 'Image' : 'Text';
+}
+
+/** Can this element have a fill? Not a line, and not a picture (a picture is its own colours). */
+export function hasFill(element: SlideElement): boolean {
+  return !isLineElement(element) && !isImage(element);
 }
 
 /** A line or an arrow: it has two ends, not a box with sides. */

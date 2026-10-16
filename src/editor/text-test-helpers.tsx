@@ -3,6 +3,7 @@ import { userEvent } from 'vitest/browser';
 import { render } from 'vitest-browser-react';
 import {
   createText,
+  isShape,
   isTextBox,
   textFromString,
   type Deck,
@@ -45,7 +46,8 @@ export const stored = async (store: DeckStore) => (await store.load('deck'))?.sl
 export const storedText = async (store: DeckStore, index = 0): Promise<RichText | undefined> => {
   const element = (await stored(store))?.[index];
   if (!element) return undefined;
-  return isTextBox(element) ? element.doc : element.text;
+  if (isTextBox(element)) return element.doc;
+  return isShape(element) ? element.text : undefined;
 };
 
 export const elementNode = (id: string) =>

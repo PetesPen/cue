@@ -1,4 +1,4 @@
-import { duplicateDeck, parseDeck, type Deck, type Env } from '@/model';
+import { duplicateDeck, imageHashes, parseDeck, type Deck, type Env } from '@/model';
 import { CueDatabase, type StoredImage } from './database';
 
 /** What the library needs to draw a card: no need to hold every deck's slides in the list. */
@@ -27,6 +27,12 @@ export interface DeckStore {
   loadImage(hash: string): Promise<StoredImage | undefined>;
   /** Deletes photos no deck refers to, as insurance against a half-finished save. Returns how many. */
   sweepOrphanImages(referencedHashes: ReadonlySet<string>): Promise<number>;
+  /**
+   * Deletes the photos that no stored deck shows, reading the decks and deleting in one transaction, so
+   * a deck saved by another tab at that moment cannot lose its photo. It deletes nothing if any stored
+   * deck cannot be read (damaged, or from a newer Cue), because that deck's photos are not known.
+   */
+  sweepUnusedImages(): Promise<number>;
   close(): void;
 }
 
@@ -113,6 +119,25 @@ export function createDeckStore(databaseName = 'cue'): DeckStore {
         db.transaction('rw', db.images, async () => {
           const stored = await db.images.toCollection().primaryKeys();
           const orphans = stored.filter((hash) => !referencedHashes.has(hash));
+          await db.images.bulkDelete(orphans);
+          return orphans.length;
+        }),
+      );
+    },
+
+    sweepUnusedImages() {
+      return write(() =>
+        db.transaction('rw', db.decks, db.images, async () => {
+          const used = new Set<string>();
+          for (const raw of await db.decks.toArray()) {
+            try {
+              for (const hash of imageHashes(parseDeck(raw))) used.add(hash);
+            } catch {
+              return 0;
+            }
+          }
+          const stored = await db.images.toCollection().primaryKeys();
+          const orphans = stored.filter((hash) => !used.has(hash));
           await db.images.bulkDelete(orphans);
           return orphans.length;
         }),

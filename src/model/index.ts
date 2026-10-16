@@ -22,10 +22,12 @@ export {
   DEFAULT_TEXT_HEIGHT,
   DEFAULT_TEXT_WIDTH,
   applicableProps,
+  createImage,
   createShape,
   createText,
   isLine,
   isShape,
+  isImage,
   isTextBox,
   normaliseProps,
 } from './elements';
@@ -36,11 +38,13 @@ export type {
   ElementChange,
   ElementProps,
   Id,
+  ImageElement,
   ShapeElement,
   ShapeKind,
   SlideElement,
   TextElement,
 } from './elements';
+export { imageHashes } from './images';
 export { CommandError, applyCommand } from './commands';
 export type { Applied, Command } from './commands';
 export { InvalidDeckError, UnsupportedVersionError, parseDeck } from './parse';

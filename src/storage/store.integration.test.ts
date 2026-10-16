@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import { applyCommand, createDeck, type Deck, type Env } from '@/model';
+import { applyCommand, createDeck, createImage, type Deck, type Env } from '@/model';
 import { Autosaver } from './autosave';
-import type { StoredImage } from './database';
+import { CueDatabase, type StoredImage } from './database';
 import { createDeckStore, type DeckStore } from './store';
 
 let counter = 0;
@@ -229,6 +229,92 @@ describe('photos live with the deck (SV-1, docs/spikes/SP-5.md)', () => {
     expect(removed).toBe(2);
     expect(await store.loadImage('used')).toBeDefined();
     expect(await store.loadImage('orphan-1')).toBeUndefined();
+  });
+});
+
+describe('sweeping photos no deck shows (EL-4)', () => {
+  /** A deck whose first slide shows these pictures. */
+  function showing(time: number, title: string, ...hashes: string[]): Deck {
+    const deck = deckAt(time, title);
+    return {
+      ...deck,
+      slides: deck.slides.map((slide, i) =>
+        i === 0
+          ? {
+              ...slide,
+              elements: hashes.map((hash, n) =>
+                createImage(`img-${String(n)}-${hash}`, hash, {
+                  x: 0,
+                  y: 0,
+                  width: 10,
+                  height: 10,
+                }),
+              ),
+            }
+          : slide,
+      ),
+    };
+  }
+
+  test('Given decks that show some photos, When the store sweeps, Then only the photos no deck shows are deleted', async () => {
+    const store = openStore();
+    await store.save(showing(1000, 'One', 'a', 'b'), [image('a', [1]), image('b', [2])]);
+    await store.save(showing(2000, 'Two', 'b'), [image('c', [3]), image('d', [4])]);
+
+    const removed = await store.sweepUnusedImages();
+
+    expect(removed).toBe(2);
+    expect(await store.loadImage('a')).toBeDefined();
+    expect(await store.loadImage('b')).toBeDefined();
+    expect(await store.loadImage('c')).toBeUndefined();
+    expect(await store.loadImage('d')).toBeUndefined();
+  });
+
+  test('Given a photo two decks show, When one deck is removed and the store sweeps, Then the photo stays for the other', async () => {
+    const store = openStore();
+    const one = showing(1000, 'One', 'shared');
+    await store.save(one, [image('shared', [1])]);
+    await store.save(showing(2000, 'Two', 'shared'));
+
+    await store.remove(one.id);
+    await store.sweepUnusedImages();
+
+    expect(await store.loadImage('shared')).toBeDefined();
+  });
+
+  test('Given the last deck that showed a photo is removed, When the store sweeps, Then the photo is deleted', async () => {
+    const store = openStore();
+    const only = showing(1000, 'Only', 'lonely');
+    await store.save(only, [image('lonely', [1])]);
+
+    await store.remove(only.id);
+
+    expect(await store.sweepUnusedImages()).toBe(1);
+    expect(await store.loadImage('lonely')).toBeUndefined();
+  });
+
+  test('Given a stored deck that cannot be read, When the store sweeps, Then nothing is deleted, because its photos are not known', async () => {
+    const name = `damaged-${crypto.randomUUID()}`;
+    const store = openStore(name);
+    await store.save(showing(1000, 'Fine', 'a'), [image('a', [1]), image('b', [2])]);
+    const db = new CueDatabase(name);
+    await db.table('decks').put({ id: 'broken', schemaVersion: 1, title: 'x' });
+    db.close();
+
+    expect(await store.sweepUnusedImages()).toBe(0);
+    expect(await store.loadImage('b')).toBeDefined();
+  });
+
+  test('Given a save that lands while the sweep runs, When both finish, Then the new photo is still there', async () => {
+    const store = openStore();
+    await store.save(showing(1000, 'Old', 'old'), [image('old', [1])]);
+
+    const sweeping = store.sweepUnusedImages();
+    const saving = store.save(showing(2000, 'New', 'fresh'), [image('fresh', [2])]);
+    await Promise.all([sweeping, saving]);
+
+    expect(await store.loadImage('fresh')).toBeDefined();
+    expect(await store.loadImage('old')).toBeDefined();
   });
 });
 

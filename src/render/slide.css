@@ -54,6 +54,20 @@
   box-sizing: border-box;
 }
 
+/* A picture fills its box (the box keeps the proportions). The fill shows through transparency. */
+.cue-image-box {
+  box-sizing: border-box;
+}
+
+.cue-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
 /* Text inside a shape sits in the middle of it and is centred unless a paragraph says otherwise. */
 .cue-shape-text {
   position: absolute;
