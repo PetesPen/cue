@@ -6,14 +6,28 @@ const TABS = [
   { id: 'transition', label: 'Transition', placeholder: 'No transition on this slide.' },
 ] as const;
 
-type TabId = (typeof TABS)[number]['id'];
+export type TabId = (typeof TABS)[number]['id'];
 
 /**
- * The right-hand panel: three tabs (Design, Animate, Transition). The Design tab shows `design`
- * when something is selected; the other panels are still empty.
+ * The right-hand panel: three tabs (Design, Animate, Transition). The Design tab shows `design`,
+ * the Animate tab `animate`; the Transition panel is still empty. The editor is told which tab is
+ * open (the canvas shows step badges on Animate).
  */
-export function Inspector({ design }: { readonly design?: ReactNode }) {
-  const [active, setActive] = useState<TabId>('design');
+export function Inspector({
+  design,
+  animate,
+  onTab,
+}: {
+  readonly design?: ReactNode;
+  readonly animate?: ReactNode;
+  /** Told when the tab changes, and once at the start. */
+  readonly onTab?: (tab: TabId) => void;
+}) {
+  const [active, setOpen] = useState<TabId>('design');
+  const setActive = (tab: TabId) => {
+    setOpen(tab);
+    onTab?.(tab);
+  };
   const baseId = useId();
   const tabs = useRef(new Map<TabId, HTMLButtonElement>());
 
@@ -82,11 +96,15 @@ export function Inspector({ design }: { readonly design?: ReactNode }) {
           // WAI-ARIA tabs pattern: a panel with no focusable content must be focusable itself.
           // The Design panel holds controls while something is selected (the first takes focus).
           // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
-          tabIndex={tab.id === 'design' && design ? undefined : 0}
+          tabIndex={
+            (tab.id === 'design' && design) || (tab.id === 'animate' && animate) ? undefined : 0
+          }
           hidden={active !== tab.id}
         >
           {tab.id === 'design' && design ? (
             design
+          ) : tab.id === 'animate' && animate ? (
+            animate
           ) : (
             <p className="placeholder">{tab.placeholder}</p>
           )}

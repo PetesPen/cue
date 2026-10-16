@@ -66,9 +66,9 @@ Tests: write each criterion as a Given / When / Then example first; each example
 As a presenter, I want an element to fade or pop into view on a click, so that I can reveal content one point at a time.
 
 Acceptance criteria:
-- [ ] Select an element and choose Appear in the animation panel; it is hidden until its step plays.
-- [ ] Appear options: instant, fade, or fade with a slight rise.
-- [ ] Elements with an Appear step are shown faded in the editor, with a step badge on the canvas.
+- [x] Select an element and choose Appear in the animation panel; it is hidden until its step plays. (In the Animate tab; Preview shows it hidden until its click.)
+- [x] Appear options: instant, fade, or fade with a slight rise.
+- [x] Elements with an Appear step are shown faded in the editor, with a step badge on the canvas. (45% of the element's own opacity; the badges show on the Animate tab.)
 
 Design: [`Editor-Animate`](../../design/screenshots/Editor-Animate.png) ([source](../../design/boards/Editor-Animate.dc.html))
 
@@ -79,8 +79,8 @@ Tests: write each criterion as a Given / When / Then example first; each example
 As a presenter, I want an element to leave on a click, so that I can clear the stage for what comes next.
 
 Acceptance criteria:
-- [ ] Disappear options: instant or fade out.
-- [ ] An element can have both an Appear and a later Disappear step.
+- [x] Disappear options: instant or fade out.
+- [x] An element can have both an Appear and a later Disappear step.
 
 Design: [`Editor-Animate`](../../design/screenshots/Editor-Animate.png) ([source](../../design/boards/Editor-Animate.dc.html))
 
@@ -92,7 +92,7 @@ As a presenter, I want opacity to behave the same everywhere, so that what I des
 
 Acceptance criteria:
 - [ ] Presentation mode and HTML export render opacity identically to the editor.
-- [ ] Appear and Disappear animations respect an element's set opacity as their "fully visible" level.
+- [x] Appear and Disappear animations respect an element's set opacity as their "fully visible" level.
 
 Design: [`Main`](../../design/screenshots/Main.png) ([source](../../design/boards/Main.dc.html))
 
@@ -105,9 +105,9 @@ As a presenter, I want duration, delay and easing, so that motion feels delibera
 Moved here from sprint 11 by Peter on 2026-10-16.
 
 Acceptance criteria:
-- [ ] Duration from 0.1 to 5 seconds and delay from 0 to 5 seconds.
-- [ ] Easing presets: linear, ease-in, ease-out and ease-in-out.
-- [ ] Sensible defaults (0.5 s, ease-out) mean most steps need no tuning.
+- [x] Duration from 0.1 to 5 seconds and delay from 0 to 5 seconds.
+- [x] Easing presets: linear, ease-in, ease-out and ease-in-out.
+- [x] Sensible defaults (0.5 s, ease-out) mean most steps need no tuning.
 
 Design: [`Editor-Animate`](../../design/screenshots/Editor-Animate.png) ([source](../../design/boards/Editor-Animate.dc.html))
 

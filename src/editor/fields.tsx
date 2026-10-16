@@ -105,7 +105,12 @@ export function NumberField({
 interface SegmentedProps<T extends string> {
   readonly label: string;
   readonly value: Mixed<T>;
-  readonly options: readonly { readonly value: T; readonly label: string }[];
+  readonly options: readonly {
+    readonly value: T;
+    readonly label: string;
+    /** Shown but not available now. */
+    readonly disabled?: boolean;
+  }[];
   readonly onChange: (value: T) => void;
 }
 
@@ -124,6 +129,7 @@ export function Segmented<T extends string>({
           type="button"
           className="segment"
           aria-pressed={value === option.value}
+          disabled={option.disabled === true}
           onClick={() => {
             onChange(option.value);
           }}

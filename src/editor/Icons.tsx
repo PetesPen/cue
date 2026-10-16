@@ -161,3 +161,24 @@ export const OutdentIcon = (props: IconProps) => (
     <path d="M4 6h16M11 10h9M11 14h9M4 18h16M7 9l-3 3 3 3" />
   </Stroke>
 );
+
+/** A filled play triangle (Preview). */
+export function PlayIcon({ size = 11 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M6 3.5v17a1 1 0 0 0 1.5.86l14-8.5a1 1 0 0 0 0-1.72l-14-8.5A1 1 0 0 0 6 3.5z" />
+    </svg>
+  );
+}
+
+export const ArrowLeftIcon = (props: IconProps) => (
+  <Stroke {...props}>
+    <path d="M19 12H5M11 6l-6 6 6 6" />
+  </Stroke>
+);
+
+export const ArrowRightIcon = (props: IconProps) => (
+  <Stroke {...props}>
+    <path d="M5 12h14M13 6l6 6-6 6" />
+  </Stroke>
+);

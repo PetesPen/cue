@@ -4,6 +4,7 @@ import {
   applyCommand,
   canRedo,
   canUndo,
+  createStep,
   emptyHistory,
   imageHashes,
   record,
@@ -22,6 +23,8 @@ import {
   type ReorderMode,
   type Slide,
   type SlideElement,
+  type StepChange,
+  type StepEffect,
 } from '@/model';
 import {
   Autosaver,
@@ -71,6 +74,10 @@ export interface DeckSession {
   readonly addElements: (elements: readonly SlideElement[], meta?: EditMeta) => void;
   /** The speaker notes of a slide (SL-6). */
   readonly setNotes: (slideId: Id, notes: string) => void;
+  /** Add an animation step for an element of the current slide (AN-1, AN-2). */
+  readonly addStep: (element: Id, effect: StepEffect, meta?: EditMeta) => Id | undefined;
+  readonly updateStep: (stepId: Id, change: StepChange, meta?: EditMeta) => void;
+  readonly removeStep: (stepId: Id) => void;
   /** The background colour of the current slide, or of every slide (SL-5). */
   readonly setBackground: (background: string, all: boolean) => void;
   /**
@@ -306,6 +313,35 @@ export function useDeckSession(
     [dispatch, env],
   );
 
+  const addStep = useCallback(
+    (element: Id, effect: StepEffect, meta?: EditMeta) => {
+      const slideId = currentRef.current;
+      if (slideId === undefined) return undefined;
+      const step = createStep(env.newId(), element, effect);
+      dispatch({ type: 'addStep', slideId, step, at: env.now() }, meta);
+      return step.id;
+    },
+    [dispatch, env],
+  );
+
+  const updateStep = useCallback(
+    (stepId: Id, change: StepChange, meta?: EditMeta) => {
+      const slideId = currentRef.current;
+      if (slideId === undefined) return;
+      dispatch({ type: 'updateStep', slideId, stepId, change, at: env.now() }, meta);
+    },
+    [dispatch, env],
+  );
+
+  const removeStep = useCallback(
+    (stepId: Id) => {
+      const slideId = currentRef.current;
+      if (slideId === undefined) return;
+      dispatch({ type: 'removeStep', slideId, stepId, at: env.now() });
+    },
+    [dispatch, env],
+  );
+
   const setBackground = useCallback(
     (background: string, all: boolean) => {
       const slideId = currentRef.current;
@@ -467,6 +503,9 @@ export function useDeckSession(
     addElements,
     setNotes,
     setBackground,
+    addStep,
+    updateStep,
+    removeStep,
     undo,
     redo,
     history,

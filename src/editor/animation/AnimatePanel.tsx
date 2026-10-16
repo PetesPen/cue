@@ -1,0 +1,351 @@
+import { useState } from 'react';
+import {
+  APPEAR_STYLES,
+  DISAPPEAR_STYLES,
+  EASINGS,
+  MAX_DELAY,
+  MAX_DURATION,
+  MIN_DURATION,
+  clickCount,
+  clicksOf,
+  stepsOf,
+  type Id,
+  type Slide,
+  type SlideElement,
+  type Step,
+  type StepChange,
+  type StepEffect,
+} from '@/model';
+import { Segmented } from '../fields';
+import { PlayIcon } from '../Icons';
+import {
+  APPEAR_STYLE_LABELS,
+  DISAPPEAR_STYLE_LABELS,
+  EASING_LABELS,
+  EFFECT_LABELS,
+  describeCounts,
+  elementName,
+  swatchOf,
+} from './labels';
+import './animation.css';
+
+interface AnimatePanelProps {
+  readonly slide: Slide;
+  /** The selected elements on the canvas. */
+  readonly selectedIds: readonly Id[];
+  /** The step whose settings are shown, if it still exists. */
+  readonly activeStepId: Id | undefined;
+  /** Choose a step in the list: its element is selected too. */
+  readonly onSelectStep: (stepId: Id) => void;
+  readonly onAdd: (element: Id, effect: StepEffect) => void;
+  readonly onChange: (stepId: Id, change: StepChange) => void;
+  readonly onRemove: (stepId: Id) => void;
+  readonly previewing: boolean;
+  readonly onPreview: () => void;
+}
+
+/**
+ * The Animate tab (design: Editor-Animate): the steps of this slide in play order, grouped by click,
+ * with the settings of the one you chose and a Preview button.
+ */
+export function AnimatePanel({
+  slide,
+  selectedIds,
+  activeStepId,
+  onSelectStep,
+  onAdd,
+  onChange,
+  onRemove,
+  previewing,
+  onPreview,
+}: AnimatePanelProps) {
+  const steps = slide.animations;
+  const clicks = clicksOf(steps);
+  const only =
+    selectedIds.length === 1 ? slide.elements.find((e) => e.id === selectedIds[0]) : undefined;
+  const active = steps.find((s) => s.id === activeStepId);
+  const activeIndex = active ? steps.indexOf(active) : -1;
+  const activeElement = active ? slide.elements.find((e) => e.id === active.element) : undefined;
+
+  return (
+    <div className="animate-panel">
+      <div className="panel-section animate-header">
+        <div>
+          <div className="panel-name">This slide</div>
+          <div className="caption">{describeCounts(steps.length, clickCount(slide))}</div>
+        </div>
+        <button
+          type="button"
+          className="button button-compact"
+          disabled={steps.length === 0}
+          aria-pressed={previewing}
+          onClick={onPreview}
+        >
+          {!previewing && <PlayIcon />}
+          {previewing ? 'Stop preview' : 'Preview'}
+        </button>
+      </div>
+
+      {steps.length === 0 ? (
+        <p className="placeholder panel-section">
+          No animations on this slide. Select an element, then choose Appear or Disappear.
+        </p>
+      ) : (
+        <div className="panel-section step-list" role="group" aria-label="Steps">
+          {clicks.map((click, clickIndex) => (
+            <div key={click[0]?.id ?? clickIndex} className="step-click">
+              <h2 className="section-label">{`Click ${String(clickIndex + 1)}`}</h2>
+              <ul className="step-rows">
+                {click.map((step) => (
+                  <li key={step.id}>
+                    <StepRow
+                      step={step}
+                      element={slide.elements.find((e) => e.id === step.element)}
+                      joins={step.trigger === 'with-previous' && click[0] !== step}
+                      active={step.id === active?.id}
+                      onSelect={() => {
+                        onSelectStep(step.id);
+                      }}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {active && activeElement && (
+        <StepSettings
+          key={active.id}
+          step={active}
+          index={activeIndex}
+          name={elementName(activeElement)}
+          onChange={(change) => {
+            onChange(active.id, change);
+          }}
+          onRemove={() => {
+            onRemove(active.id);
+          }}
+        />
+      )}
+
+      {only && (
+        <div className="panel-section">
+          <h2 className="section-label panel-title">{`Animate ${elementName(only)}`}</h2>
+          <div className="segmented" role="group" aria-label="Add a step">
+            {(['appear', 'disappear'] as const).map((effect) => (
+              <button
+                key={effect}
+                type="button"
+                className="segment"
+                onClick={() => {
+                  onAdd(only.id, effect);
+                }}
+              >
+                {`${stepsOf(slide, only.id).length === 0 ? '' : 'Then '}${EFFECT_LABELS[effect]}`}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** One row of the step list: the element's swatch and name, and what happens to it. */
+function StepRow({
+  step,
+  element,
+  joins,
+  active,
+  onSelect,
+}: {
+  readonly step: Step;
+  readonly element: SlideElement | undefined;
+  /** It plays with the step before it, not on a click of its own. */
+  readonly joins: boolean;
+  readonly active: boolean;
+  readonly onSelect: () => void;
+}) {
+  const name = element ? elementName(element) : 'Element';
+  const effect = `${EFFECT_LABELS[step.effect]}${joins ? ' · with previous' : ''}`;
+  return (
+    <button
+      type="button"
+      className={active ? 'step-row step-row-on' : 'step-row'}
+      aria-current={active ? 'true' : undefined}
+      aria-label={`${name}, ${effect.replace(' · ', ', ')}`}
+      onClick={onSelect}
+    >
+      <span
+        className="step-swatch"
+        style={element ? { background: swatchOf(element) } : undefined}
+        aria-hidden="true"
+      />
+      <span className="step-name" aria-hidden="true">
+        {name}
+      </span>
+      <span className="step-effect" aria-hidden="true">
+        {effect}
+      </span>
+    </button>
+  );
+}
+
+function StepSettings({
+  step,
+  index,
+  name,
+  onChange,
+  onRemove,
+}: {
+  readonly step: Step;
+  readonly index: number;
+  readonly name: string;
+  readonly onChange: (change: StepChange) => void;
+  readonly onRemove: () => void;
+}) {
+  const first = index === 0;
+  return (
+    <section className="panel-section" aria-label="Step settings">
+      <div className="panel-heading step-heading">
+        <span className="panel-name">{`${name} · ${EFFECT_LABELS[step.effect]}`}</span>
+        <span className="caption">{`Step ${String(index + 1)}`}</span>
+      </div>
+
+      <div className="panel-gap">
+        <Segmented
+          label="Effect"
+          value={step.effect}
+          options={(['appear', 'disappear'] as const).map((value) => ({
+            value,
+            label: EFFECT_LABELS[value],
+          }))}
+          onChange={(effect) => {
+            onChange({ effect });
+          }}
+        />
+      </div>
+      <div className="panel-gap">
+        <Segmented
+          label="When"
+          value={step.trigger}
+          options={[
+            { value: 'click', label: 'On click' },
+            { value: 'with-previous', label: 'With previous', disabled: first },
+          ]}
+          onChange={(trigger) => {
+            onChange({ trigger });
+          }}
+        />
+      </div>
+      <div className="panel-gap">
+        {step.effect === 'appear' ? (
+          <Segmented
+            label="Style"
+            value={step.style}
+            options={APPEAR_STYLES.map((value) => ({ value, label: APPEAR_STYLE_LABELS[value] }))}
+            onChange={(style) => {
+              onChange({ style });
+            }}
+          />
+        ) : (
+          <Segmented
+            label="Style"
+            value={step.style}
+            options={DISAPPEAR_STYLES.map((value) => ({
+              value,
+              label: DISAPPEAR_STYLE_LABELS[value],
+            }))}
+            onChange={(style) => {
+              onChange({ style });
+            }}
+          />
+        )}
+      </div>
+
+      <TimingSlider
+        label="Duration"
+        value={step.duration}
+        min={MIN_DURATION}
+        max={MAX_DURATION}
+        onCommit={(duration) => {
+          onChange({ duration });
+        }}
+      />
+      <TimingSlider
+        label="Delay"
+        value={step.delay}
+        min={0}
+        max={MAX_DELAY}
+        onCommit={(delay) => {
+          onChange({ delay });
+        }}
+      />
+
+      <div className="panel-gap">
+        <Segmented
+          label="Easing"
+          value={step.easing}
+          options={EASINGS.map((value) => ({ value, label: EASING_LABELS[value] }))}
+          onChange={(easing) => {
+            onChange({ easing });
+          }}
+        />
+      </div>
+
+      <div className="step-remove">
+        <button type="button" className="link-danger" onClick={onRemove}>
+          Remove step
+        </button>
+      </div>
+    </section>
+  );
+}
+
+/** A slider in tenths of a second. It saves one step when you let go, not one for every tenth. */
+function TimingSlider({
+  label,
+  value,
+  min,
+  max,
+  onCommit,
+}: {
+  readonly label: string;
+  readonly value: number;
+  readonly min: number;
+  readonly max: number;
+  readonly onCommit: (value: number) => void;
+}) {
+  const [dragging, setDragging] = useState<number | undefined>();
+  const shown = dragging ?? value;
+  const done = () => {
+    if (dragging === undefined) return;
+    setDragging(undefined);
+    if (dragging !== value) onCommit(dragging);
+  };
+  return (
+    <div className="timing-row">
+      <label className="timing-label">
+        <span>{label}</span>
+        <span className="timing-value">{`${shown.toFixed(1)} s`}</span>
+        <input
+          type="range"
+          className="slider"
+          aria-label={label}
+          min={min}
+          max={max}
+          step={0.1}
+          value={shown}
+          onChange={(event) => {
+            setDragging(Number(event.target.value));
+          }}
+          onPointerUp={done}
+          onKeyUp={done}
+          onBlur={done}
+        />
+      </label>
+    </div>
+  );
+}
