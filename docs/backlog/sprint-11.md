@@ -7,21 +7,21 @@ Work only on this sprint's goal. New ideas go to the backlog, not into the sprin
 
 ## Goal
 
-Polish: layers, motion, transitions.
+Polish: layers, motion, transparency.
 
 ## Demo at the review
 
-Layers panel, step back, direction, apply to all.
+Layers panel, step back, fill and text transparency.
 
 ## Key automated tests
 
 Layer drag tests; step-back resolver tests.
 
-## Stories (6)
+## Stories (4)
 
-AN-4 (timing and easing controls) moved to sprint 5 on 2026-10-16: Peter asked for it with the first animations.
+AN-4 (timing and easing controls) moved to sprint 5 on 2026-10-16: Peter asked for it with the first animations. TN-2 and TN-3 (transition direction and duration, apply to all) moved to sprint 8 on 2026-10-17: sprint 7 had built much of sprint 8, and Peter approved the move with the plans.
 
-0 Must, 6 Should. Story order below is the suggested build order.
+0 Must, 4 Should. Story order below is the suggested build order.
 
 ### ZO-2 See and rearrange layers (Should)
 
@@ -69,30 +69,6 @@ Acceptance criteria:
 - [ ] The Left arrow or Backspace reverses the last animation step, then returns to the previous slide's final state.
 
 Design: [`Editor-Animate`](../../design/screenshots/Editor-Animate.png) ([source](../../design/boards/Editor-Animate.dc.html))
-
-Tests: write each criterion as a Given / When / Then example first; each example becomes a test name. Push tests down the pyramid where possible.
-
-### TN-2 Set duration and direction (Should)
-
-As a presenter, I want to adjust how long a transition takes and which way it moves, so that it suits the moment.
-
-Acceptance criteria:
-- [ ] Duration from 0.2 to 3 seconds, defaulting to 0.6 seconds.
-- [ ] Slide and Push can come from the left, right, top or bottom.
-
-Design: [`Editor-Transition`](../../design/screenshots/Editor-Transition.png) ([source](../../design/boards/Editor-Transition.dc.html))
-
-Tests: write each criterion as a Given / When / Then example first; each example becomes a test name. Push tests down the pyramid where possible.
-
-### TN-3 Apply to all slides (Should)
-
-As a presenter, I want to apply one transition to the whole deck, so that I do not have to set it slide by slide.
-
-Acceptance criteria:
-- [ ] An "Apply to all slides" button copies the transition settings to every slide.
-- [ ] It can be undone in one step.
-
-Design: [`Editor-Transition`](../../design/screenshots/Editor-Transition.png) ([source](../../design/boards/Editor-Transition.dc.html))
 
 Tests: write each criterion as a Given / When / Then example first; each example becomes a test name. Push tests down the pyramid where possible.
 

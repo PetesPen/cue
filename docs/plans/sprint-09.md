@@ -1,6 +1,6 @@
 # Sprint 9 plan: Deck files, browsers and offline use
 
-Status: **waits for Peter's approval, together with the plan for sprint 8** (plans are approved in pairs). Stories: SV-3, UX-5, UX-7 (all Must), and the SV-1 carry-overs listed under SV-3. Nominal load 16 days. There is no gate at the end of this sprint; the review after it is the next one (Gate 4 follows sprint 10, whose plan writes its criteria).
+Status: **approved by Peter on 2026-10-17, together with the plan for sprint 8**. His answers: keep `.slides`; opening a file adds a new deck; the Export dialog greys out the web page with "Coming soon" until sprint 10; the Install link and the interim icons as proposed. Stories: SV-3, UX-5, UX-7 (all Must), and the SV-1 carry-overs listed under SV-3. Nominal load 16 days. There is no gate at the end of this sprint; the review after it is the next one (Gate 4 follows sprint 10, whose plan writes its criteria).
 
 ## Outcome at the review
 
