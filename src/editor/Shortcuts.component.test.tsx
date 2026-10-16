@@ -54,6 +54,15 @@ const frame = () => {
 const slideCount = () => document.querySelectorAll('.rail-item').length;
 const pick = (id: string) => userEvent.click(node(id));
 
+/**
+ * Hover a control. The pointer first goes somewhere else: a new page under a pointer that has not moved
+ * (the last test left it on the same button) gets no pointer events, as in a real browser.
+ */
+async function hoverFresh(target: Parameters<typeof userEvent.hover>[0]) {
+  await userEvent.hover(document.body);
+  await userEvent.hover(target);
+}
+
 // Each shortcut of the table does what its name says (UX-2) ----------------------------------------
 
 test('Given a slide, When Ctrl+M is pressed (New slide), Then a slide is added', async () => {
@@ -325,7 +334,7 @@ test.each(hinted)(
   async (button, id, name) => {
     const screen = await openWith(createTestStore(), 1);
 
-    await userEvent.hover(screen.getByRole('button', { name: button, exact: true }));
+    await hoverFresh(screen.getByRole('button', { name: button, exact: true }));
 
     const tooltip = screen.getByRole('tooltip');
     await expect.element(tooltip).toBeVisible();
@@ -348,7 +357,7 @@ test('Given the Shape button reached by the keyboard, When it is focused, Then t
 
 test('Given a hint showing, When Escape is pressed, Then it goes', async () => {
   const screen = await openWith(createTestStore(), 1);
-  await userEvent.hover(screen.getByRole('button', { name: 'Text', exact: true }));
+  await hoverFresh(screen.getByRole('button', { name: 'Text', exact: true }));
   await expect.element(screen.getByRole('tooltip')).toBeVisible();
 
   await userEvent.keyboard('{Escape}');
@@ -360,7 +369,7 @@ test('Given a button with a hint showing, Then the button is described by it', a
   const screen = await openWith(createTestStore(), 1);
   const text = screen.getByRole('button', { name: 'Text', exact: true });
 
-  await userEvent.hover(text);
+  await hoverFresh(text);
 
   await expect.element(screen.getByRole('tooltip')).toBeVisible();
   expect(text.element().getAttribute('aria-describedby')).toBe(
@@ -372,7 +381,7 @@ test('Given a selected shape, When an Arrange button is hovered, Then its hint s
   const screen = await openWith(createTestStore(), 1, rectangle('a', 100), rectangle('b', 500));
   await pick('a');
 
-  await userEvent.hover(screen.getByRole('button', { name: 'Front', exact: true }));
+  await hoverFresh(screen.getByRole('button', { name: 'Front', exact: true }));
 
   const tooltip = screen.getByRole('tooltip');
   await expect.element(tooltip).toBeVisible();
