@@ -1044,6 +1044,7 @@ function Editor({
                 setActiveStepId(undefined);
                 session.removeStep(stepId);
               }}
+              onMove={session.moveStep}
             />
           }
           design={

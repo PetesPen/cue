@@ -154,3 +154,81 @@ test.describe('Given an element on a slide, When it is made to move (AN-3)', () 
       .toBeCloseTo(own?.x ?? 0, 0);
   });
 });
+
+test.describe('Given the steps of the hero slide, When they are put in a new order (AN-5)', () => {
+  test('Then a step dragged with the mouse lands where the line showed, and the order is saved', async ({
+    page,
+  }) => {
+    await seedDeck(page, autumnLaunch(), 'autumn-launch');
+    await page.getByRole('option', { name: 'Slide 3', exact: true }).click();
+    await animate(page);
+    const ids = () =>
+      page
+        .locator('.step-row')
+        .evaluateAll((rows) => rows.map((r) => r.getAttribute('data-step-id')));
+    expect(await ids()).toEqual([
+      's03-step-1',
+      's03-step-2',
+      's03-step-3',
+      's03-step-4',
+      's03-step-5',
+      's03-step-6',
+    ]);
+
+    // The last step (the block leaves) is dragged above the one before it (the circle moves).
+    const last = await page.locator('.step-row').nth(5).boundingBox();
+    const before = await page.locator('.step-row').nth(4).boundingBox();
+    if (!last || !before) throw new Error('no rows');
+    await page.mouse.move(last.x + 60, last.y + last.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(last.x + 60, before.y + 4, { steps: 8 });
+    await expect(page.locator('.step-drop-line')).toBeVisible();
+    await page.mouse.up();
+
+    await expect
+      .poll(ids)
+      .toEqual([
+        's03-step-1',
+        's03-step-2',
+        's03-step-3',
+        's03-step-4',
+        's03-step-6',
+        's03-step-5',
+      ]);
+    await expect(page.getByText('6 steps · 3 clicks')).toBeVisible();
+    await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+    await page.waitForTimeout(800);
+    await page.reload();
+    await page.getByRole('option', { name: 'Slide 3', exact: true }).click();
+    await animate(page);
+    await expect.poll(async () => (await ids()).slice(4)).toEqual(['s03-step-6', 's03-step-5']);
+  });
+
+  test('Then Alt and the arrow keys move the focused step, and Undo puts it back', async ({
+    page,
+  }) => {
+    await seedDeck(page, autumnLaunch(), 'autumn-launch');
+    await page.getByRole('option', { name: 'Slide 3', exact: true }).click();
+    await animate(page);
+    const ids = () =>
+      page
+        .locator('.step-row')
+        .evaluateAll((rows) => rows.map((r) => r.getAttribute('data-step-id')));
+
+    await page.locator('.step-row').nth(4).focus();
+    await page.keyboard.press('Alt+ArrowDown');
+
+    await expect
+      .poll(ids)
+      .toEqual([
+        's03-step-1',
+        's03-step-2',
+        's03-step-3',
+        's03-step-4',
+        's03-step-6',
+        's03-step-5',
+      ]);
+    await page.keyboard.press('Control+z');
+    await expect.poll(async () => (await ids()).slice(4)).toEqual(['s03-step-5', 's03-step-6']);
+  });
+});

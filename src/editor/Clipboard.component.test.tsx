@@ -247,7 +247,10 @@ test('Given text being edited, When Delete is pressed, Then it deletes a letter 
 
   await userEvent.keyboard('{Control>}{Home}{/Control}{Delete}');
 
-  expect(document.querySelector('.text-edit-box .ProseMirror')?.textContent).toBe('ur approach');
+  // The editor takes the key a moment later on a busy machine.
+  await expect
+    .poll(() => document.querySelector('.text-edit-box .ProseMirror')?.textContent)
+    .toBe('ur approach');
   expect(node('t')).not.toBeNull();
 });
 

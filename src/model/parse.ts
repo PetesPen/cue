@@ -146,6 +146,9 @@ function parseSteps(value: unknown, elements: ReadonlySet<string>): Step[] {
       }),
     );
   }
+  // The first step always starts a click of its own.
+  const first = steps[0];
+  if (first && first.trigger !== 'click') steps[0] = changeStep(first, { trigger: 'click' });
   return steps;
 }
 

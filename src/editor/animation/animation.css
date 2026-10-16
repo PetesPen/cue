@@ -267,3 +267,30 @@
   white-space: nowrap;
   transform: translate(-50%, 8px);
 }
+
+.step-list {
+  position: relative;
+}
+
+.step-grip {
+  display: inline-flex;
+  flex: none;
+  margin-left: calc(-1 * var(--space-1));
+  color: var(--color-dashed-border);
+  cursor: grab;
+}
+
+.step-row-dragged {
+  opacity: 0.45;
+}
+
+/* Where a dragged step will land. */
+.step-drop-line {
+  position: absolute;
+  right: var(--space-4);
+  left: var(--space-4);
+  height: 3px;
+  border-radius: 2px;
+  background: var(--color-accent);
+  pointer-events: none;
+}

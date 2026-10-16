@@ -50,6 +50,8 @@ export function labelFor(command: Command): string {
       return 'Change animation';
     case 'removeStep':
       return 'Remove animation';
+    case 'moveStep':
+      return 'Reorder animations';
   }
 }
 
@@ -76,6 +78,7 @@ export function idsOf(command: Command): Id[] {
     case 'setBackground':
     case 'updateStep':
     case 'removeStep':
+    case 'moveStep':
       return [];
   }
 }

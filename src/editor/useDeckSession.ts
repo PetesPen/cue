@@ -79,6 +79,8 @@ export interface DeckSession {
   readonly addStep: (element: Id, effect: StepEffect, meta?: EditMeta) => Id | undefined;
   readonly updateStep: (stepId: Id, change: StepChange, meta?: EditMeta) => void;
   readonly removeStep: (stepId: Id) => void;
+  /** Put a step at another place in the list (AN-5). */
+  readonly moveStep: (stepId: Id, toIndex: number) => void;
   /** The background colour of the current slide, or of every slide (SL-5). */
   readonly setBackground: (background: string, all: boolean) => void;
   /**
@@ -346,6 +348,15 @@ export function useDeckSession(
     [dispatch, env],
   );
 
+  const moveStep = useCallback(
+    (stepId: Id, toIndex: number) => {
+      const slideId = currentRef.current;
+      if (slideId === undefined) return;
+      dispatch({ type: 'moveStep', slideId, stepId, toIndex, at: env.now() });
+    },
+    [dispatch, env],
+  );
+
   const removeStep = useCallback(
     (stepId: Id) => {
       const slideId = currentRef.current;
@@ -524,6 +535,7 @@ export function useDeckSession(
     addStep,
     updateStep,
     removeStep,
+    moveStep,
     undo,
     redo,
     history,
