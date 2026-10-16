@@ -747,12 +747,29 @@
 /* Present and the menu of other ways to present, at the right of the top bar (board: Main). */
 .present-split {
   display: inline-flex;
-  align-items: center;
-  gap: 2px;
+  align-items: stretch;
 }
 
-.present-button {
+/* One green button in two parts: Present, and the chevron that opens the other ways to present. */
+.present-split .present-button {
   gap: 6px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.present-split .menu-anchor .toolbar-button {
+  height: var(--control-button-height);
+  padding: 0 var(--space-2);
+  border-left: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 0 var(--radius-button) var(--radius-button) 0;
+  background: var(--color-accent);
+  color: var(--color-white);
+}
+
+.present-split .menu-anchor .toolbar-button:hover:not(:disabled),
+.present-split .menu-anchor .toolbar-button[aria-expanded='true'] {
+  background: var(--color-accent);
+  filter: brightness(0.92);
 }
 
 /* At the right edge of the top bar, the menu opens leftwards from its button. */

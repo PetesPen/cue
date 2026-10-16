@@ -534,3 +534,14 @@ Use https://cue-presentations.netlify.app/ after this sprint's pull request is m
 6. **Going back** to the slide before shows it with all its clicks played (as you left it). Right?
 7. **The audience window opens as a window of 1280 by 720** (the browser decides where); on a second display it is moved there and sized to it. Anything you would change?
 8. **The timer** starts with the first move of the show and has pause and reset (PM-7's target time is sprint 8). OK to have it early?
+
+### Review outcome (2026-10-17)
+
+Peter answered the retrospective questions.
+
+1. **Gate 3 ("Motion beta") passes**: "I'm very happy".
+2. **Esc mid-show:** it does not ask; it ends the presentation at once, from either window (as built).
+3. **Present in the top bar:** keep the green Present button with the menu beside it (Present from this slide stays in the menu), with a visual tweak: the chevron is now part of the same green button (joined, with a thin divider), so it reads as belonging to Present. Done the same day.
+4. **A transition plays only between neighbouring slides:** correct. A jump by number or from the strip shows the slide at once.
+5. **A blanked screen:** correct. The first forward or back only brings the slide back.
+6. Questions 6 to 8 (going back shows the slide before with all its clicks played; the audience window's size and the second display; the timer starting early) were not answered, so they stand as built.

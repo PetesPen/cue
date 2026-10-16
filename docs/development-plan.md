@@ -177,7 +177,7 @@ Reviews with the product owner happen every other sprint (agreed 2026-10-16), an
 | 4 | First full show | 10 | Can you deliver a real talk from start to finish, with all 39 Must stories working? |
 | 5 | v1.0 | 13 | Is the release candidate good on all four browsers, with every budget met? |
 
-**Status:** Gate 1 passed on 2026-10-15 and Gate 2 on 2026-10-16 (both accepted by Peter). Gates 3 to 5 are open; sprint 7 (built 2026-10-17) ends in Gate 3, which waits for Peter. The criteria for Gates 1 to 3 are written. The criteria for each later gate are written at the start of the sprint that ends in it.
+**Status:** Gate 1 passed on 2026-10-15, Gate 2 on 2026-10-16 and Gate 3 ("Motion beta") on 2026-10-17 (all accepted by Peter). Gates 4 and 5 are open. The criteria for Gates 1 to 3 are written. The criteria for each later gate are written at the start of the sprint that ends in it.
 
 **Gate 1 criteria** (written by Claude on 2026-10-15, because the plan did not define them; the product owner can change them):
 
