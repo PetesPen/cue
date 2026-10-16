@@ -2,6 +2,8 @@ import { useEffect, useId, useRef, useState, type RefObject, type SyntheticEvent
 
 interface ModalProps {
   readonly titleId: string;
+  /** The wide dialog of the shortcut list. */
+  readonly wide?: boolean;
   readonly onClose: () => void;
   /** Focus goes back here when the dialog goes away. */
   readonly returnFocusTo?: RefObject<HTMLElement | null>;
@@ -9,7 +11,7 @@ interface ModalProps {
 }
 
 /** A modal on the browser's own `<dialog>`: focus is trapped, Escape closes it, the page behind is inert. */
-function Modal({ titleId, onClose, returnFocusTo, children }: ModalProps) {
+export function Modal({ titleId, wide = false, onClose, returnFocusTo, children }: ModalProps) {
   const dialog = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -22,7 +24,12 @@ function Modal({ titleId, onClose, returnFocusTo, children }: ModalProps) {
   }, [returnFocusTo]);
 
   return (
-    <dialog ref={dialog} className="dialog" aria-labelledby={titleId} onClose={onClose}>
+    <dialog
+      ref={dialog}
+      className={wide ? 'dialog dialog-wide' : 'dialog'}
+      aria-labelledby={titleId}
+      onClose={onClose}
+    >
       {children}
     </dialog>
   );

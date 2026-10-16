@@ -116,6 +116,8 @@ export interface DeckSession {
    * the deck is left. Returns the way to unregister.
    */
   readonly registerFlush: (flush: () => void) => () => void;
+  /** Give whatever is still being typed to the deck and save it at once (Ctrl+S). */
+  readonly saveNow: () => void;
   /** Try saving again after a failed save. */
   readonly retrySave: () => void;
 }
@@ -469,6 +471,11 @@ export function useDeckSession(
     [dispatch, env],
   );
 
+  const saveNow = useCallback(() => {
+    for (const pending of flushers.current) pending();
+    void saver.current?.flush();
+  }, []);
+
   const registerFlush = useCallback((flush: () => void) => {
     flushers.current.add(flush);
     return () => {
@@ -515,6 +522,7 @@ export function useDeckSession(
     undoLabel: undoLabel(history),
     redoLabel: redoLabel(history),
     registerFlush,
+    saveNow,
     retrySave,
   };
 }

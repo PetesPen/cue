@@ -18,6 +18,7 @@ import {
   type TextElement,
 } from '@/model';
 import { AltField } from './AltField';
+import { Hint } from './Hint';
 import { ColourField } from './colour/ColourField';
 import { MIXED, NumberField, Segmented, common } from './fields';
 import { boxOf } from './gestures';
@@ -41,11 +42,16 @@ interface DesignPanelProps {
   readonly deckFonts: readonly string[];
 }
 
-const ARRANGE: readonly { readonly mode: ReorderMode; readonly label: string }[] = [
-  { mode: 'front', label: 'Front' },
-  { mode: 'forward', label: 'Forward' },
-  { mode: 'backward', label: 'Backward' },
-  { mode: 'back', label: 'Back' },
+const ARRANGE: readonly {
+  readonly mode: ReorderMode;
+  readonly label: string;
+  readonly hint: string;
+  readonly shortcut: string;
+}[] = [
+  { mode: 'front', label: 'Front', hint: 'Bring to front', shortcut: 'order.front' },
+  { mode: 'forward', label: 'Forward', hint: 'Bring forward', shortcut: 'order.forward' },
+  { mode: 'backward', label: 'Backward', hint: 'Send backward', shortcut: 'order.backward' },
+  { mode: 'back', label: 'Back', hint: 'Send to back', shortcut: 'order.back' },
 ];
 
 const DASHES: readonly { readonly value: DashStyle; readonly label: string }[] = [
@@ -250,18 +256,19 @@ export function DesignPanel({
 
       <Section title="Arrange">
         <div className="arrange" role="group" aria-label="Arrange">
-          {ARRANGE.map(({ mode, label }) => (
-            <button
-              key={mode}
-              type="button"
-              className="arrange-button"
-              disabled={!canReorder(order, new Set(ids), mode)}
-              onClick={() => {
-                onReorder(mode);
-              }}
-            >
-              {label}
-            </button>
+          {ARRANGE.map(({ mode, label, hint, shortcut }) => (
+            <Hint key={mode} label={hint} shortcut={shortcut}>
+              <button
+                type="button"
+                className="arrange-button"
+                disabled={!canReorder(order, new Set(ids), mode)}
+                onClick={() => {
+                  onReorder(mode);
+                }}
+              >
+                {label}
+              </button>
+            </Hint>
           ))}
         </div>
       </Section>

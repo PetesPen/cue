@@ -717,3 +717,18 @@
   width: 100%;
   aspect-ratio: 16 / 9;
 }
+
+/* The Arrange buttons each sit in their own hint, so the row is laid out by those. */
+.arrange > .hint-host {
+  flex: 1;
+  min-width: 0;
+}
+
+.arrange > .hint-host > .arrange-button {
+  width: 100%;
+  border-left: 1px solid var(--color-hairline);
+}
+
+.arrange > .hint-host:first-child > .arrange-button {
+  border-left: 0;
+}

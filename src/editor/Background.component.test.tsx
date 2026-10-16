@@ -61,9 +61,10 @@ test('Given a new background, When Undo is pressed, Then it is as it was, in one
   await userEvent.keyboard('{Enter}');
   await expect.poll(canvasColour).toBe(DARK);
 
+  await userEvent.hover(screen.getByRole('button', { name: 'Undo' }));
   await expect
-    .element(screen.getByRole('button', { name: 'Undo' }))
-    .toHaveAttribute('title', 'Undo Change background (Ctrl+Z)');
+    .poll(() => screen.getByRole('tooltip').element().textContent)
+    .toBe('Undo Change backgroundCtrlZ');
   await screen.getByRole('button', { name: 'Undo' }).click();
 
   await expect.poll(canvasColour).toBe(WHITE);

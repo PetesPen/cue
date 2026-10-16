@@ -173,28 +173,6 @@
   white-space: nowrap;
 }
 
-.preview-bar .icon-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: 0;
-  border-radius: var(--radius-field);
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-}
-
-.preview-bar .icon-button:hover:not(:disabled) {
-  background: var(--color-app-bg);
-}
-
-.preview-bar .icon-button:disabled {
-  color: var(--color-disabled-text);
-  cursor: default;
-}
-
 .preview-count {
   margin: 0 var(--space-1);
   font: var(--type-caption);

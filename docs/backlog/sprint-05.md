@@ -40,9 +40,9 @@ Tests: write each criterion as a Given / When / Then example first; each example
 As a presenter, I want shortcuts for common actions, so that I can work efficiently.
 
 Acceptance criteria:
-- [ ] Shortcuts exist for add slide, text, shapes, z-order, duplicate, undo, redo, present and save.
-- [ ] A "?" key opens a shortcut cheat sheet.
-- [ ] Every toolbar tooltip shows its shortcut.
+- [x] Shortcuts exist for add slide, text, shapes, z-order, duplicate, undo, redo, present and save. (All but present: the start-the-show keys are listed in the table and appear on the sheet when the show exists, sprint 7. Save now is Ctrl/⌘ S.)
+- [x] A "?" key opens a shortcut cheat sheet.
+- [x] Every toolbar tooltip shows its shortcut. (A hint of our own with key caps, on hover and on keyboard focus; the Arrange buttons have them too.)
 
 Design: [`Shortcuts`](../../design/screenshots/Shortcuts.png) ([source](../../design/boards/Shortcuts.dc.html))
 
