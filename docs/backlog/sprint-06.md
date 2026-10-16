@@ -1,6 +1,6 @@
 # Sprint 6: Motion and sequencing
 
-- Capacity: 16 engineering days (2 engineers, about 80% focus, 2 weeks)
+- Capacity: 16 engineering days (the plan, `docs/plans/sprint-06.md`, comes to 20 with EL-6) (2 engineers, about 80% focus, 2 weeks)
 - Next: [sprint-07.md](sprint-07.md) · Previous: [sprint-05.md](sprint-05.md)
 
 Work only on this sprint's goal. New ideas go to the backlog, not into the sprint (see `CLAUDE.md`). Tick the boxes as criteria are shown working on the preview deployment.
@@ -11,15 +11,15 @@ Motion and sequencing.
 
 ## Demo at the review
 
-Move an element along a ghost path, reorder click steps, pick a transition.
+Move an element along a ghost path, reorder click steps, pick a transition; snap to guides and align.
 
 ## Key automated tests
 
-Step-order table tests; preview returns elements to editing positions.
+Step-order table tests; preview returns elements to editing positions; snap and align unit tests.
 
-## Stories (4)
+## Stories (5)
 
-4 Must, 0 Should. Story order below is the suggested build order.
+4 Must, 1 Should. Story order below is the suggested build order.
 
 ### AN-3 Move an element (Must)
 
@@ -72,6 +72,21 @@ Acceptance criteria:
 Design: [`Editor-Transition`](../../design/screenshots/Editor-Transition.png) ([source](../../design/boards/Editor-Transition.dc.html))
 
 Tests: write each criterion as a Given / When / Then example first; each example becomes a test name. At least one end-to-end test is required (Must story).
+
+### EL-6 Align and snap (Should)
+
+As a presenter, I want smart guides and alignment tools, so that slides look tidy without effort.
+
+Pulled forward from sprint 12 by Peter on 2026-10-16 ("I really value the snap lines"). Built last in this sprint, after the four Must stories.
+
+Acceptance criteria:
+- [ ] Elements snap to slide edges, slide centre and other elements, with visible guide lines.
+- [ ] Align left, centre, right, top, middle and bottom for a selection.
+- [ ] Distribute horizontally and vertically for three or more elements.
+
+Design: [`Main`](../../design/screenshots/Main.png) ([source](../../design/boards/Main.dc.html))
+
+Tests: write each criterion as a Given / When / Then example first; each example becomes a test name. Push tests down the pyramid where possible.
 
 ## Definition of done reminder
 

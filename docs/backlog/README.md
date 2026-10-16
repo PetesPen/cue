@@ -9,14 +9,14 @@ One file per sprint, with the stories (full acceptance criteria), demo, key test
 | [2](sprint-02.md) | Elements you can move | 18 | EL-5, EL-3, ZO-1, TR-1, SV-7 |
 | [3](sprint-03.md) | Rich text and notes | 22 | EL-1, EL-2, SL-6, EL-7, EL-10 |
 | [4](sprint-04.md) | Images, undo and slide management | 16 | EL-4, EL-8, SL-3, SL-4 |
-| [5](sprint-05.md) | Keyboard, speed and first animations | 14 | UX-2, UX-3, AN-1, AN-2, TR-3 |
-| [6](sprint-06.md) | Motion and sequencing | 16 | AN-3, AN-5, AN-6, TN-1 |
+| [5](sprint-05.md) | Keyboard, speed and first animations | 19 | UX-2, UX-3, AN-1, AN-2, TR-3, SL-5 (colour), AN-4 |
+| [6](sprint-06.md) | Motion and sequencing | 20 | AN-3, AN-5, AN-6, TN-1, EL-6 |
 | [7](sprint-07.md) | Transitions and the two windows | 14 | TN-4, TN-5, PM-1, PM-2 |
 | [8](sprint-08.md) | A complete presenting experience | 14 | PM-3, PM-4, PM-5, PM-6 |
 | [9](sprint-09.md) | Deck files, browsers and offline use | 16 | SV-3, UX-5, UX-7 |
 | [10](sprint-10.md) | Standalone HTML | 12 | SV-4, SV-5 |
-| [11](sprint-11.md) | Polish: layers, motion, transitions | 16 | ZO-2, ZO-3, TR-2, AN-4, AN-7, TN-2, TN-3 |
-| [12](sprint-12.md) | Polish: layout, timer, access | 14 | SL-5, EL-6, PM-7, UX-4, UX-6 |
+| [11](sprint-11.md) | Polish: layers, motion, transitions | 14 | ZO-2, ZO-3, TR-2, AN-7, TN-2, TN-3 |
+| [12](sprint-12.md) | Polish: layout, timer, access | 8 | SL-5 (image), PM-7, UX-4, UX-6 |
 | [13](sprint-13.md) | Release hardening | 16 | (none) |
 | [After v1.0](after-v1.md) | Stretch | n/a | EL-9, PM-8, SV-6, TH-1, TH-2, TH-3 |
 
@@ -28,14 +28,14 @@ One file per sprint, with the stories (full acceptance criteria), demo, key test
 | SL-2 | Navigate between slides | Must | [1](sprint-01.md) |
 | SL-3 | Reorder slides | Must | [4](sprint-04.md) |
 | SL-4 | Duplicate and delete slides | Must | [4](sprint-04.md) |
-| SL-5 | Set a slide background | Should | [12](sprint-12.md) |
+| SL-5 | Set a slide background | Should | [5](sprint-05.md) (colour), [12](sprint-12.md) (image) |
 | SL-6 | Add speaker notes | Must | [3](sprint-03.md) |
 | EL-1 | Add rich text | Must | [3](sprint-03.md) |
 | EL-2 | Choose fonts | Must | [3](sprint-03.md) |
 | EL-3 | Add shapes | Must | [2](sprint-02.md) |
 | EL-4 | Add images | Must | [4](sprint-04.md) |
 | EL-5 | Move, resize and rotate | Must | [2](sprint-02.md) |
-| EL-6 | Align and snap | Should | [12](sprint-12.md) |
+| EL-6 | Align and snap | Should | [6](sprint-06.md) |
 | EL-7 | Copy, paste and delete | Must | [3](sprint-03.md) |
 | EL-8 | Undo and redo | Must | [4](sprint-04.md) |
 | EL-9 | Group elements | Could | [after v1.0](after-v1.md) |
@@ -49,7 +49,7 @@ One file per sprint, with the stories (full acceptance criteria), demo, key test
 | AN-1 | Make an element appear | Must | [5](sprint-05.md) |
 | AN-2 | Make an element disappear | Must | [5](sprint-05.md) |
 | AN-3 | Move an element | Must | [6](sprint-06.md) |
-| AN-4 | Control timing and feel | Should | [11](sprint-11.md) |
+| AN-4 | Control timing and feel | Should | [5](sprint-05.md) |
 | AN-5 | Sequence steps click by click | Must | [6](sprint-06.md) |
 | AN-6 | Preview animations | Must | [6](sprint-06.md) |
 | AN-7 | Go back a step | Should | [11](sprint-11.md) |

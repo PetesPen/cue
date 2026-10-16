@@ -177,7 +177,7 @@ Reviews with the product owner happen every other sprint (agreed 2026-10-16), an
 | 4 | First full show | 10 | Can you deliver a real talk from start to finish, with all 39 Must stories working? |
 | 5 | v1.0 | 13 | Is the release candidate good on all four browsers, with every budget met? |
 
-**Status:** Gate 1 passed on 2026-10-15 (accepted by Peter). Gates 2 to 5 are open. Only Gate 1's criteria are written so far. The criteria for each later gate are written at the start of the sprint that ends in it.
+**Status:** Gate 1 passed on 2026-10-15 and Gate 2 on 2026-10-16 (both accepted by Peter). Gates 3 to 5 are open. Only the criteria for Gates 1 and 2 are written so far. The criteria for each later gate are written at the start of the sprint that ends in it.
 
 **Gate 1 criteria** (written by Claude on 2026-10-15, because the plan did not define them; the product owner can change them):
 
@@ -209,14 +209,14 @@ If a gate's criteria are not met, the next sprint closes the gap before any new 
 | 2 | Elements you can move | EL-5, EL-3, ZO-1, TR-1, SV-7 | 18 | Draw shapes, then move, resize, rotate, layer and fade them | Z-order property tests; drag and resize end to end; opacity snapshots |
 | 3 | Rich text and notes | EL-1, EL-2, SL-6, EL-7, EL-10 | 22 | Format mixed text in several fonts, paste, write notes | Text JSON round trip; typing and font picker end to end; font loading check |
 | 4 | Images, undo and slide management | EL-4, EL-8, SL-3, SL-4 | 16 | Drop in images, undo anything, reorder and duplicate slides | Undo-redo property test; image drop end to end; storage-full mock |
-| 5 | Keyboard, speed and first animations | UX-2, UX-3, AN-1, AN-2, TR-3 | 14 | Drive the editor by keyboard; elements fade in and out on click in preview | Performance budgets for 50 elements and 50 slides; motion resolver unit tests; opacity match across renderers |
-| 6 | Motion and sequencing | AN-3, AN-5, AN-6, TN-1 | 16 | Move an element along a ghost path, reorder click steps, pick a transition | Step-order table tests; preview returns elements to editing positions |
+| 5 | Keyboard, speed and first animations | UX-2, UX-3, AN-1, AN-2, TR-3, SL-5 (colour), AN-4 | 19 | Drive the editor by keyboard; set a slide background; elements fade in and out on click in preview, with timing you choose | Performance budgets for 50 elements and 50 slides; motion resolver unit tests; easing and duration unit tests; opacity match across renderers |
+| 6 | Motion and sequencing | AN-3, AN-5, AN-6, TN-1, EL-6 | 20 | Move an element along a ghost path, reorder click steps, pick a transition; snap to guides and align | Step-order table tests; preview returns elements to editing positions; snap and align unit tests |
 | 7 | Transitions and the two windows | TN-4, TN-5, PM-1, PM-2 | 14 | Preview transitions; start a show in two windows | Two-page end to end; blocked pop-up path; transition frame-time sampling |
 | 8 | A complete presenting experience | PM-3, PM-4, PM-5, PM-6 | 14 | Rehearse a full talk: synced windows, resizable notes, next preview, navigation | Sync under 100 ms; divider and text size memory; keyboard navigation table tests |
 | 9 | Deck files, browsers and offline use | SV-3, UX-5, UX-7 | 16 | Save a deck file and open it in another browser; install Cue and open it with the network off | File round-trip property test; corrupt-file rejection; four-browser end to end; offline reload with the service worker |
 | 10 | Standalone HTML | SV-4, SV-5 | 12 | Present from one offline HTML file that matches the editor | No-network export test; three-renderer pixel comparison; 30-slide timing |
-| 11 | Polish: layers, motion, transitions | ZO-2, ZO-3, TR-2, AN-4, AN-7, TN-2, TN-3 | 16 | Layers panel, timing controls, step back, direction, apply to all | Layer drag tests; easing and duration unit tests; step-back resolver tests |
-| 12 | Polish: layout, timer, access | SL-5, EL-6, PM-7, UX-4, UX-6 | 14 | Backgrounds, snapping, timer colours, zoom, keyboard-only use | Snap and align unit tests; timer state tests; full axe scan and keyboard end to end |
+| 11 | Polish: layers, motion, transitions | ZO-2, ZO-3, TR-2, AN-7, TN-2, TN-3 | 14 | Layers panel, step back, direction, apply to all | Layer drag tests; step-back resolver tests |
+| 12 | Polish: layout, timer, access | SL-5 (image), PM-7, UX-4, UX-6 | 8 | Image backgrounds, timer colours, zoom, keyboard-only use | Timer state tests; full axe scan and keyboard end to end |
 | 13 | Release hardening | None. Bugs, performance, documentation, browser matrix | 16 | A v1.0 release candidate on all four browsers | Full matrix; nightly performance green; zero axe violations; long-session soak test |
 
 Sprints loaded below 16 days keep a few days free for bugs and surprises. Stretch work after v1.0 (EL-9, PM-8, SV-6 and TH-1 to TH-3) is about two more sprints, ordered by what the product owner values once the app is in daily use.
