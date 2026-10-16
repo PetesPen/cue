@@ -661,33 +661,6 @@ function Editor({
               <TextIcon />
               Text
             </button>
-            <button
-              type="button"
-              className="toolbar-button"
-              aria-label="Add image"
-              title="Add image"
-              onClick={() => {
-                fileInput.current?.click();
-              }}
-            >
-              <ImageIcon />
-              Image
-            </button>
-            <input
-              ref={fileInput}
-              type="file"
-              className="file-input"
-              accept={IMAGE_ACCEPT}
-              multiple
-              tabIndex={-1}
-              aria-label="Image files"
-              onChange={(event) => {
-                const files = [...(event.target.files ?? [])];
-                // So the same file can be chosen again straight after.
-                event.target.value = '';
-                void addImages(files);
-              }}
-            />
             <MenuButton variant="toolbar" label="Shape" items={shapeItems}>
               <ShapeIcon />
               Shape
