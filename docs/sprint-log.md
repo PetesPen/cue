@@ -377,3 +377,79 @@ Peter tried the live app: "I've had a play and I'm really happy with it."
 10. **The plans for sprints 5 and 6:** approved, with the three changes above.
 
 Next: sprints 5 and 6 are built with no review between them; the next review is after sprint 6.
+
+
+## Sprints 5 and 6: Keyboard, speed, animations and transitions
+
+**Dates:** plans approved 2026-10-16 (with the slide background and the timing controls added to sprint 5, and align and snap added to sprint 6); both sprints built the same day, with no review between them (the every-other-sprint rhythm). Review: now.
+
+**Goal:** drive the editor from the keyboard on big slides and decks, animate elements (appear, disappear, move) click by click and play them in the editor, and choose how each slide arrives. **Met on the evidence below.** All twelve stories are built and shown working, with their tests green on Chromium and WebKit here and on Firefox in CI (pull requests 26 and its predecessors); two criteria that need the show and the export wait for sprints 7 and 10 (listed under "Not done").
+
+### What finished
+
+| Story | Status | How it is shown |
+|---|---|---|
+| UX-2 Keyboard-first work | done, except the Present keys | one table of shortcuts feeds the key handler, the hints and the sheet; new keys S, I, `?`, Ctrl/⌘ S (save now), Ctrl/⌘ Shift D (duplicate slide), up and down arrows between slides; the cheat sheet of the Shortcuts board; a hint with key caps on every toolbar and Arrange button. A component test per shortcut |
+| UX-3 Responsive performance | done | `npm run perf` (nightly): 50 elements drag and resize at 60 fps in Chromium, also with the processor 4 times slower; a deck of 50 slides opens in 0.07 to 1 s; typing waits 17 to 25 ms for its frame; thumbnails drawn only near the visible rail (the worst case, 50 slides of 50 elements, opens in 0.5 s at 4 times slower, from 1.3 s). On every pull request: component tests count the work (one element redrawn, one thumbnail touched) |
+| SL-5 Slide background | done (the solid colour; the image is sprint 12) | the Slide section of the Design tab, with Apply to all slides; one undo step |
+| AN-1 Appear, AN-2 Disappear | done | the Animate tab as on the board; instant, fade, or fade and rise; faded in the editor with numbered badges; a resolver with table and property tests |
+| AN-4 Timing and feel | done | Duration, Delay and the four easings, defaults 0.5 s, none, ease out |
+| TR-3 Transparency in animation | done, except the show and the export | an element appears to its own opacity, not 100%; the same number in the editor, the thumbnail and Preview |
+| AN-3 Move | done | the end is a dashed copy on the canvas, dragged, moved with the arrow keys or typed (End X, End Y); the element ends there and stays; a Preview returns every element to its place |
+| AN-5 Sequence steps | done | steps under "Click n" headings, dragged or moved with Alt and the arrows, On click or With previous; table and property tests |
+| AN-6 Preview | done | the bar of the board: Play click N, back, forward; Esc; never touches the deck, the history or the saved copy |
+| TN-1 Choose a transition | done | the Transition tab of the board (five effects as small pictures), a small arrow on the thumbnail, the first slide says it has none |
+| EL-6 Align and snap | done | snap lines while dragging and resizing (Alt turns them off), align and distribute in the Design panel; the end of a Move snaps too |
+
+Tests now: 1,243 Vitest tests (958 at the end of sprint 4). End to end: 112 per engine (88 before), passing on Chromium and WebKit locally and on all three in CI. Coverage `model` 97.9%, `render` 99.4%. First-load bundle 145.5 KB of 300 KB (134 before), CSS 7.5 of 30 KB, the text editor 118.5 of 160 KB.
+
+### Not done
+
+- **Presenting keys and Export** (UX-2): they are in the table and appear on the sheet when the show (sprint 7) and the export (sprint 9) exist.
+- **TR-3 in the show and the HTML export**: the editor, the thumbnails and Preview match; the show (sprint 7) and the export (sprint 10) have their own tests when they exist.
+- **Stepping back with an animation** (AN-7, sprint 11): Preview's back arrow shows the earlier state at once, which is exact; the reverse animation is the story.
+- **A slide background image** with an opacity (SL-5's rest, sprint 12), the **direction, duration and Apply to all** of a transition (TN-2, TN-3), and **playing** a transition (sprint 7).
+- **Firefox numbers of `npm run perf`**: Firefox cannot start on your PC; the nightly job will give the first ones (WebKit's software drawing is slow by design: 19 fps for 50 elements here, reported, not failed).
+- **The reference images of the text screenshot tests** are out of date: they were taken before sprint 4, when the top bar had three buttons. They still pass only because the check allows 0.1% of pixels to differ, and a small change to the bar (or the Arrange row) pushes it over. The "Update screenshots" workflow will refresh them in a pull request for your eye (it is the first thing to do after you have looked at this review).
+- Accessibility to improve later (UX-6): the dot and the arrow on a thumbnail are drawn, not yet announced; Preview plays its motion even when the computer asks for reduced motion.
+
+### What building them showed
+
+- **Wrapping a control for its hint** put each Arrange button in a wrapper, and the CSS that gives the first button of a row no left divider (`:first-child`) then removed every divider. The visual job caught it; the wrapper now takes no part in the layout and the rule names the first button of a row.
+- **The reference images** being stale (above) was found the same way.
+- **A hover test depended on where the last test left the pointer** (a new page under a pointer that has not moved gets no events, as in a real browser); the tests move the pointer away first. A Delete-in-text test was made patient on a busy machine.
+- **The end-to-end database seed raced the app** on a slow engine (WebKit); it now waits for the database to exist and never creates it.
+- **Escape in a search box clears the box first**, so the shortcut sheet closes on Escape from its search field itself.
+- **Undo after Align selects only the elements the step moved** (one that was already on the line did not move); a test reselects, and the behaviour is the same as for any other step.
+- **axe flagged the faded look** (an element that starts hidden is drawn at 45% of its opacity, so its text fails the contrast rule): the slide's own drawing is excluded from the contrast check in the end-to-end accessibility runs, because the colours on a slide are the author's.
+- I never force-pushed: branches stacked on a squash-merged branch were brought up to date by merging main and keeping their own files.
+
+### What stays manual (please check by hand)
+
+1. **How motion feels in Preview**: speed, the rise, the Move; dragging the end of a Move and the steps in the list with a mouse and a trackpad.
+2. **Snap lines**: the 6-pixel pull, the guide colour, Alt to turn it off, on a real deck.
+3. **The shortcuts in each browser**: Ctrl/⌘ Shift D, Ctrl/⌘ S and `?` on your keyboard layout (Chrome, Edge and Firefox may use some of them); the hints with a screen reader.
+4. **60 fps drags on your laptop and a Mac**, and a 50-slide deck of your own.
+5. **The Animate tab, the Transition tab and the shortcut sheet against the boards.**
+
+### Demo script (45 minutes)
+
+Use https://cue-presentations.netlify.app/ after pull request 26 is merged (each pull request also has its own preview). Open the fixture deck (a developer link on the preview, or build the slide) and go to slide 3.
+
+1. (5 min) **Keyboard.** Press `?` (the sheet), search "dup". Press S and draw a rectangle, I (the file chooser), Ctrl+Shift+D, the up and down arrows, Ctrl+Z, Ctrl+S. Hover the toolbar buttons.
+2. (5 min) **Slide background.** With nothing selected, pick a colour in the Slide section, Apply to all slides, Undo.
+3. (8 min) **Appear, Disappear, timing.** Animate tab: the picture and rows on click 1, the block leaving; change the style, the duration, the delay and the easing; Preview with Space and the arrows; Esc.
+4. (6 min) **Move.** Select the circle, + Move: drag the dashed copy, nudge it with the arrows, type End X and Y; Preview; note that it returns to its place.
+5. (6 min) **Order.** Drag a step to another place, Alt+Down on a focused step, With previous, Remove step; watch the "Click n" headings and the badges on the slide.
+6. (4 min) **Transitions.** Transition tab: choose Fade, Slide, Push, Zoom; the arrow on the thumbnails; the first slide's note.
+7. (6 min) **Snap and align.** Drag shapes near each other, near the middle of the slide, with and without Alt; resize by a handle; select several and Align, Distribute; Undo.
+8. (5 min) **Big decks.** Open a deck of 50 slides (the performance fixture: a developer link) and drag and type in it.
+
+### Retrospective questions (most important first)
+
+1. **Sprint 7's plan** (`docs/plans/sprint-07.md`, with the Gate 3 criteria): approve, or change?
+2. **The text reference images** (see "Not done"): shall I run the "Update screenshots" workflow now, for you to look at and merge?
+3. **Snap lines**: are 6 pixels, the green guide and Alt-to-turn-off right? Should a turned element snap its sides when resized (today it resizes freely)?
+4. **Preview's back arrow** shows the earlier state at once instead of playing the animation in reverse (that is AN-7, sprint 11): fine for now?
+5. **Reduced motion**: should Preview (and later the show) skip animations when the computer asks for it, or play them as set? I left them playing (the presenter chose them for the audience).
+6. **The wording** "+ Appear", "+ Disappear", "+ Move" and "Add a step for ...": the board shows only the effect buttons of a step that already exists, so the way a first step is added is my design.

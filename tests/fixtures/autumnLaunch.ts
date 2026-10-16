@@ -113,6 +113,26 @@ function step(
   };
 }
 
+/** A transition in the stored form: the kind, coming in from the right, 0.6 s (the defaults). */
+export function transition(kind = 'none'): Json {
+  return { kind, from: 'right', duration: 0.6 };
+}
+
+/** A Move step in the stored form: where the element's top left ends. */
+function moveStep(id: string, element: string, x: number, y: number): Json {
+  return {
+    id,
+    element,
+    effect: 'move',
+    trigger: 'click',
+    duration: 0.8,
+    delay: 0,
+    easing: 'ease-out',
+    x,
+    y,
+  };
+}
+
 /** One slide: a coloured background, a headline, a line of support and a coloured circle. */
 function simple(
   n: number,
@@ -122,6 +142,7 @@ function simple(
   subtitle: string,
   circle: string,
   notes: string,
+  arrives = 'none',
 ): Json {
   const id = `s${String(n).padStart(2, '0')}`;
   return {
@@ -142,6 +163,7 @@ function simple(
       shape(`${id}-dot`, 'ellipse', { x: 1420, y: 640, width: 320, height: 320 }, circle),
     ],
     animations: [],
+    transition: transition(arrives),
   };
 }
 
@@ -176,14 +198,17 @@ function approach(): Json {
         ),
       ]),
     ],
-    // Click 1: the picture comes in, with the three rows. Click 2: the yellow block leaves.
+    // Click 1: the picture comes in, with the three rows. Click 2: the circle moves up and to the
+    // right. Click 3: the yellow block leaves (the Editor-Animate board).
     animations: [
       step('s03-step-1', 's03-image', 'appear'),
       step('s03-step-2', 's03-row-0', 'appear', 'with-previous'),
       step('s03-step-3', 's03-row-1', 'appear', 'with-previous'),
       step('s03-step-4', 's03-row-2', 'appear', 'with-previous'),
-      step('s03-step-5', 's03-block', 'disappear'),
+      moveStep('s03-step-5', 's03-circle', 1010, 400),
+      step('s03-step-6', 's03-block', 'disappear'),
     ],
+    transition: transition('slide'),
   };
 }
 
@@ -214,6 +239,7 @@ function points(n: number, background: string, ink: string, title: string, items
       shape(`${id}-bar`, 'rectangle', { x: 1600, y: 0, width: 320, height: 1080 }, MINT, 0.5),
     ],
     animations: [],
+    transition: transition(),
   };
 }
 
@@ -237,9 +263,19 @@ export function autumnLaunchSlides(): Json[] {
       'Customers asked for this twice',
       MINT,
       'Two customer quotes, then the number.',
+      'fade',
     ),
     approach(),
-    simple(4, YELLOW, FOREST, 'What we heard', 'Three things, in their own words', WHITE, ''),
+    simple(
+      4,
+      YELLOW,
+      FOREST,
+      'What we heard',
+      'Three things, in their own words',
+      WHITE,
+      '',
+      'push',
+    ),
     simple(5, WHITE, FOREST, 'The product', 'Faster, calmer, easier to share', YELLOW, ''),
     simple(
       6,
@@ -249,6 +285,7 @@ export function autumnLaunchSlides(): Json[] {
       'Up 42% since spring',
       GREEN,
       'Say the Q2 number out loud.',
+      'zoom',
     ),
     simple(7, FOREST, WHITE, 'Roadmap', 'October to December', MINT, ''),
     points(8, WHITE, FOREST, 'Launch week', [

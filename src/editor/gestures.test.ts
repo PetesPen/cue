@@ -23,6 +23,7 @@ import {
   marqueeSelection,
   pickElement,
   rotationReadout,
+  snapPointer,
   type Gesture,
 } from './gestures';
 import { canEditText } from './shapeLabels';
@@ -394,5 +395,110 @@ describe('resizing a picture (EL-4)', () => {
     });
     const held = byId(changesFor(gesture, { x: 700, y: 300 }, true), 'a');
     expect((held?.width ?? 0) / (held?.height ?? 1)).toBeCloseTo(2, 2);
+  });
+});
+
+describe('snapping a drag (EL-6)', () => {
+  const slide = { x: 0, y: 0, width: 1920, height: 1080 };
+  const context = (others: { x: number; y: number; width: number; height: number }[] = []) => ({
+    others,
+    slide,
+    threshold: 6,
+  });
+
+  test('Given a move that ends near the left edge of the slide, When the pointer is snapped, Then the change lands the box on the edge', () => {
+    const a = rect('a', 200, 300);
+    const gesture: Gesture = { kind: 'move', start: { x: 0, y: 0 }, boxes: boxesOf([a]) };
+
+    const aimed = snapPointer(gesture, { x: -195, y: 0 }, false, context());
+
+    expect(aimed.guides).toHaveLength(1);
+    expect(byId(changesFor(gesture, aimed.pointer, false), 'a')).toMatchObject({ x: 0, y: 300 });
+  });
+
+  test('Given a move near another element, When the pointer is snapped, Then the box lines up with it', () => {
+    const a = rect('a', 100, 100);
+    const other = { x: 500, y: 600, width: 300, height: 100 };
+    const gesture: Gesture = { kind: 'move', start: { x: 0, y: 0 }, boxes: boxesOf([a]) };
+
+    // The box ends at x 403: its right edge (503) is 3 past the other's left edge (500).
+    const aimed = snapPointer(gesture, { x: 303, y: 0 }, false, context([other]));
+
+    expect(byId(changesFor(gesture, aimed.pointer, false), 'a')).toMatchObject({ x: 400 });
+  });
+
+  test('Given a move of a group, When it is snapped, Then the box around the group is what lines up', () => {
+    const a = rect('a', 100, 100);
+    const b = rect('b', 400, 100);
+    const gesture: Gesture = { kind: 'move', start: { x: 0, y: 0 }, boxes: boxesOf([a, b]) };
+
+    // The group (100 to 500) is moved to start at x 4: it snaps to 0.
+    const aimed = snapPointer(gesture, { x: -96, y: 0 }, false, context());
+
+    const changes = changesFor(gesture, aimed.pointer, false);
+    expect(byId(changes, 'a')?.x).toBe(0);
+    expect(byId(changes, 'b')?.x).toBe(300);
+  });
+
+  test('Given a move that is far from every line, When the pointer is snapped, Then it is as it was', () => {
+    const a = rect('a', 333, 222);
+    const gesture: Gesture = { kind: 'move', start: { x: 0, y: 0 }, boxes: boxesOf([a]) };
+
+    expect(snapPointer(gesture, { x: 10, y: 10 }, false, context())).toEqual({
+      pointer: { x: 10, y: 10 },
+      guides: [],
+    });
+  });
+
+  test('Given a resize by the right handle that ends near the slide edge, When the pointer is snapped, Then the edge lands on it', () => {
+    const a = rect('a', 1500, 300, 400, 100);
+    const gesture: Gesture = {
+      kind: 'resize',
+      start: { x: 0, y: 0 },
+      handle: 'e',
+      boxes: boxesOf([a]),
+    };
+
+    // The right edge (1900) is dragged 17 to 1917, 3 short of the slide's edge.
+    const aimed = snapPointer(gesture, { x: 17, y: 0 }, false, context());
+
+    expect(byId(changesFor(gesture, aimed.pointer, false), 'a')).toMatchObject({
+      x: 1500,
+      width: 420,
+    });
+  });
+
+  test.each([
+    ['a turned element', { ...rect('a', 1500, 300, 400, 100), rotation: 30 }, false, undefined],
+    [
+      'a resize that keeps its proportions (Shift)',
+      rect('a', 1500, 300, 400, 100),
+      true,
+      undefined,
+    ],
+    ['a picture dragged by a corner', rect('a', 1500, 300, 400, 100), false, true],
+  ] as const)(
+    'Given %s, When the pointer is snapped, Then the resize is left free',
+    (_name, element, shift, lockAspect) => {
+      const gesture: Gesture = {
+        kind: 'resize',
+        start: { x: 0, y: 0 },
+        handle: 'se',
+        boxes: boxesOf([element]),
+        ...(lockAspect === undefined ? {} : { lockAspect }),
+      };
+
+      expect(snapPointer(gesture, { x: 17, y: 17 }, shift, context()).pointer).toEqual({
+        x: 17,
+        y: 17,
+      });
+    },
+  );
+
+  test('Given any other gesture, When the pointer is snapped, Then it is as it was', () => {
+    const a = rect('a', 100, 100);
+    const gesture: Gesture = { kind: 'rotate', start: { x: 0, y: 0 }, boxes: boxesOf([a]) };
+
+    expect(snapPointer(gesture, { x: 3, y: 4 }, false, context()).guides).toEqual([]);
   });
 });

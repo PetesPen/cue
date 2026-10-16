@@ -26,9 +26,9 @@ Step-order table tests; preview returns elements to editing positions; snap and 
 As a presenter, I want to animate an element from one position to another, so that I can show change, flow and emphasis.
 
 Acceptance criteria:
-- [ ] Move shows a ghost of the end position that I drag into place on the canvas, with a dotted path from start to end.
-- [ ] Move animates position only; optional resize and rotation changes are Could.
-- [ ] The element ends at the new position, and stays there for later steps.
+- [x] Move shows a ghost of the end position that I drag into place on the canvas, with a dotted path from start to end. (A dashed copy labelled "Ends here · drag", draggable and movable with the arrow keys; End X and End Y in the panel.)
+- [x] Move animates position only; optional resize and rotation changes are Could. (Position only; the Could part is not built.)
+- [x] The element ends at the new position, and stays there for later steps.
 
 Design: [`Editor-Animate`](../../design/screenshots/Editor-Animate.png) ([source](../../design/boards/Editor-Animate.dc.html))
 
@@ -39,10 +39,10 @@ Tests: write each criterion as a Given / When / Then example first; each example
 As a presenter, I want to order animations and group some to play together, so that I control the pace of a reveal.
 
 Acceptance criteria:
-- [ ] The animation panel lists steps in play order, each showing its element and effect.
-- [ ] Drag steps to reorder them.
-- [ ] Each step is set to "On click" or "With previous", so several elements can animate on a single click.
-- [ ] Removing an element removes its steps.
+- [x] The animation panel lists steps in play order, each showing its element and effect. (Under "Click n" headings, as on the board.)
+- [x] Drag steps to reorder them. (With a drop line; Alt and the up and down arrows do it from the keyboard.)
+- [x] Each step is set to "On click" or "With previous", so several elements can animate on a single click. (The first step is always On click.)
+- [x] Removing an element removes its steps.
 
 Design: [`Editor-Animate`](../../design/screenshots/Editor-Animate.png) ([source](../../design/boards/Editor-Animate.dc.html))
 
@@ -53,8 +53,8 @@ Tests: write each criterion as a Given / When / Then example first; each example
 As a presenter, I want to preview a slide's animations without leaving the editor, so that I can fine-tune them quickly.
 
 Acceptance criteria:
-- [ ] A Preview button plays the slide's steps in the editor, and clicking advances step by step.
-- [ ] After a preview, every element returns to its editing position.
+- [x] A Preview button plays the slide's steps in the editor, and clicking advances step by step. (Click the slide, Space or the right arrow plays the next click; the left arrow steps back.)
+- [x] After a preview, every element returns to its editing position.
 
 Design: [`Editor-Animate`](../../design/screenshots/Editor-Animate.png) ([source](../../design/boards/Editor-Animate.dc.html))
 
@@ -65,9 +65,9 @@ Tests: write each criterion as a Given / When / Then example first; each example
 As a presenter, I want to pick how a slide arrives, so that moving between slides feels polished.
 
 Acceptance criteria:
-- [ ] Options: None, Fade, Slide (from the right), Push, and Zoom.
-- [ ] The choice is made in a transition panel for the selected slide, and shown as a small badge on its thumbnail.
-- [ ] The default is None.
+- [x] Options: None, Fade, Slide (from the right), Push, and Zoom.
+- [x] The choice is made in a transition panel for the selected slide, and shown as a small badge on its thumbnail.
+- [x] The default is None.
 
 Design: [`Editor-Transition`](../../design/screenshots/Editor-Transition.png) ([source](../../design/boards/Editor-Transition.dc.html))
 
@@ -80,9 +80,9 @@ As a presenter, I want smart guides and alignment tools, so that slides look tid
 Pulled forward from sprint 12 by Peter on 2026-10-16 ("I really value the snap lines"). Built last in this sprint, after the four Must stories.
 
 Acceptance criteria:
-- [ ] Elements snap to slide edges, slide centre and other elements, with visible guide lines.
-- [ ] Align left, centre, right, top, middle and bottom for a selection.
-- [ ] Distribute horizontally and vertically for three or more elements.
+- [x] Elements snap to slide edges, slide centre and other elements, with visible guide lines. (Edges and middles, within 6 screen pixels; also the end of a Move; Alt turns it off for a drag. A turned element snaps by its outer box on a move and is resized freely.)
+- [x] Align left, centre, right, top, middle and bottom for a selection. (One element aligns to the slide, several to the box around them.)
+- [x] Distribute horizontally and vertically for three or more elements.
 
 Design: [`Main`](../../design/screenshots/Main.png) ([source](../../design/boards/Main.dc.html))
 

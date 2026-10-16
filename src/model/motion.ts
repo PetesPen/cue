@@ -12,6 +12,11 @@ import type { Step } from './animation';
 export interface SlideState {
   /** Elements that are not shown. Everything else on the slide is. */
   readonly hidden: ReadonlySet<Id>;
+  /**
+   * Where moved elements are, as the top left of their box (AN-3). An element a Move has not reached
+   * yet is not here: it is at its own place. A later Move starts from here (it "stays there").
+   */
+  readonly positions: ReadonlyMap<Id, { readonly x: number; readonly y: number }>;
 }
 
 /**
@@ -43,12 +48,12 @@ export function clickOfStep(steps: readonly Step[], index: number): number {
   return 0;
 }
 
-/** Elements that begin hidden: those whose first step is Appear. */
+/** Elements that begin hidden: those whose first visibility step is Appear (a Move does not decide). */
 function startingHidden(steps: readonly Step[]): Set<Id> {
   const seen = new Set<Id>();
   const hidden = new Set<Id>();
   for (const step of steps) {
-    if (seen.has(step.element)) continue;
+    if (step.effect === 'move' || seen.has(step.element)) continue;
     seen.add(step.element);
     if (step.effect === 'appear') hidden.add(step.element);
   }
@@ -62,14 +67,16 @@ function startingHidden(steps: readonly Step[]): Set<Id> {
  */
 export function resolve(slide: Slide, click: number): SlideState {
   const hidden = startingHidden(slide.animations);
+  const positions = new Map<Id, { readonly x: number; readonly y: number }>();
   const played = clicksOf(slide.animations).slice(0, Math.max(0, click));
   for (const steps of played) {
     for (const step of steps) {
       if (step.effect === 'appear') hidden.delete(step.element);
-      else hidden.add(step.element);
+      else if (step.effect === 'disappear') hidden.add(step.element);
+      else positions.set(step.element, { x: step.x, y: step.y });
     }
   }
-  return { hidden };
+  return { hidden, positions };
 }
 
 /** The steps that play on click `click` (from 1): none when there is no such click. */

@@ -56,6 +56,7 @@ describe('addSlide (SL-1)', () => {
       elements: [],
       notes: '',
       animations: [],
+      transition: { kind: 'none', from: 'right', duration: 0.6 },
     });
     expect(deck.updatedAt).toBe(7000);
     expect(deck.createdAt).toBe(1000);

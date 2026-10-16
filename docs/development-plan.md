@@ -198,6 +198,14 @@ Gate 1 is not about the spike code or about every risk being gone. It is the ans
 
 Gate 2 is not about polish (slide backgrounds, snapping and a layers panel are later stories) or about animation and presenting (sprints 5 to 8).
 
+**Gate 3 criteria** (proposed by Claude on 2026-10-16, in `docs/plans/sprint-07.md`; the product owner can change them). The question is "do animations, transitions and the two windows work well enough to try a real talk?":
+
+1. **Every acceptance criterion of sprints 5 to 7 is shown working** on the preview deployment, with its tests green on Chromium, Firefox and WebKit.
+2. **A real deck is presented in two windows.** The fixture deck Autumn Launch is presented from its first slide to its last, in two windows, by an end-to-end test: the hero slide plays its three clicks, slides arrive with their transitions, and Esc returns the editor as it was.
+3. **Nothing is lost.** A show never changes the deck; ending a show, or closing the audience window or the browser during one, leaves the deck as it was.
+4. **Accessibility and budgets hold.** axe finds nothing on the presenter view, the audience window and the transition bar; the first load stays inside 300 KB; the transition frame budgets are met on the nightly run.
+5. **Peter presents a short talk** of his own from the live app in two windows, on his own machine, and says whether he would try a real one (manual).
+
 If a gate's criteria are not met, the next sprint closes the gap before any new stories start.
 
 **Sprint by sprint**

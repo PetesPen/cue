@@ -8,6 +8,7 @@ import {
   clampDelay,
   clampDuration,
   createStep,
+  defaultMoveEnd,
 } from './animation';
 import { CommandError, applyCommand } from './commands';
 import { createSlide, duplicateDeck, type Deck } from './deck';
@@ -82,8 +83,8 @@ describe('changing a step (AN-1, AN-2)', () => {
   test('Given a Disappear step with instant, When its effect becomes Appear and back, Then it never holds a style its effect lacks', () => {
     const instant = changeStep(createStep('x', 'a', 'disappear'), { style: 'instant' });
 
-    expect(changeStep(instant, { effect: 'appear' }).style).toBe('fade');
-    expect(changeStep(instant, { style: 'rise' }).style).toBe('fade');
+    expect(changeStep(instant, { effect: 'appear' })).toMatchObject({ style: 'fade' });
+    expect(changeStep(instant, { style: 'rise' })).toMatchObject({ style: 'fade' });
   });
 
   test('Given a step, When only its timing changes, Then its effect, style and element stay', () => {
@@ -344,5 +345,124 @@ describe('opening a deck with steps (SV-1)', () => {
 
   test('Given a step that is not an object, When the deck is parsed, Then it is refused', () => {
     expect(() => parseDeck(stored(['nonsense']))).toThrow(InvalidDeckError);
+  });
+});
+
+describe('a Move step (AN-3)', () => {
+  test('Given a new Move, Then it keeps the end it is given, to a hundredth of a pixel', () => {
+    const move = createStep('m', 'a', 'move', 'click', { x: 120.456, y: 80 });
+
+    expect(move).toMatchObject({
+      effect: 'move',
+      x: 120.46,
+      y: 80,
+      duration: 0.5,
+      easing: 'ease-out',
+    });
+    expect('style' in move).toBe(false);
+  });
+
+  test.each([
+    [
+      { x: 100, y: 100, width: 300, height: 200 },
+      { x: 260, y: 180 },
+    ],
+    [
+      { x: 1500, y: 100, width: 300, height: 200 },
+      { x: 1620, y: 180 },
+    ],
+    [
+      { x: 100, y: 900, width: 300, height: 200 },
+      { x: 260, y: 880 },
+    ],
+    [
+      { x: 0, y: 0, width: 5000, height: 5000 },
+      { x: 0, y: 0 },
+    ],
+  ])(
+    'Given an element at %j, When a Move is added, Then it ends at %j (beside it, inside the slide)',
+    (place, end) => {
+      expect(defaultMoveEnd(place)).toEqual(end);
+    },
+  );
+
+  test('Given an Appear step, When its effect becomes Move, Then the end is beside the element; and a change can say where', () => {
+    const place = { x: 100, y: 100, width: 300, height: 200 };
+    const appear = createStep('s', 'a', 'appear');
+
+    expect(changeStep(appear, { effect: 'move' }, place)).toMatchObject({ x: 260, y: 180 });
+    expect(changeStep(appear, { effect: 'move', x: 900, y: 50 }, place)).toMatchObject({
+      x: 900,
+      y: 50,
+    });
+  });
+
+  test('Given a Move, When its end is changed, Then only the end changes; a stray value is ignored', () => {
+    const move = createStep('m', 'a', 'move', 'click', { x: 10, y: 20 });
+
+    expect(changeStep(move, { x: 700 })).toMatchObject({ x: 700, y: 20 });
+    expect(changeStep(move, { x: Number.NaN, y: Number.POSITIVE_INFINITY })).toMatchObject({
+      x: 10,
+      y: 20,
+    });
+  });
+
+  test('Given a Move, When its effect becomes Appear, Then it is a plain Appear without an end', () => {
+    const move = createStep('m', 'a', 'move', 'click', { x: 10, y: 20 });
+
+    const appear = changeStep(move, { effect: 'appear' });
+
+    expect(appear).toMatchObject({ effect: 'appear', style: 'fade' });
+    expect('x' in appear).toBe(false);
+  });
+
+  test('Given an element that is then moved in the editor, Then the end of its Move stays where it was set', () => {
+    let deck = deckWith('a');
+    deck = applyCommand(deck, {
+      type: 'addStep',
+      slideId: 's1',
+      step: createStep('m', 'a', 'move', 'click', { x: 900, y: 500 }),
+      at: 5,
+    }).deck;
+
+    deck = applyCommand(deck, {
+      type: 'updateElements',
+      slideId: 's1',
+      changes: [{ id: 'a', props: { x: 300, y: 300 } }],
+      at: 6,
+    }).deck;
+
+    expect(deck.slides[0]?.animations[0]).toMatchObject({ x: 900, y: 500 });
+  });
+
+  test('Given a step turned into a Move by a command, Then the command gives it an end beside the element', () => {
+    let deck = deckWith('a');
+    deck = applyCommand(deck, {
+      type: 'addStep',
+      slideId: 's1',
+      step: createStep('s', 'a', 'appear'),
+      at: 5,
+    }).deck;
+
+    deck = applyCommand(deck, {
+      type: 'updateStep',
+      slideId: 's1',
+      stepId: 's',
+      change: { effect: 'move' },
+      at: 6,
+    }).deck;
+
+    expect(deck.slides[0]?.animations[0]).toMatchObject({ effect: 'move', x: 160, y: 80 });
+  });
+
+  test('Given a deck with a Move, When it is saved as JSON and parsed, Then it is the same', () => {
+    const deck = applyCommand(deckWith('a'), {
+      type: 'addStep',
+      slideId: 's1',
+      step: createStep('m', 'a', 'move', 'click', { x: 900.5, y: -20 }),
+      at: 5,
+    }).deck;
+
+    expect(parseDeck(JSON.parse(JSON.stringify(deck)))).toEqual(deck);
   });
 });

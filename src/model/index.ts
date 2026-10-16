@@ -78,6 +78,7 @@ export {
   cornersOf,
   fitBoxesTo,
   groupBounds,
+  handleEdges,
   isCorner,
   lineBetween,
   lineEnds,
@@ -146,6 +147,7 @@ export {
   DEFAULT_DISAPPEAR_STYLE,
   DEFAULT_DURATION,
   DEFAULT_EASING,
+  DEFAULT_MOVE_OFFSET,
   DISAPPEAR_STYLES,
   EASINGS,
   MAX_DELAY,
@@ -156,6 +158,7 @@ export {
   clampDelay,
   clampDuration,
   createStep,
+  defaultMoveEnd,
   isAppearStyle,
   isDisappearStyle,
   isEasing,
@@ -168,10 +171,27 @@ export type {
   DisappearStep,
   DisappearStyle,
   Easing,
+  MoveStep,
+  Place,
   Step,
   StepChange,
   StepEffect,
   Trigger,
 } from './animation';
+export {
+  DEFAULT_TRANSITION,
+  DEFAULT_TRANSITION_DURATION,
+  MAX_TRANSITION_DURATION,
+  MIN_TRANSITION_DURATION,
+  TRANSITION_KINDS,
+  TRANSITION_SIDES,
+  changeTransition,
+  clampTransitionDuration,
+  isTransitionKind,
+  isTransitionSide,
+} from './transition';
+export type { Transition, TransitionKind, TransitionSide } from './transition';
 export { clickCount, clickOfStep, clicksOf, playsFor, resolve, stepsOf } from './motion';
 export type { SlideState } from './motion';
+export { ALIGNMENTS, align, distribute, nudged, snapEdges, snapMove } from './snap';
+export type { Alignment, Edges, Guide, Placed, Shift, Snapped } from './snap';

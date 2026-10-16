@@ -128,6 +128,12 @@ const SIDES: Record<Handle, readonly [x: -1 | 0 | 1, y: -1 | 0 | 1]> = {
   w: [-1, 0],
 };
 
+/** Which edges a handle moves: -1 the left or top, 1 the right or bottom, 0 neither. */
+export function handleEdges(handle: Handle): { readonly x: -1 | 0 | 1; readonly y: -1 | 0 | 1 } {
+  const [x, y] = SIDES[handle];
+  return { x, y };
+}
+
 export function isCorner(handle: Handle): boolean {
   return handle === 'nw' || handle === 'ne' || handle === 'se' || handle === 'sw';
 }

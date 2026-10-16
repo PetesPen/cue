@@ -91,7 +91,7 @@ Tests: write each criterion as a Given / When / Then example first; each example
 As a presenter, I want opacity to behave the same everywhere, so that what I design is what the audience sees.
 
 Acceptance criteria:
-- [ ] Presentation mode and HTML export render opacity identically to the editor.
+- [ ] Presentation mode and HTML export render opacity identically to the editor. (The editor, the thumbnails and Preview match, tested; the show comes in sprint 7 and the export in sprint 10, and each gets its own test then.)
 - [x] Appear and Disappear animations respect an element's set opacity as their "fully visible" level.
 
 Design: [`Main`](../../design/screenshots/Main.png) ([source](../../design/boards/Main.dc.html))

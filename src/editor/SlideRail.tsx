@@ -8,6 +8,7 @@ import {
 } from 'react';
 import type { Id, Slide } from '@/model';
 import { ContextMenu, type MenuItem } from './Menu';
+import { ArrowRightIcon } from './Icons';
 import { Thumbnail } from './Thumbnail';
 
 /** The rail shows about seven slides when it opens; those thumbnails are drawn without waiting. */
@@ -265,6 +266,11 @@ export function SlideRail({
               <span className="rail-thumb">
                 <Thumbnail slide={slide} eager={index < EAGER_THUMBNAILS} />
                 {slide.animations.length > 0 && <span className="rail-dot" aria-hidden="true" />}
+                {slide.transition.kind !== 'none' && (
+                  <span className="rail-transition" aria-hidden="true">
+                    <ArrowRightIcon size={10} />
+                  </span>
+                )}
               </span>
             </div>
           );

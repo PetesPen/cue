@@ -1,6 +1,7 @@
 import { freeze } from 'immer';
 import type { Step } from './animation';
 import type { Id, SlideElement } from './elements';
+import { DEFAULT_TRANSITION, type Transition } from './transition';
 
 /** Bump when the stored shape changes, and add a migration in `parse.ts` (SV-3, SV-5). */
 export const SCHEMA_VERSION = 1;
@@ -19,6 +20,8 @@ export interface Slide {
   readonly notes: string;
   /** The animation steps, in play order (AN-1, AN-2, AN-5). Clicks are derived from them. */
   readonly animations: readonly Step[];
+  /** How this slide arrives when the show moves to it (TN-1). */
+  readonly transition: Transition;
 }
 
 /** The one immutable document. Times are milliseconds since the epoch. */
@@ -43,7 +46,14 @@ export const systemEnv: Env = {
 };
 
 export function createSlide(id: Id): Slide {
-  return { id, background: DEFAULT_SLIDE_BACKGROUND, elements: [], notes: '', animations: [] };
+  return {
+    id,
+    background: DEFAULT_SLIDE_BACKGROUND,
+    elements: [],
+    notes: '',
+    animations: [],
+    transition: DEFAULT_TRANSITION,
+  };
 }
 
 /** A new deck starts with one blank slide (SL-1). */

@@ -1,22 +1,32 @@
 import { useRef } from 'react';
 import {
+  ALIGNMENTS,
+  SLIDE_HEIGHT,
+  SLIDE_WIDTH,
+  align,
   boundsOf,
   canReorder,
+  distribute,
   fitBoxesTo,
   groupBounds,
   isImage,
   isShape,
   isTextBox,
+  type Alignment,
   type Border,
   type DashStyle,
   type ElementChange,
   type ElementProps,
   type Id,
   type ReorderMode,
+  type Placed,
   type ShapeElement,
+  type Shift,
   type SlideElement,
   type TextElement,
+  unionRect,
 } from '@/model';
+import { AlignIcon } from './AlignIcons';
 import { AltField } from './AltField';
 import { Hint } from './Hint';
 import { ColourField } from './colour/ColourField';
@@ -33,8 +43,8 @@ interface DesignPanelProps {
   readonly order: readonly Id[];
   /** Show a change without saving it (a slider being dragged). */
   readonly onPreview: (changes: readonly ElementChange[] | undefined) => void;
-  /** Save a change: one command. */
-  readonly onCommit: (changes: readonly ElementChange[]) => void;
+  /** Save a change: one command. `label` is what the Undo button calls it. */
+  readonly onCommit: (changes: readonly ElementChange[], label?: string) => void;
   readonly onReorder: (mode: ReorderMode) => void;
   /** What changes the text: the words being edited, or all the text of the selected boxes. */
   readonly textFormat: TextFormat | undefined;
@@ -53,6 +63,15 @@ const ARRANGE: readonly {
   { mode: 'backward', label: 'Backward', hint: 'Send backward', shortcut: 'order.backward' },
   { mode: 'back', label: 'Back', hint: 'Send to back', shortcut: 'order.back' },
 ];
+
+const ALIGN_LABELS: Readonly<Record<Alignment, string>> = {
+  left: 'Align left',
+  centre: 'Align centre',
+  right: 'Align right',
+  top: 'Align top',
+  middle: 'Align middle',
+  bottom: 'Align bottom',
+};
 
 const DASHES: readonly { readonly value: DashStyle; readonly label: string }[] = [
   { value: 'solid', label: 'Solid' },
@@ -132,6 +151,27 @@ export function DesignPanel({
         },
       })),
     );
+  };
+
+  // Align lines elements up against the slide (one element) or against the box around the selection
+  // (several); Distribute spaces three or more evenly (EL-6). Each is one step to undo.
+  const placed: Placed[] = elements.map((e) => ({ id: e.id, bounds: boundsOf(boxOf(e)) }));
+  const moveBy = (shifts: readonly Shift[], label: string) => {
+    const round = (n: number) => Math.round(n * 100) / 100;
+    const changes = shifts.flatMap(({ id, dx, dy }) => {
+      const e = elements.find((each) => each.id === id);
+      return e && (dx !== 0 || dy !== 0)
+        ? [{ id, props: { x: round(e.x + dx), y: round(e.y + dy) } }]
+        : [];
+    });
+    if (changes.length > 0) onCommit(changes, label);
+  };
+  const alignTo = (how: Alignment) => {
+    const target =
+      elements.length === 1
+        ? { x: 0, y: 0, width: SLIDE_WIDTH, height: SLIDE_HEIGHT }
+        : unionRect(placed.map((p) => p.bounds));
+    moveBy(align(placed, how, target), 'Align');
   };
 
   const opacity = common(elements, (e) => Math.round(e.opacity * 100));
@@ -267,6 +307,44 @@ export function DesignPanel({
                 }}
               >
                 {label}
+              </button>
+            </Hint>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="Align">
+        <div className="arrange" role="group" aria-label="Align">
+          {ALIGNMENTS.map((how) => (
+            <Hint key={how} label={ALIGN_LABELS[how]}>
+              <button
+                type="button"
+                className="arrange-button align-button"
+                aria-label={ALIGN_LABELS[how]}
+                onClick={() => {
+                  alignTo(how);
+                }}
+              >
+                <AlignIcon kind={how} />
+              </button>
+            </Hint>
+          ))}
+        </div>
+        <div className="arrange panel-gap" role="group" aria-label="Distribute">
+          {(['horizontal', 'vertical'] as const).map((axis) => (
+            <Hint key={axis} label={`Distribute ${axis}ly`}>
+              <button
+                type="button"
+                className="arrange-button align-button"
+                aria-label={`Distribute ${axis}ly`}
+                disabled={elements.length < 3}
+                onClick={() => {
+                  moveBy(distribute(placed, axis), 'Distribute');
+                }}
+              >
+                <AlignIcon
+                  kind={axis === 'horizontal' ? 'distribute-horizontal' : 'distribute-vertical'}
+                />
               </button>
             </Hint>
           ))}

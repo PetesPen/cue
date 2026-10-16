@@ -12,7 +12,7 @@ import {
   type TextElement,
 } from '@/model';
 import { imageSource } from './images';
-import { PLAIN, drawnOpacity, lookSets, playClick, type Look } from './motion';
+import { PLAIN, drawnOpacity, drawnTransform, lookSets, playClick, type Look } from './motion';
 import { drawShape } from './shapes';
 import { createTextBody, ensureFonts, renderText } from './text';
 import './slide.css';
@@ -47,7 +47,6 @@ function styleBox(node: HTMLElement, element: SlideElement): void {
   node.style.top = `${String(element.y)}px`;
   node.style.width = `${String(element.width)}px`;
   node.style.height = `${String(element.height)}px`;
-  node.style.transform = element.rotation === 0 ? '' : `rotate(${String(element.rotation)}deg)`;
   node.dataset.kind = element.kind;
   if (isShape(element)) node.dataset.shape = element.shape;
 }
@@ -216,6 +215,10 @@ export function createSlideRenderer(host: HTMLElement, slide: Slide): SlideRende
       const opacity = drawnOpacity(element.opacity, element.id, sets);
       const shownOpacity = opacity === 1 ? '' : String(opacity);
       if (entry.node.style.opacity !== shownOpacity) entry.node.style.opacity = shownOpacity;
+      // The turn, and where an animation has moved the element to.
+      const shownTransform = drawnTransform(element, sets.positions.get(element.id));
+      if (entry.node.style.transform !== shownTransform)
+        entry.node.style.transform = shownTransform;
       // Back to front is document order: put each node right after the one before it.
       const wanted: ChildNode | null = previous ? previous.nextSibling : surface.firstChild;
       if (wanted !== entry.node) surface.insertBefore(entry.node, wanted);

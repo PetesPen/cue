@@ -204,3 +204,250 @@
   background: var(--color-yellow);
   box-sizing: content-box;
 }
+
+/* The end of a Move on the canvas: a dashed copy of the element, a dotted arrow, a label. */
+.move-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.move-path {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.move-path-line {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 2;
+  stroke-dasharray: 6 6;
+  vector-effect: non-scaling-stroke;
+}
+
+.move-path-head {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.move-ghost {
+  position: absolute;
+  padding: 0;
+  border: 2px dashed var(--color-accent);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.move-ghost:active {
+  cursor: grabbing;
+}
+
+.move-ghost:focus-visible {
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+
+.move-label {
+  position: absolute;
+  padding: 2px var(--space-2);
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: var(--color-white);
+  font: var(--type-caption);
+  font-weight: 600;
+  white-space: nowrap;
+  transform: translate(-50%, 8px);
+}
+
+.step-list {
+  position: relative;
+}
+
+.step-grip {
+  display: inline-flex;
+  flex: none;
+  margin-left: calc(-1 * var(--space-1));
+  color: var(--color-dashed-border);
+  cursor: grab;
+}
+
+.step-row-dragged {
+  opacity: 0.45;
+}
+
+/* Where a dragged step will land. */
+.step-drop-line {
+  position: absolute;
+  right: var(--space-4);
+  left: var(--space-4);
+  height: 3px;
+  border-radius: 2px;
+  background: var(--color-accent);
+  pointer-events: none;
+}
+
+/* The Transition tab (design: Editor-Transition): the effects as small pictures. */
+.transition-panel {
+  margin: calc(-1 * var(--space-4));
+}
+
+.transition-note {
+  margin: var(--space-1) 0 0;
+}
+
+.tn-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.tn-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px; /* board: Editor-Transition */
+  padding: 6px 6px 8px; /* board: Editor-Transition */
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+  background: var(--color-white);
+  color: inherit;
+  font: var(--type-caption);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.tn-tile:hover {
+  background: var(--color-app-bg);
+}
+
+.tn-tile[aria-pressed='true'] {
+  margin: -1px;
+  border: 2px solid var(--color-accent);
+  background: var(--color-accent-tint);
+  color: var(--color-accent-tint-text);
+  font-weight: 700;
+}
+
+.tn-pic {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 3px; /* board: Editor-Transition */
+  background: var(--color-sage);
+}
+
+.tn-pic > span {
+  position: absolute;
+  display: block;
+  border-radius: 2px;
+}
+
+.tn-a {
+  background: var(--color-dashed-border);
+}
+
+.tn-b {
+  background: var(--color-accent);
+}
+
+.tn-pic[data-kind='none'] .tn-a {
+  top: 18%;
+  left: 18%;
+  width: 64%;
+  height: 64%;
+}
+
+.tn-pic[data-kind='none'] .tn-b {
+  display: none;
+}
+
+.tn-pic[data-kind='fade'] .tn-a {
+  top: 18%;
+  left: 10%;
+  width: 56%;
+  height: 64%;
+}
+
+.tn-pic[data-kind='fade'] .tn-b {
+  top: 18%;
+  left: 34%;
+  width: 56%;
+  height: 64%;
+  opacity: 0.55;
+}
+
+.tn-pic[data-kind='slide'] {
+  background: var(--color-white);
+}
+
+.tn-pic[data-kind='slide'] .tn-a {
+  top: 18%;
+  left: 6%;
+  width: 52%;
+  height: 64%;
+}
+
+.tn-pic[data-kind='slide'] .tn-b {
+  top: 12%;
+  left: 46%;
+  width: 52%;
+  height: 64%;
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--color-forest) 30%, transparent);
+}
+
+.tn-pic[data-kind='push'] .tn-a {
+  top: 0;
+  left: -24%;
+  width: 62%;
+  height: 100%;
+  border-radius: 0;
+}
+
+.tn-pic[data-kind='push'] .tn-b {
+  top: 0;
+  left: 38%;
+  width: 62%;
+  height: 100%;
+  border-radius: 0;
+}
+
+.tn-pic[data-kind='zoom'] .tn-a {
+  top: 14%;
+  left: 14%;
+  width: 72%;
+  height: 72%;
+}
+
+.tn-pic[data-kind='zoom'] .tn-b {
+  top: 30%;
+  left: 30%;
+  width: 40%;
+  height: 40%;
+}
+
+/* The small arrow on a thumbnail whose slide has a transition (board: Editor-Transition). */
+.rail-transition {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px; /* board: Editor-Transition */
+  height: 16px;
+  border: 1px solid var(--color-hairline);
+  border-radius: 4px;
+  background: var(--color-white);
+  color: var(--color-forest);
+}

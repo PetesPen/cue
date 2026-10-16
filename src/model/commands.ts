@@ -1,6 +1,7 @@
 import { castDraft, current, enablePatches, produceWithPatches, type Patch } from 'immer';
 import { changeStep, type Step, type StepChange } from './animation';
 import { createSlide, normaliseTitle, type Deck } from './deck';
+import { changeTransition, type Transition } from './transition';
 import {
   applicableProps,
   normaliseProps,
@@ -12,6 +13,12 @@ import { isEmptyText } from './richtext';
 import { reorder, type ReorderMode } from './zorder';
 
 enablePatches();
+
+/** The first step of a slide always starts a click of its own, so it cannot be With previous. */
+function firstOnClick(steps: { trigger: 'click' | 'with-previous' }[]): void {
+  const first = steps[0];
+  if (first && first.trigger !== 'click') first.trigger = 'click';
+}
 
 /**
  * Every edit is a command: plain data with its new ids and its time already filled in, so applying
@@ -109,11 +116,29 @@ export type Command =
       readonly all: boolean;
       readonly at: number;
     }
+  /** How a slide arrives (TN-1): its kind, and, from the start, its side and duration. */
+  | {
+      readonly type: 'setTransition';
+      readonly slideId: Id;
+      readonly change: Partial<Transition>;
+      readonly at: number;
+    }
   /** Put an animation step at the end of the slide's list (AN-1, AN-2). */
   | {
       readonly type: 'addStep';
       readonly slideId: Id;
       readonly step: Step;
+      readonly at: number;
+    }
+  /**
+   * Put a step at another place in the list (AN-5): `toIndex` is its place afterwards, from 0. A step
+   * moved to the front becomes On click, because the first step always is (decision 26).
+   */
+  | {
+      readonly type: 'moveStep';
+      readonly slideId: Id;
+      readonly stepId: Id;
+      readonly toIndex: number;
       readonly at: number;
     }
   /** Change a step: its effect, style, trigger or timing (AN-1, AN-2, AN-4, AN-5). */
@@ -191,6 +216,7 @@ export function applyCommand(deck: Deck, command: Command): Applied {
           id: command.newSlideId,
           background: original.background,
           notes: original.notes,
+          transition: current(original.transition),
           elements: original.elements.map((element, i) => ({
             ...current(element),
             id: command.elementIds[i] ?? element.id,
@@ -234,6 +260,7 @@ export function applyCommand(deck: Deck, command: Command): Applied {
         slide.elements = slide.elements.filter((e) => !gone.has(e.id));
         // An element's steps go with it (AN-5).
         slide.animations = slide.animations.filter((step) => !gone.has(step.element));
+        firstOnClick(slide.animations);
         break;
       }
       case 'addElements': {
@@ -265,6 +292,12 @@ export function applyCommand(deck: Deck, command: Command): Applied {
         slide.elements = order.flatMap((id) => byId.get(id) ?? []);
         break;
       }
+      case 'setTransition': {
+        const slide = draft.slides.find((s) => s.id === command.slideId);
+        if (!slide) throw new CommandError(`Slide ${command.slideId} is not in deck ${deck.id}`);
+        slide.transition = changeTransition(current(slide.transition), command.change);
+        break;
+      }
       case 'addStep': {
         const slide = draft.slides.find((s) => s.id === command.slideId);
         if (!slide) throw new CommandError(`Slide ${command.slideId} is not in deck ${deck.id}`);
@@ -275,6 +308,7 @@ export function applyCommand(deck: Deck, command: Command): Applied {
           throw new CommandError(`Step ${command.step.id} is already on slide ${slide.id}`);
         }
         slide.animations.push(castDraft(command.step));
+        firstOnClick(slide.animations);
         break;
       }
       case 'updateStep': {
@@ -283,7 +317,11 @@ export function applyCommand(deck: Deck, command: Command): Applied {
         const index = slide.animations.findIndex((a) => a.id === command.stepId);
         const step = slide.animations[index];
         if (!step) throw new CommandError(`Step ${command.stepId} is not on slide ${slide.id}`);
-        slide.animations[index] = castDraft(changeStep(current(step), command.change));
+        const element = slide.elements.find((e) => e.id === step.element);
+        slide.animations[index] = castDraft(
+          changeStep(current(step), command.change, element ? current(element) : undefined),
+        );
+        firstOnClick(slide.animations);
         break;
       }
       case 'removeStep': {
@@ -293,6 +331,20 @@ export function applyCommand(deck: Deck, command: Command): Applied {
           throw new CommandError(`Step ${command.stepId} is not on slide ${slide.id}`);
         }
         slide.animations = slide.animations.filter((a) => a.id !== command.stepId);
+        firstOnClick(slide.animations);
+        break;
+      }
+      case 'moveStep': {
+        const slide = draft.slides.find((s) => s.id === command.slideId);
+        if (!slide) throw new CommandError(`Slide ${command.slideId} is not in deck ${deck.id}`);
+        const index = slide.animations.findIndex((a) => a.id === command.stepId);
+        if (index === -1) {
+          throw new CommandError(`Step ${command.stepId} is not on slide ${slide.id}`);
+        }
+        const to = Math.min(slide.animations.length - 1, Math.max(0, Math.round(command.toIndex)));
+        const [moved] = slide.animations.splice(index, 1);
+        if (moved) slide.animations.splice(to, 0, moved);
+        firstOnClick(slide.animations);
         break;
       }
       case 'setBackground': {

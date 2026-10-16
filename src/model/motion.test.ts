@@ -195,3 +195,80 @@ describe('any list of steps (property)', () => {
     );
   });
 });
+
+describe('Move in the resolver (AN-3)', () => {
+  const move = (
+    id: string,
+    element: string,
+    x: number,
+    y: number,
+    trigger: Trigger = 'click',
+  ): Step => createStep(id, element, 'move', trigger, { x, y });
+  const where = (slide: Slide, click: number, element: string) =>
+    resolve(slide, click).positions.get(element);
+
+  test('Given a Move, When the slide opens, Then the element is at its own place (not in the positions)', () => {
+    const slide = slideWith(move('1', 'a', 500, 300));
+
+    expect(where(slide, 0, 'a')).toBeUndefined();
+    expect(where(slide, 1, 'a')).toEqual({ x: 500, y: 300 });
+  });
+
+  test('Given a Move, When later clicks play, Then the element stays where it ended', () => {
+    const slide = slideWith(move('1', 'a', 500, 300), step('2', 'b', 'appear'));
+
+    expect(where(slide, 2, 'a')).toEqual({ x: 500, y: 300 });
+  });
+
+  test('Given two Moves of one element, When the second plays, Then it ends at the second place, and is at the first before it', () => {
+    const slide = slideWith(move('1', 'a', 500, 300), move('2', 'a', 900, 100));
+
+    expect(where(slide, 1, 'a')).toEqual({ x: 500, y: 300 });
+    expect(where(slide, 2, 'a')).toEqual({ x: 900, y: 100 });
+  });
+
+  test('Given a Move and an Appear for one element, Then the Move does not decide whether it starts hidden', () => {
+    const slide = slideWith(move('1', 'a', 500, 300), step('2', 'a', 'appear'));
+
+    expect(hiddenAt(slide, 0)).toEqual(['a']);
+    expect(hiddenAt(slide, 1)).toEqual(['a']);
+    expect(hiddenAt(slide, 2)).toEqual([]);
+    expect(where(slide, 2, 'a')).toEqual({ x: 500, y: 300 });
+  });
+
+  test('Given a Move and a Disappear in one click, Then it both ends hidden and has moved', () => {
+    const slide = slideWith(step('1', 'a', 'disappear'), move('2', 'a', 10, 20, 'with-previous'));
+
+    expect(hiddenAt(slide, 1)).toEqual(['a']);
+    expect(where(slide, 1, 'a')).toEqual({ x: 10, y: 20 });
+  });
+
+  test('Given any run of Moves, When all clicks have played, Then each element is at the end of its last Move', () => {
+    fc.assert(
+      fc.property(
+        fc.array(
+          fc.record({
+            element: fc.constantFrom('a', 'b', 'c'),
+            x: fc.integer({ min: -500, max: 2500 }),
+            y: fc.integer({ min: -500, max: 1500 }),
+            trigger: fc.constantFrom<Trigger>('click', 'with-previous'),
+          }),
+          { maxLength: 12 },
+        ),
+        (list) => {
+          const steps = list.map((m, i) => move(String(i), m.element, m.x, m.y, m.trigger));
+          const slide = slideWith(...steps);
+          const state = resolve(slide, clickCount(slide));
+
+          for (const id of ['a', 'b', 'c']) {
+            const mine = steps.filter((s) => s.element === id);
+            const last = mine[mine.length - 1];
+            const at = state.positions.get(id);
+            if (last?.effect === 'move') expect(at).toEqual({ x: last.x, y: last.y });
+            else expect(at).toBeUndefined();
+          }
+        },
+      ),
+    );
+  });
+});

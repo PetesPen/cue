@@ -16,10 +16,12 @@ export type TabId = (typeof TABS)[number]['id'];
 export function Inspector({
   design,
   animate,
+  transition,
   onTab,
 }: {
   readonly design?: ReactNode;
   readonly animate?: ReactNode;
+  readonly transition?: ReactNode;
   /** Told when the tab changes, and once at the start. */
   readonly onTab?: (tab: TabId) => void;
 }) {
@@ -97,7 +99,11 @@ export function Inspector({
           // The Design panel holds controls while something is selected (the first takes focus).
           // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
           tabIndex={
-            (tab.id === 'design' && design) || (tab.id === 'animate' && animate) ? undefined : 0
+            (tab.id === 'design' && design) ||
+            (tab.id === 'animate' && animate) ||
+            (tab.id === 'transition' && transition)
+              ? undefined
+              : 0
           }
           hidden={active !== tab.id}
         >
@@ -105,6 +111,8 @@ export function Inspector({
             design
           ) : tab.id === 'animate' && animate ? (
             animate
+          ) : tab.id === 'transition' && transition ? (
+            transition
           ) : (
             <p className="placeholder">{tab.placeholder}</p>
           )}

@@ -13,6 +13,13 @@ import {
   type Step,
 } from './animation';
 import { SCHEMA_VERSION, type Deck, type Slide } from './deck';
+import {
+  DEFAULT_TRANSITION,
+  clampTransitionDuration,
+  isTransitionKind,
+  isTransitionSide,
+  type Transition,
+} from './transition';
 import { DASH_STYLES, SHAPE_KINDS, type Border, type SlideElement } from './elements';
 import { sanitiseRichText, type RichText } from './richtext';
 
@@ -133,17 +140,35 @@ function parseSteps(value: unknown, elements: ReadonlySet<string>): Step[] {
       raw.element,
       raw.effect,
       isTrigger(raw.trigger) ? raw.trigger : 'click',
+      { x: isNumber(raw.x) ? raw.x : 0, y: isNumber(raw.y) ? raw.y : 0 },
     );
     steps.push(
       changeStep(base, {
         ...(typeof raw.style === 'string' ? { style: raw.style } : {}),
+        ...(isNumber(raw.x) ? { x: raw.x } : {}),
+        ...(isNumber(raw.y) ? { y: raw.y } : {}),
         duration: isNumber(raw.duration) ? clampDuration(raw.duration) : DEFAULT_DURATION,
         delay: isNumber(raw.delay) ? clampDelay(raw.delay) : DEFAULT_DELAY,
         easing: isEasing(raw.easing) ? raw.easing : DEFAULT_EASING,
       }),
     );
   }
+  // The first step always starts a click of its own.
+  const first = steps[0];
+  if (first && first.trigger !== 'click') steps[0] = changeStep(first, { trigger: 'click' });
   return steps;
+}
+
+/** The transition of a slide. A deck saved before transitions existed has none, and a stray value is ignored. */
+function parseTransition(value: unknown): Transition {
+  if (!isRecord(value)) return DEFAULT_TRANSITION;
+  return {
+    kind: isTransitionKind(value.kind) ? value.kind : DEFAULT_TRANSITION.kind,
+    from: isTransitionSide(value.from) ? value.from : DEFAULT_TRANSITION.from,
+    duration: isNumber(value.duration)
+      ? clampTransitionDuration(value.duration)
+      : DEFAULT_TRANSITION.duration,
+  };
 }
 
 function parseSlide(value: unknown): Slide {
@@ -163,6 +188,7 @@ function parseSlide(value: unknown): Slide {
     notes: value.notes,
     elements,
     animations: parseSteps(value.animations, new Set(elements.map((e) => e.id))),
+    transition: parseTransition(value.transition),
   };
 }
 

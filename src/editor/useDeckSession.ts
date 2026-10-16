@@ -5,6 +5,7 @@ import {
   canRedo,
   canUndo,
   createStep,
+  defaultMoveEnd,
   emptyHistory,
   imageHashes,
   record,
@@ -25,6 +26,7 @@ import {
   type SlideElement,
   type StepChange,
   type StepEffect,
+  type Transition,
 } from '@/model';
 import {
   Autosaver,
@@ -78,6 +80,10 @@ export interface DeckSession {
   readonly addStep: (element: Id, effect: StepEffect, meta?: EditMeta) => Id | undefined;
   readonly updateStep: (stepId: Id, change: StepChange, meta?: EditMeta) => void;
   readonly removeStep: (stepId: Id) => void;
+  /** How the current slide arrives (TN-1). */
+  readonly setTransition: (change: Partial<Transition>) => void;
+  /** Put a step at another place in the list (AN-5). */
+  readonly moveStep: (stepId: Id, toIndex: number) => void;
   /** The background colour of the current slide, or of every slide (SL-5). */
   readonly setBackground: (background: string, all: boolean) => void;
   /**
@@ -319,7 +325,17 @@ export function useDeckSession(
     (element: Id, effect: StepEffect, meta?: EditMeta) => {
       const slideId = currentRef.current;
       if (slideId === undefined) return undefined;
-      const step = createStep(env.newId(), element, effect);
+      const target = deckRef.current?.slides
+        .find((s) => s.id === slideId)
+        ?.elements.find((e) => e.id === element);
+      // A Move starts with its end a little beside the element, which is then dragged into place.
+      const step = createStep(
+        env.newId(),
+        element,
+        effect,
+        'click',
+        target ? defaultMoveEnd(target) : undefined,
+      );
       dispatch({ type: 'addStep', slideId, step, at: env.now() }, meta);
       return step.id;
     },
@@ -331,6 +347,24 @@ export function useDeckSession(
       const slideId = currentRef.current;
       if (slideId === undefined) return;
       dispatch({ type: 'updateStep', slideId, stepId, change, at: env.now() }, meta);
+    },
+    [dispatch, env],
+  );
+
+  const setTransition = useCallback(
+    (change: Partial<Transition>) => {
+      const slideId = currentRef.current;
+      if (slideId === undefined) return;
+      dispatch({ type: 'setTransition', slideId, change, at: env.now() });
+    },
+    [dispatch, env],
+  );
+
+  const moveStep = useCallback(
+    (stepId: Id, toIndex: number) => {
+      const slideId = currentRef.current;
+      if (slideId === undefined) return;
+      dispatch({ type: 'moveStep', slideId, stepId, toIndex, at: env.now() });
     },
     [dispatch, env],
   );
@@ -513,6 +547,8 @@ export function useDeckSession(
     addStep,
     updateStep,
     removeStep,
+    setTransition,
+    moveStep,
     undo,
     redo,
     history,

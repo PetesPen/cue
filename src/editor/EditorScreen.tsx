@@ -4,6 +4,7 @@ import {
   SLIDE_HEIGHT,
   SLIDE_WIDTH,
   systemEnv,
+  boundsOf,
   canReorder,
   createImage,
   emptyText,
@@ -20,7 +21,7 @@ import { measureTextHeight } from '@/render';
 import { isNearlyFull, readStorageUsage, type StoredImage, type StoredOriginal } from '@/storage';
 import { Canvas } from './Canvas';
 import { DesignPanel, SlidePanel } from './DesignPanel';
-import { applyDraft, type Tool } from './gestures';
+import { applyDraft, boxOf, type Tool } from './gestures';
 import {
   AlertIcon,
   ImageIcon,
@@ -43,7 +44,9 @@ import { Hint } from './Hint';
 import { Inspector, type TabId } from './Inspector';
 import { ShortcutsDialog } from './ShortcutsDialog';
 import { AnimatePanel } from './animation/AnimatePanel';
+import { MoveGhost } from './animation/MoveGhost';
 import { PreviewBar } from './animation/PreviewBar';
+import { TransitionPanel } from './animation/TransitionPanel';
 import { usePreview } from './animation/usePreview';
 import type { SlideViewHandle } from './SlideView';
 import { Logo } from './Logo';
@@ -269,6 +272,10 @@ function Editor({
   // Animations: the Animate tab, the step whose settings are open, and Preview (AN-1, AN-5, AN-6).
   const [tab, setTab] = useState<TabId>('design');
   const [activeStepId, setActiveStepId] = useState<Id | undefined>();
+  // The end of a Move being dragged: shown, and saved as one step when it is let go (decision 18).
+  const [ghostDraft, setGhostDraft] = useState<
+    { readonly stepId: Id; readonly x: number; readonly y: number } | undefined
+  >();
   const viewRef = useRef<SlideViewHandle>(null);
   const preview = usePreview(currentSlide, viewRef);
   const previewing = preview.click !== undefined;
@@ -285,6 +292,16 @@ function Editor({
     if (chosen && chosen.element === selectedIds[0]) return chosen;
     return currentSlide.animations.find((step) => step.element === selectedIds[0]);
   })();
+
+  const ghostStep =
+    tab === 'animate' && activeStep?.effect === 'move'
+      ? ghostDraft?.stepId === activeStep.id
+        ? { ...activeStep, x: ghostDraft.x, y: ghostDraft.y }
+        : activeStep
+      : undefined;
+  const ghostElement = ghostStep
+    ? currentSlide.elements.find((e) => e.id === ghostStep.element)
+    : undefined;
 
   function startPreview() {
     text.finish();
@@ -645,9 +662,9 @@ function Editor({
 
   const fonts = useMemo(() => deckFonts(deck), [deck]);
   // The Text section of the Design panel works on the words being edited, or on whole boxes.
-  const commitChanges = (changes: readonly ElementChange[]) => {
+  const commitChanges = (changes: readonly ElementChange[], label?: string) => {
     setDraft(undefined);
-    save(changes);
+    save(changes, label === undefined ? undefined : { label });
   };
   const previewChanges = (changes: readonly ElementChange[] | undefined) => {
     setDraft(changes && fitTextBoxes(currentSlide, changes));
@@ -923,6 +940,31 @@ function Editor({
             look={look}
             viewRef={viewRef}
             badges={tab === 'animate' ? { activeStepId: activeStep?.id } : undefined}
+            animateOverlay={
+              ghostStep && ghostElement ? (
+                <MoveGhost
+                  slide={currentSlide}
+                  step={ghostStep}
+                  element={ghostElement}
+                  others={currentSlide.elements
+                    .filter((e) => e.id !== ghostElement.id)
+                    .map((e) => boundsOf(boxOf(e)))}
+                  onDraft={(end) => {
+                    setGhostDraft(end && { stepId: ghostStep.id, ...end });
+                  }}
+                  onCommit={(end, nudged) => {
+                    setGhostDraft(undefined);
+                    session.updateStep(
+                      ghostStep.id,
+                      end,
+                      nudged
+                        ? { mergeKey: `ghost:${ghostStep.id}`, label: 'Move' }
+                        : { label: 'Move' },
+                    );
+                  }}
+                />
+              ) : undefined
+            }
             onPreviewAdvance={previewing ? previewForward : undefined}
             onStepSlide={(by) => {
               const next = deck.slides[index + by];
@@ -984,6 +1026,13 @@ function Editor({
 
         <Inspector
           onTab={setTab}
+          transition={
+            <TransitionPanel
+              number={index + 1}
+              transition={currentSlide.transition}
+              onChange={session.setTransition}
+            />
+          }
           animate={
             <AnimatePanel
               slide={currentSlide}
@@ -1007,6 +1056,7 @@ function Editor({
                 setActiveStepId(undefined);
                 session.removeStep(stepId);
               }}
+              onMove={session.moveStep}
             />
           }
           design={

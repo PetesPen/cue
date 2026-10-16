@@ -42,6 +42,7 @@ export function swatchOf(element: SlideElement): string {
 export const EFFECT_LABELS: Readonly<Record<Step['effect'], string>> = {
   appear: 'Appear',
   disappear: 'Disappear',
+  move: 'Move',
 };
 
 export const APPEAR_STYLE_LABELS: Readonly<Record<AppearStyle, string>> = {
