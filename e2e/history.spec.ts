@@ -68,9 +68,12 @@ test.describe('Given edits on a slide, When they are undone and redone (EL-8)', 
     await drawRectangle(page, slide);
     await drag(page, slide, [500, 450], [900, 450]);
 
-    await expect(undo(page)).toHaveAttribute('title', 'Undo Move (Ctrl+Z)');
+    // The hint of a button says what it would do, and its keys.
+    await undo(page).hover();
+    await expect(page.getByRole('tooltip')).toHaveText('Undo MoveCtrlZ');
     await undo(page).click();
-    await expect(redo(page)).toHaveAttribute('title', 'Redo Move (Ctrl+Shift+Z)');
+    await redo(page).hover();
+    await expect(page.getByRole('tooltip')).toHaveText('Redo MoveCtrlShiftZ');
     await redo(page).click();
 
     await expect(undo(page)).toBeEnabled();
