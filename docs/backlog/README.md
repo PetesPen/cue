@@ -7,7 +7,7 @@ One file per sprint, with the stories (full acceptance criteria), demo, key test
 | [0](sprint-00.md) | Foundations and risk spikes | 16 | (none) |
 | [1](sprint-01.md) | Decks, shell and saving | 16 | UX-1, SL-1, SL-2, SV-1, SV-2 |
 | [2](sprint-02.md) | Elements you can move | 18 | EL-5, EL-3, ZO-1, TR-1, SV-7 |
-| [3](sprint-03.md) | Rich text and notes | 16 | EL-1, EL-2, SL-6, EL-7 |
+| [3](sprint-03.md) | Rich text and notes | 22 | EL-1, EL-2, SL-6, EL-7, EL-10 |
 | [4](sprint-04.md) | Images, undo and slide management | 16 | EL-4, EL-8, SL-3, SL-4 |
 | [5](sprint-05.md) | Keyboard, speed and first animations | 14 | UX-2, UX-3, AN-1, AN-2, TR-3 |
 | [6](sprint-06.md) | Motion and sequencing | 16 | AN-3, AN-5, AN-6, TN-1 |
@@ -39,7 +39,7 @@ One file per sprint, with the stories (full acceptance criteria), demo, key test
 | EL-7 | Copy, paste and delete | Must | [3](sprint-03.md) |
 | EL-8 | Undo and redo | Must | [4](sprint-04.md) |
 | EL-9 | Group elements | Could | [after v1.0](after-v1.md) |
-| EL-10 | Pick any colour (proposed, not yet accepted: sprint 3 suggested) | Should | to be confirmed (decision 19) |
+| EL-10 | Pick any colour | Should | [3](sprint-03.md) |
 | ZO-1 | Reorder with commands | Must | [2](sprint-02.md) |
 | ZO-2 | See and rearrange layers | Should | [11](sprint-11.md) |
 | ZO-3 | Lock, hide and rename layers | Should | [11](sprint-11.md) |
