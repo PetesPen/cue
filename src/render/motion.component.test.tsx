@@ -244,3 +244,111 @@ describe('playing a click (AN-1, AN-2)', () => {
     expect(opacityOf(host, 'b')).toBe(1);
   });
 });
+
+describe('a Move (AN-3)', () => {
+  const move = (id: string, element: string, x: number, y: number) =>
+    createStep(id, element, 'move', 'click', { x, y });
+  /** The middle of an element on the page. */
+  const centre = (host: HTMLElement, id: string) => {
+    const box = nodeOf(host, id).getBoundingClientRect();
+    return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+  };
+  const surface = (host: HTMLElement) => {
+    const found = host.querySelector('.cue-slide')?.getBoundingClientRect();
+    if (!found) throw new Error('no slide');
+    return found;
+  };
+  /** Where an element's middle is, in slide pixels. */
+  const slideCentre = (host: HTMLElement, id: string) => {
+    const at = centre(host, id);
+    const base = surface(host);
+    return { x: (at.x - base.x) * 2, y: (at.y - base.y) * 2 };
+  };
+
+  test('Given a Move, When the slide is drawn plainly or for the editor, Then the element is at its own place', () => {
+    const slide = slideWith([shape('a')], move('m', 'a', 900, 500));
+    const { host, renderer } = draw(slide);
+
+    expect(slideCentre(host, 'a').x).toBeCloseTo(400, 0);
+    renderer.update(slide, undefined, EDITING);
+
+    expect(slideCentre(host, 'a').x).toBeCloseTo(400, 0);
+    expect(slideCentre(host, 'a').y).toBeCloseTo(250, 0);
+  });
+
+  test('Given a Move, When the slide is shown after its click, Then the element is where the Move ends, and a turned one has its middle there', () => {
+    // A 400 x 300 box at (200, 100), turned: its middle is (400, 250); the Move ends with the top left at (900, 500).
+    const slide = slideWith([shape('a', 1, 40)], move('m', 'a', 900, 500));
+    const { host, renderer } = draw(slide);
+
+    renderer.update(slide, undefined, { mode: 'click', click: 1 });
+
+    expect(slideCentre(host, 'a').x).toBeCloseTo(1100, 0);
+    expect(slideCentre(host, 'a').y).toBeCloseTo(650, 0);
+    expect(nodeOf(host, 'a').style.transform).toBe('translate(700px, 400px) rotate(40deg)');
+  });
+
+  test('Given a Move, When the click plays, Then the element animates from its place to the end and rests there', async () => {
+    const slide = slideWith([shape('a')], move('m', 'a', 900, 500));
+    const { host, renderer } = draw(slide);
+    renderer.update(slide, undefined, { mode: 'click', click: 0 });
+
+    const done = renderer.play(slide, 0, 1);
+
+    const effect = nodeOf(host, 'a').getAnimations()[0]?.effect;
+    const keyframes = effect instanceof KeyframeEffect ? effect.getKeyframes() : [];
+    expect(keyframes.map((k) => k.transform)).toEqual(['none', 'translate(700px, 400px)']);
+    await done;
+    expect(slideCentre(host, 'a').x).toBeCloseTo(1100, 0);
+    expect(nodeOf(host, 'a').getAnimations()).toHaveLength(0);
+  });
+
+  test('Given two Moves of one element, When the second plays, Then it starts where the first ended', async () => {
+    const slide = slideWith([shape('a')], move('m1', 'a', 900, 500), move('m2', 'a', 1300, 200));
+    const { host, renderer } = draw(slide);
+    renderer.update(slide, undefined, { mode: 'click', click: 1 });
+
+    const done = renderer.play(slide, 1, 2);
+
+    const effect = nodeOf(host, 'a').getAnimations()[0]?.effect;
+    const keyframes = effect instanceof KeyframeEffect ? effect.getKeyframes() : [];
+    expect(keyframes.map((k) => k.transform)).toEqual([
+      'translate(700px, 400px)',
+      'translate(1100px, 100px)',
+    ]);
+    await done;
+  });
+
+  test('Given a Move and a Preview played to the end and stopped, When the slide is drawn for the editor, Then the element is back at its own place', async () => {
+    const slide = slideWith([shape('a')], move('m', 'a', 900, 500));
+    const { host, renderer } = draw(slide);
+    renderer.update(slide, undefined, EDITING);
+    const before = centre(host, 'a');
+    renderer.update(slide, undefined, { mode: 'click', click: 0 });
+    await renderer.play(slide, 0, 1);
+    expect(centre(host, 'a').x).not.toBeCloseTo(before.x, 0);
+
+    renderer.settle();
+    renderer.update(slide, undefined, EDITING);
+
+    expect(centre(host, 'a').x).toBeCloseTo(before.x, 1);
+    expect(centre(host, 'a').y).toBeCloseTo(before.y, 1);
+  });
+
+  test('Given a moved element that is also faded in and out, When it is shown after the click, Then its opacity and its place are both the end state', () => {
+    const slide = slideWith(
+      [shape('a', 0.6)],
+      createStep('s1', 'a', 'appear'),
+      move('m', 'a', 900, 500),
+    );
+    const { host, renderer } = draw(slide);
+
+    renderer.update(slide, undefined, { mode: 'click', click: 1 });
+    expect(opacityOf(host, 'a')).toBeCloseTo(0.6, 3);
+    expect(nodeOf(host, 'a').style.transform).toBe('');
+    renderer.update(slide, undefined, { mode: 'click', click: 2 });
+
+    expect(opacityOf(host, 'a')).toBeCloseTo(0.6, 3);
+    expect(nodeOf(host, 'a').style.transform).toBe('translate(700px, 400px)');
+  });
+});

@@ -204,3 +204,66 @@
   background: var(--color-yellow);
   box-sizing: content-box;
 }
+
+/* The end of a Move on the canvas: a dashed copy of the element, a dotted arrow, a label. */
+.move-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.move-path {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.move-path-line {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 2;
+  stroke-dasharray: 6 6;
+  vector-effect: non-scaling-stroke;
+}
+
+.move-path-head {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.move-ghost {
+  position: absolute;
+  padding: 0;
+  border: 2px dashed var(--color-accent);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.move-ghost:active {
+  cursor: grabbing;
+}
+
+.move-ghost:focus-visible {
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+
+.move-label {
+  position: absolute;
+  padding: 2px var(--space-2);
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: var(--color-white);
+  font: var(--type-caption);
+  font-weight: 600;
+  white-space: nowrap;
+  transform: translate(-50%, 8px);
+}

@@ -60,13 +60,13 @@ test.describe('Given an element on a slide, When it is made to appear and disapp
 });
 
 test.describe('Given the fixture deck Autumn Launch, When its hero slide is shown in Preview', () => {
-  test('Then the picture and the rows come in on the first click, and the block leaves on the second', async ({
+  test('Then the picture and the rows come in on the first click, the circle moves on the second and the block leaves on the third', async ({
     page,
   }) => {
     await seedDeck(page, autumnLaunch(), 'autumn-launch');
     await page.getByRole('option', { name: 'Slide 3', exact: true }).click();
     await animate(page);
-    await expect(page.getByText('5 steps · 2 clicks')).toBeVisible();
+    await expect(page.getByText('6 steps · 3 clicks')).toBeVisible();
     await expect(page.locator('.rail-dot')).toHaveCount(1);
 
     await page.getByRole('button', { name: 'Preview' }).click();
@@ -78,8 +78,18 @@ test.describe('Given the fixture deck Autumn Launch, When its hero slide is show
     await expect.poll(() => opacityOf(page, 's03-row-2')).toBe(1);
     // The picture was set to 60%: it appears at 60%, not at full strength (TR-3).
     await expect.poll(() => opacityOf(page, 's03-image')).toBeCloseTo(0.6, 2);
+    // The circle moves to the end of its Move (1010, 400) and stays.
+    const circle = page.locator('.slide-frame [data-element-id="s03-circle"]');
+    const startedAt = await circle.boundingBox();
+    await page.keyboard.press('ArrowRight');
+    await expect
+      .poll(async () => ((await circle.boundingBox())?.x ?? 0) - (startedAt?.x ?? 0))
+      .toBeGreaterThan(50);
     await page.keyboard.press('ArrowRight');
     await expect.poll(() => opacityOf(page, 's03-block')).toBe(0);
+    await expect
+      .poll(async () => ((await circle.boundingBox())?.x ?? 0) - (startedAt?.x ?? 0))
+      .toBeGreaterThan(50);
   });
 
   test('Then the Animate tab, the badges and the Preview bar have no accessibility violations', async ({
@@ -98,5 +108,49 @@ test.describe('Given the fixture deck Autumn Launch, When its hero slide is show
 
     await page.getByRole('button', { name: 'Preview' }).click();
     expect((await app().analyze()).violations).toEqual([]);
+  });
+});
+
+test.describe('Given an element on a slide, When it is made to move (AN-3)', () => {
+  test('Then the ghost of its end is dragged into place, Preview moves the element there, and it is saved', async ({
+    page,
+  }) => {
+    const slide = await openNewDeck(page);
+    await drawRectangle(page, slide);
+    await animate(page);
+    await page.getByRole('button', { name: 'Move', exact: true }).click();
+    const ghost = page.locator('.move-ghost');
+    await expect(ghost).toBeVisible();
+    await expect(page.getByText('Ends here · drag')).toBeVisible();
+
+    const box = await ghost.boundingBox();
+    if (!box) throw new Error('no ghost');
+    const from = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+    await page.mouse.move(from.x, from.y);
+    await page.mouse.down();
+    await page.mouse.move(from.x + 250, from.y + 120, { steps: 10 });
+    await page.mouse.up();
+
+    const moved = await ghost.boundingBox();
+    expect((moved?.x ?? 0) - box.x).toBeCloseTo(250, -1);
+    await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+    await page.waitForTimeout(800);
+    await page.reload();
+    await animate(page);
+    await page.locator('.step-row').first().click();
+    const afterReload = await page.locator('.move-ghost').boundingBox();
+    expect(afterReload?.x).toBeCloseTo(moved?.x ?? 0, -1);
+
+    const element = page.locator('.canvas .slide-frame [data-kind="shape"]').first();
+    const own = await element.boundingBox();
+    await page.getByRole('button', { name: 'Preview' }).click();
+    await page.keyboard.press('ArrowRight');
+    await expect
+      .poll(async () => (await element.boundingBox())?.x ?? 0)
+      .toBeCloseTo(moved?.x ?? 0, -1);
+    await page.keyboard.press('Escape');
+    await expect
+      .poll(async () => (await element.boundingBox())?.x ?? 0)
+      .toBeCloseTo(own?.x ?? 0, 0);
   });
 });

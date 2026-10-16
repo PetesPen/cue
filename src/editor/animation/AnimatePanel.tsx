@@ -16,7 +16,7 @@ import {
   type StepChange,
   type StepEffect,
 } from '@/model';
-import { Segmented } from '../fields';
+import { NumberField, Segmented } from '../fields';
 import { PlayIcon } from '../Icons';
 import {
   APPEAR_STYLE_LABELS,
@@ -134,7 +134,7 @@ export function AnimatePanel({
         <div className="panel-section">
           <h2 className="section-label panel-title">{`Animate ${elementName(only)}`}</h2>
           <div className="segmented" role="group" aria-label="Add a step">
-            {(['appear', 'disappear'] as const).map((effect) => (
+            {(['appear', 'disappear', 'move'] as const).map((effect) => (
               <button
                 key={effect}
                 type="button"
@@ -218,7 +218,7 @@ function StepSettings({
         <Segmented
           label="Effect"
           value={step.effect}
-          options={(['appear', 'disappear'] as const).map((value) => ({
+          options={(['appear', 'disappear', 'move'] as const).map((value) => ({
             value,
             label: EFFECT_LABELS[value],
           }))}
@@ -241,7 +241,26 @@ function StepSettings({
         />
       </div>
       <div className="panel-gap">
-        {step.effect === 'appear' ? (
+        {step.effect === 'move' ? (
+          <div className="field-grid">
+            <NumberField
+              label="End X"
+              shortLabel="X"
+              value={step.x}
+              onCommit={(x) => {
+                onChange({ x });
+              }}
+            />
+            <NumberField
+              label="End Y"
+              shortLabel="Y"
+              value={step.y}
+              onCommit={(y) => {
+                onChange({ y });
+              }}
+            />
+          </div>
+        ) : step.effect === 'appear' ? (
           <Segmented
             label="Style"
             value={step.style}

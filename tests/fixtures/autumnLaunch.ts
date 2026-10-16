@@ -113,6 +113,21 @@ function step(
   };
 }
 
+/** A Move step in the stored form: where the element's top left ends. */
+function moveStep(id: string, element: string, x: number, y: number): Json {
+  return {
+    id,
+    element,
+    effect: 'move',
+    trigger: 'click',
+    duration: 0.8,
+    delay: 0,
+    easing: 'ease-out',
+    x,
+    y,
+  };
+}
+
 /** One slide: a coloured background, a headline, a line of support and a coloured circle. */
 function simple(
   n: number,
@@ -176,13 +191,15 @@ function approach(): Json {
         ),
       ]),
     ],
-    // Click 1: the picture comes in, with the three rows. Click 2: the yellow block leaves.
+    // Click 1: the picture comes in, with the three rows. Click 2: the circle moves up and to the
+    // right. Click 3: the yellow block leaves (the Editor-Animate board).
     animations: [
       step('s03-step-1', 's03-image', 'appear'),
       step('s03-step-2', 's03-row-0', 'appear', 'with-previous'),
       step('s03-step-3', 's03-row-1', 'appear', 'with-previous'),
       step('s03-step-4', 's03-row-2', 'appear', 'with-previous'),
-      step('s03-step-5', 's03-block', 'disappear'),
+      moveStep('s03-step-5', 's03-circle', 1010, 400),
+      step('s03-step-6', 's03-block', 'disappear'),
     ],
   };
 }

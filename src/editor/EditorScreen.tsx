@@ -43,6 +43,7 @@ import { Hint } from './Hint';
 import { Inspector, type TabId } from './Inspector';
 import { ShortcutsDialog } from './ShortcutsDialog';
 import { AnimatePanel } from './animation/AnimatePanel';
+import { MoveGhost } from './animation/MoveGhost';
 import { PreviewBar } from './animation/PreviewBar';
 import { usePreview } from './animation/usePreview';
 import type { SlideViewHandle } from './SlideView';
@@ -269,6 +270,10 @@ function Editor({
   // Animations: the Animate tab, the step whose settings are open, and Preview (AN-1, AN-5, AN-6).
   const [tab, setTab] = useState<TabId>('design');
   const [activeStepId, setActiveStepId] = useState<Id | undefined>();
+  // The end of a Move being dragged: shown, and saved as one step when it is let go (decision 18).
+  const [ghostDraft, setGhostDraft] = useState<
+    { readonly stepId: Id; readonly x: number; readonly y: number } | undefined
+  >();
   const viewRef = useRef<SlideViewHandle>(null);
   const preview = usePreview(currentSlide, viewRef);
   const previewing = preview.click !== undefined;
@@ -285,6 +290,16 @@ function Editor({
     if (chosen && chosen.element === selectedIds[0]) return chosen;
     return currentSlide.animations.find((step) => step.element === selectedIds[0]);
   })();
+
+  const ghostStep =
+    tab === 'animate' && activeStep?.effect === 'move'
+      ? ghostDraft?.stepId === activeStep.id
+        ? { ...activeStep, x: ghostDraft.x, y: ghostDraft.y }
+        : activeStep
+      : undefined;
+  const ghostElement = ghostStep
+    ? currentSlide.elements.find((e) => e.id === ghostStep.element)
+    : undefined;
 
   function startPreview() {
     text.finish();
@@ -923,6 +938,28 @@ function Editor({
             look={look}
             viewRef={viewRef}
             badges={tab === 'animate' ? { activeStepId: activeStep?.id } : undefined}
+            animateOverlay={
+              ghostStep && ghostElement ? (
+                <MoveGhost
+                  slide={currentSlide}
+                  step={ghostStep}
+                  element={ghostElement}
+                  onDraft={(end) => {
+                    setGhostDraft(end && { stepId: ghostStep.id, ...end });
+                  }}
+                  onCommit={(end, nudged) => {
+                    setGhostDraft(undefined);
+                    session.updateStep(
+                      ghostStep.id,
+                      end,
+                      nudged
+                        ? { mergeKey: `ghost:${ghostStep.id}`, label: 'Move' }
+                        : { label: 'Move' },
+                    );
+                  }}
+                />
+              ) : undefined
+            }
             onPreviewAdvance={previewing ? previewForward : undefined}
             onStepSlide={(by) => {
               const next = deck.slides[index + by];

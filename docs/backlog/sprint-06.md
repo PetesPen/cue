@@ -26,9 +26,9 @@ Step-order table tests; preview returns elements to editing positions; snap and 
 As a presenter, I want to animate an element from one position to another, so that I can show change, flow and emphasis.
 
 Acceptance criteria:
-- [ ] Move shows a ghost of the end position that I drag into place on the canvas, with a dotted path from start to end.
-- [ ] Move animates position only; optional resize and rotation changes are Could.
-- [ ] The element ends at the new position, and stays there for later steps.
+- [x] Move shows a ghost of the end position that I drag into place on the canvas, with a dotted path from start to end. (A dashed copy labelled "Ends here · drag", draggable and movable with the arrow keys; End X and End Y in the panel.)
+- [x] Move animates position only; optional resize and rotation changes are Could. (Position only; the Could part is not built.)
+- [x] The element ends at the new position, and stays there for later steps.
 
 Design: [`Editor-Animate`](../../design/screenshots/Editor-Animate.png) ([source](../../design/boards/Editor-Animate.dc.html))
 

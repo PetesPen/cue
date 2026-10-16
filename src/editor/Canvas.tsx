@@ -92,6 +92,8 @@ interface CanvasProps {
   readonly badges: { readonly activeStepId: Id | undefined } | undefined;
   /** While Preview plays: a click on the slide plays the next click, and nothing can be picked up. */
   readonly onPreviewAdvance: (() => void) | undefined;
+  /** Drawn over the slide while the Animate tab is open: the end of a Move (AN-3). */
+  readonly animateOverlay?: ReactNode;
   /** With nothing selected, the up and down arrows go to the previous and next slide (UX-2). */
   readonly onStepSlide: (by: -1 | 1) => void;
 }
@@ -147,6 +149,7 @@ export function Canvas({
   viewRef,
   badges,
   onPreviewAdvance,
+  animateOverlay,
   onStepSlide,
 }: CanvasProps) {
   const active = useRef<Active | undefined>(undefined);
@@ -492,6 +495,7 @@ export function Canvas({
       {badges && !onPreviewAdvance && (
         <StepBadges slide={slide} activeStepId={badges.activeStepId} />
       )}
+      {!onPreviewAdvance && animateOverlay}
       {editingId === undefined && !onPreviewAdvance && (selected.length > 0 || marquee) ? (
         <SelectionOverlay elements={selected} chip={chip} marquee={marquee} />
       ) : null}

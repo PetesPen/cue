@@ -283,7 +283,10 @@ export function applyCommand(deck: Deck, command: Command): Applied {
         const index = slide.animations.findIndex((a) => a.id === command.stepId);
         const step = slide.animations[index];
         if (!step) throw new CommandError(`Step ${command.stepId} is not on slide ${slide.id}`);
-        slide.animations[index] = castDraft(changeStep(current(step), command.change));
+        const element = slide.elements.find((e) => e.id === step.element);
+        slide.animations[index] = castDraft(
+          changeStep(current(step), command.change, element ? current(element) : undefined),
+        );
         break;
       }
       case 'removeStep': {

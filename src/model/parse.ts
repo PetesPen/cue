@@ -133,10 +133,13 @@ function parseSteps(value: unknown, elements: ReadonlySet<string>): Step[] {
       raw.element,
       raw.effect,
       isTrigger(raw.trigger) ? raw.trigger : 'click',
+      { x: isNumber(raw.x) ? raw.x : 0, y: isNumber(raw.y) ? raw.y : 0 },
     );
     steps.push(
       changeStep(base, {
         ...(typeof raw.style === 'string' ? { style: raw.style } : {}),
+        ...(isNumber(raw.x) ? { x: raw.x } : {}),
+        ...(isNumber(raw.y) ? { y: raw.y } : {}),
         duration: isNumber(raw.duration) ? clampDuration(raw.duration) : DEFAULT_DURATION,
         delay: isNumber(raw.delay) ? clampDelay(raw.delay) : DEFAULT_DELAY,
         easing: isEasing(raw.easing) ? raw.easing : DEFAULT_EASING,

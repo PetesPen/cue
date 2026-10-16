@@ -5,6 +5,7 @@ import {
   canRedo,
   canUndo,
   createStep,
+  defaultMoveEnd,
   emptyHistory,
   imageHashes,
   record,
@@ -319,7 +320,17 @@ export function useDeckSession(
     (element: Id, effect: StepEffect, meta?: EditMeta) => {
       const slideId = currentRef.current;
       if (slideId === undefined) return undefined;
-      const step = createStep(env.newId(), element, effect);
+      const target = deckRef.current?.slides
+        .find((s) => s.id === slideId)
+        ?.elements.find((e) => e.id === element);
+      // A Move starts with its end a little beside the element, which is then dragged into place.
+      const step = createStep(
+        env.newId(),
+        element,
+        effect,
+        'click',
+        target ? defaultMoveEnd(target) : undefined,
+      );
       dispatch({ type: 'addStep', slideId, step, at: env.now() }, meta);
       return step.id;
     },
