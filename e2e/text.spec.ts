@@ -145,6 +145,7 @@ test.describe('Given a text box, When it is edited (EL-1)', () => {
     const slide = await openNewDeck(page);
     await addText(page, slide);
     await page.keyboard.type('Big small');
+    await settle(page);
     await page.keyboard.press('Control+Home');
     await page.keyboard.down('Shift');
     for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowRight');
