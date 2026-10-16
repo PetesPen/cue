@@ -28,8 +28,8 @@ test.describe('Given an element on a slide, When it is made to appear and disapp
     await drawRectangle(page, slide);
     await animate(page);
 
-    await page.getByRole('button', { name: 'Appear', exact: true }).click();
-    await page.getByRole('button', { name: 'Then Disappear' }).click();
+    await page.getByRole('button', { name: '+ Appear', exact: true }).click();
+    await page.getByRole('button', { name: '+ Disappear', exact: true }).click();
     await expect(page.getByText('2 steps · 2 clicks')).toBeVisible();
     await expect(page.locator('.step-badge')).toHaveText(['1', '2']);
     await page
@@ -118,7 +118,7 @@ test.describe('Given an element on a slide, When it is made to move (AN-3)', () 
     const slide = await openNewDeck(page);
     await drawRectangle(page, slide);
     await animate(page);
-    await page.getByRole('button', { name: 'Move', exact: true }).click();
+    await page.getByRole('button', { name: '+ Move', exact: true }).click();
     const ghost = page.locator('.move-ghost');
     await expect(ghost).toBeVisible();
     await expect(page.getByText('Ends here · drag')).toBeVisible();

@@ -65,7 +65,7 @@ test('Given a selected element, When Appear is chosen in the Animate tab, Then a
   await openAnimate(screen);
   await pick('b');
 
-  await screen.getByRole('button', { name: 'Appear', exact: true }).click();
+  await screen.getByRole('button', { name: '+ Appear', exact: true }).click();
 
   await expect
     .poll(
@@ -135,7 +135,7 @@ test('Given an element with an Appear step, When a Disappear is added, Then both
   await openAnimate(screen);
   await pick('a');
 
-  await screen.getByRole('button', { name: 'Then Disappear' }).click();
+  await screen.getByRole('button', { name: '+ Disappear', exact: true }).click();
 
   await expect
     .poll(async () => (await stored(store)).map((s) => s.effect), { timeout: 3000 })

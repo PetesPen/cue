@@ -1,6 +1,7 @@
 import { castDraft, current, enablePatches, produceWithPatches, type Patch } from 'immer';
 import { changeStep, type Step, type StepChange } from './animation';
 import { createSlide, normaliseTitle, type Deck } from './deck';
+import { changeTransition, type Transition } from './transition';
 import {
   applicableProps,
   normaliseProps,
@@ -115,6 +116,13 @@ export type Command =
       readonly all: boolean;
       readonly at: number;
     }
+  /** How a slide arrives (TN-1): its kind, and, from the start, its side and duration. */
+  | {
+      readonly type: 'setTransition';
+      readonly slideId: Id;
+      readonly change: Partial<Transition>;
+      readonly at: number;
+    }
   /** Put an animation step at the end of the slide's list (AN-1, AN-2). */
   | {
       readonly type: 'addStep';
@@ -208,6 +216,7 @@ export function applyCommand(deck: Deck, command: Command): Applied {
           id: command.newSlideId,
           background: original.background,
           notes: original.notes,
+          transition: current(original.transition),
           elements: original.elements.map((element, i) => ({
             ...current(element),
             id: command.elementIds[i] ?? element.id,
@@ -281,6 +290,12 @@ export function applyCommand(deck: Deck, command: Command): Applied {
         );
         const byId = new Map(slide.elements.map((e) => [e.id, e]));
         slide.elements = order.flatMap((id) => byId.get(id) ?? []);
+        break;
+      }
+      case 'setTransition': {
+        const slide = draft.slides.find((s) => s.id === command.slideId);
+        if (!slide) throw new CommandError(`Slide ${command.slideId} is not in deck ${deck.id}`);
+        slide.transition = changeTransition(current(slide.transition), command.change);
         break;
       }
       case 'addStep': {

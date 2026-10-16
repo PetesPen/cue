@@ -39,10 +39,10 @@ Tests: write each criterion as a Given / When / Then example first; each example
 As a presenter, I want to order animations and group some to play together, so that I control the pace of a reveal.
 
 Acceptance criteria:
-- [ ] The animation panel lists steps in play order, each showing its element and effect.
-- [ ] Drag steps to reorder them.
-- [ ] Each step is set to "On click" or "With previous", so several elements can animate on a single click.
-- [ ] Removing an element removes its steps.
+- [x] The animation panel lists steps in play order, each showing its element and effect. (Under "Click n" headings, as on the board.)
+- [x] Drag steps to reorder them. (With a drop line; Alt and the up and down arrows do it from the keyboard.)
+- [x] Each step is set to "On click" or "With previous", so several elements can animate on a single click. (The first step is always On click.)
+- [x] Removing an element removes its steps.
 
 Design: [`Editor-Animate`](../../design/screenshots/Editor-Animate.png) ([source](../../design/boards/Editor-Animate.dc.html))
 
@@ -53,8 +53,8 @@ Tests: write each criterion as a Given / When / Then example first; each example
 As a presenter, I want to preview a slide's animations without leaving the editor, so that I can fine-tune them quickly.
 
 Acceptance criteria:
-- [ ] A Preview button plays the slide's steps in the editor, and clicking advances step by step.
-- [ ] After a preview, every element returns to its editing position.
+- [x] A Preview button plays the slide's steps in the editor, and clicking advances step by step. (Click the slide, Space or the right arrow plays the next click; the left arrow steps back.)
+- [x] After a preview, every element returns to its editing position.
 
 Design: [`Editor-Animate`](../../design/screenshots/Editor-Animate.png) ([source](../../design/boards/Editor-Animate.dc.html))
 
@@ -65,9 +65,9 @@ Tests: write each criterion as a Given / When / Then example first; each example
 As a presenter, I want to pick how a slide arrives, so that moving between slides feels polished.
 
 Acceptance criteria:
-- [ ] Options: None, Fade, Slide (from the right), Push, and Zoom.
-- [ ] The choice is made in a transition panel for the selected slide, and shown as a small badge on its thumbnail.
-- [ ] The default is None.
+- [x] Options: None, Fade, Slide (from the right), Push, and Zoom.
+- [x] The choice is made in a transition panel for the selected slide, and shown as a small badge on its thumbnail.
+- [x] The default is None.
 
 Design: [`Editor-Transition`](../../design/screenshots/Editor-Transition.png) ([source](../../design/boards/Editor-Transition.dc.html))
 

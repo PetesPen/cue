@@ -8,7 +8,6 @@ import {
   MIN_DURATION,
   clickCount,
   clicksOf,
-  stepsOf,
   type Id,
   type Slide,
   type SlideElement,
@@ -168,7 +167,7 @@ export function AnimatePanel({
 
       {only && (
         <div className="panel-section">
-          <h2 className="section-label panel-title">{`Animate ${elementName(only)}`}</h2>
+          <h2 className="section-label panel-title">{`Add a step for ${elementName(only)}`}</h2>
           <div className="segmented" role="group" aria-label="Add a step">
             {(['appear', 'disappear', 'move'] as const).map((effect) => (
               <button
@@ -179,7 +178,7 @@ export function AnimatePanel({
                   onAdd(only.id, effect);
                 }}
               >
-                {`${stepsOf(slide, only.id).length === 0 ? '' : 'Then '}${EFFECT_LABELS[effect]}`}
+                {`+ ${EFFECT_LABELS[effect]}`}
               </button>
             ))}
           </div>

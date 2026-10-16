@@ -45,6 +45,7 @@ import { ShortcutsDialog } from './ShortcutsDialog';
 import { AnimatePanel } from './animation/AnimatePanel';
 import { MoveGhost } from './animation/MoveGhost';
 import { PreviewBar } from './animation/PreviewBar';
+import { TransitionPanel } from './animation/TransitionPanel';
 import { usePreview } from './animation/usePreview';
 import type { SlideViewHandle } from './SlideView';
 import { Logo } from './Logo';
@@ -1021,6 +1022,13 @@ function Editor({
 
         <Inspector
           onTab={setTab}
+          transition={
+            <TransitionPanel
+              number={index + 1}
+              transition={currentSlide.transition}
+              onChange={session.setTransition}
+            />
+          }
           animate={
             <AnimatePanel
               slide={currentSlide}

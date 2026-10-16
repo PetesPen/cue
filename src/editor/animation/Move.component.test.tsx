@@ -85,7 +85,7 @@ test('Given a selected element, When Move is chosen, Then a Move step is added w
   const screen = await openWith(store);
   await pick('a');
 
-  await screen.getByRole('button', { name: 'Move', exact: true }).click();
+  await screen.getByRole('button', { name: '+ Move', exact: true }).click();
 
   await expect
     .poll(async () => (await stored(store))[0], { timeout: 3000 })

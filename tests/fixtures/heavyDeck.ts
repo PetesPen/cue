@@ -17,6 +17,7 @@ import {
   run,
   shape,
   text,
+  transition,
   type Json,
 } from './autumnLaunch';
 
@@ -66,7 +67,7 @@ export function fiftyElementSlide(id = 'heavy'): Json {
       line(`${id}-rule-${String(n)}`, n * cell.width + 20, 4 * cell.height + 40, 150, FOREST),
     );
   }
-  return { id, background: WHITE, notes: '', elements, animations: [] };
+  return { id, background: WHITE, notes: '', elements, animations: [], transition: transition() };
 }
 
 /** The same data with the id of every slide, element and step ("id" and "element") given `suffix`. */

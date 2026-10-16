@@ -26,6 +26,7 @@ import {
   type SlideElement,
   type StepChange,
   type StepEffect,
+  type Transition,
 } from '@/model';
 import {
   Autosaver,
@@ -79,6 +80,8 @@ export interface DeckSession {
   readonly addStep: (element: Id, effect: StepEffect, meta?: EditMeta) => Id | undefined;
   readonly updateStep: (stepId: Id, change: StepChange, meta?: EditMeta) => void;
   readonly removeStep: (stepId: Id) => void;
+  /** How the current slide arrives (TN-1). */
+  readonly setTransition: (change: Partial<Transition>) => void;
   /** Put a step at another place in the list (AN-5). */
   readonly moveStep: (stepId: Id, toIndex: number) => void;
   /** The background colour of the current slide, or of every slide (SL-5). */
@@ -348,6 +351,15 @@ export function useDeckSession(
     [dispatch, env],
   );
 
+  const setTransition = useCallback(
+    (change: Partial<Transition>) => {
+      const slideId = currentRef.current;
+      if (slideId === undefined) return;
+      dispatch({ type: 'setTransition', slideId, change, at: env.now() });
+    },
+    [dispatch, env],
+  );
+
   const moveStep = useCallback(
     (stepId: Id, toIndex: number) => {
       const slideId = currentRef.current;
@@ -535,6 +547,7 @@ export function useDeckSession(
     addStep,
     updateStep,
     removeStep,
+    setTransition,
     moveStep,
     undo,
     redo,

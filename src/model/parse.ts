@@ -13,6 +13,13 @@ import {
   type Step,
 } from './animation';
 import { SCHEMA_VERSION, type Deck, type Slide } from './deck';
+import {
+  DEFAULT_TRANSITION,
+  clampTransitionDuration,
+  isTransitionKind,
+  isTransitionSide,
+  type Transition,
+} from './transition';
 import { DASH_STYLES, SHAPE_KINDS, type Border, type SlideElement } from './elements';
 import { sanitiseRichText, type RichText } from './richtext';
 
@@ -152,6 +159,18 @@ function parseSteps(value: unknown, elements: ReadonlySet<string>): Step[] {
   return steps;
 }
 
+/** The transition of a slide. A deck saved before transitions existed has none, and a stray value is ignored. */
+function parseTransition(value: unknown): Transition {
+  if (!isRecord(value)) return DEFAULT_TRANSITION;
+  return {
+    kind: isTransitionKind(value.kind) ? value.kind : DEFAULT_TRANSITION.kind,
+    from: isTransitionSide(value.from) ? value.from : DEFAULT_TRANSITION.from,
+    duration: isNumber(value.duration)
+      ? clampTransitionDuration(value.duration)
+      : DEFAULT_TRANSITION.duration,
+  };
+}
+
 function parseSlide(value: unknown): Slide {
   if (
     !isRecord(value) ||
@@ -169,6 +188,7 @@ function parseSlide(value: unknown): Slide {
     notes: value.notes,
     elements,
     animations: parseSteps(value.animations, new Set(elements.map((e) => e.id))),
+    transition: parseTransition(value.transition),
   };
 }
 

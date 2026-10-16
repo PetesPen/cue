@@ -274,6 +274,14 @@ describe('any run of edits (property)', () => {
                 at,
               };
       default:
+        if (n % 20 === 9) {
+          return {
+            type: 'setTransition',
+            slideId: slide.id,
+            change: { kind: n % 2 === 0 ? 'fade' : 'zoom', duration: 1 + (n % 3) },
+            at,
+          };
+        }
         if (n % 20 === 19 && slide.animations.length > 1 && step !== undefined) {
           return { type: 'moveStep', slideId: slide.id, stepId: step.id, toIndex: n % 3, at };
         }

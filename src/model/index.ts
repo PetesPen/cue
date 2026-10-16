@@ -177,5 +177,18 @@ export type {
   StepEffect,
   Trigger,
 } from './animation';
+export {
+  DEFAULT_TRANSITION,
+  DEFAULT_TRANSITION_DURATION,
+  MAX_TRANSITION_DURATION,
+  MIN_TRANSITION_DURATION,
+  TRANSITION_KINDS,
+  TRANSITION_SIDES,
+  changeTransition,
+  clampTransitionDuration,
+  isTransitionKind,
+  isTransitionSide,
+} from './transition';
+export type { Transition, TransitionKind, TransitionSide } from './transition';
 export { clickCount, clickOfStep, clicksOf, playsFor, resolve, stepsOf } from './motion';
 export type { SlideState } from './motion';

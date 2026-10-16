@@ -44,6 +44,8 @@ export function labelFor(command: Command): string {
       return 'Arrange';
     case 'setBackground':
       return command.all ? 'Change all backgrounds' : 'Change background';
+    case 'setTransition':
+      return 'Change transition';
     case 'addStep':
       return 'Add animation';
     case 'updateStep':
@@ -79,6 +81,7 @@ export function idsOf(command: Command): Id[] {
     case 'updateStep':
     case 'removeStep':
     case 'moveStep':
+    case 'setTransition':
       return [];
   }
 }

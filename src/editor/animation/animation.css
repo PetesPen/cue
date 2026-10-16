@@ -294,3 +294,160 @@
   background: var(--color-accent);
   pointer-events: none;
 }
+
+/* The Transition tab (design: Editor-Transition): the effects as small pictures. */
+.transition-panel {
+  margin: calc(-1 * var(--space-4));
+}
+
+.transition-note {
+  margin: var(--space-1) 0 0;
+}
+
+.tn-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.tn-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px; /* board: Editor-Transition */
+  padding: 6px 6px 8px; /* board: Editor-Transition */
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+  background: var(--color-white);
+  color: inherit;
+  font: var(--type-caption);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.tn-tile:hover {
+  background: var(--color-app-bg);
+}
+
+.tn-tile[aria-pressed='true'] {
+  margin: -1px;
+  border: 2px solid var(--color-accent);
+  background: var(--color-accent-tint);
+  color: var(--color-accent-tint-text);
+  font-weight: 700;
+}
+
+.tn-pic {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 3px; /* board: Editor-Transition */
+  background: var(--color-sage);
+}
+
+.tn-pic > span {
+  position: absolute;
+  display: block;
+  border-radius: 2px;
+}
+
+.tn-a {
+  background: var(--color-dashed-border);
+}
+
+.tn-b {
+  background: var(--color-accent);
+}
+
+.tn-pic[data-kind='none'] .tn-a {
+  top: 18%;
+  left: 18%;
+  width: 64%;
+  height: 64%;
+}
+
+.tn-pic[data-kind='none'] .tn-b {
+  display: none;
+}
+
+.tn-pic[data-kind='fade'] .tn-a {
+  top: 18%;
+  left: 10%;
+  width: 56%;
+  height: 64%;
+}
+
+.tn-pic[data-kind='fade'] .tn-b {
+  top: 18%;
+  left: 34%;
+  width: 56%;
+  height: 64%;
+  opacity: 0.55;
+}
+
+.tn-pic[data-kind='slide'] {
+  background: var(--color-white);
+}
+
+.tn-pic[data-kind='slide'] .tn-a {
+  top: 18%;
+  left: 6%;
+  width: 52%;
+  height: 64%;
+}
+
+.tn-pic[data-kind='slide'] .tn-b {
+  top: 12%;
+  left: 46%;
+  width: 52%;
+  height: 64%;
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--color-forest) 30%, transparent);
+}
+
+.tn-pic[data-kind='push'] .tn-a {
+  top: 0;
+  left: -24%;
+  width: 62%;
+  height: 100%;
+  border-radius: 0;
+}
+
+.tn-pic[data-kind='push'] .tn-b {
+  top: 0;
+  left: 38%;
+  width: 62%;
+  height: 100%;
+  border-radius: 0;
+}
+
+.tn-pic[data-kind='zoom'] .tn-a {
+  top: 14%;
+  left: 14%;
+  width: 72%;
+  height: 72%;
+}
+
+.tn-pic[data-kind='zoom'] .tn-b {
+  top: 30%;
+  left: 30%;
+  width: 40%;
+  height: 40%;
+}
+
+/* The small arrow on a thumbnail whose slide has a transition (board: Editor-Transition). */
+.rail-transition {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px; /* board: Editor-Transition */
+  height: 16px;
+  border: 1px solid var(--color-hairline);
+  border-radius: 4px;
+  background: var(--color-white);
+  color: var(--color-forest);
+}
