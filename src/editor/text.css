@@ -297,6 +297,85 @@
   font: var(--type-caption);
 }
 
+/* Toasts: short messages with an action (design: States). */
+.toast-host {
+  position: fixed;
+  bottom: var(--space-5);
+  left: 50%;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 300px;
+  max-width: 460px;
+  padding: var(--space-3) 14px; /* board: States */
+  border-radius: var(--radius-card);
+  background: var(--color-forest);
+  box-shadow: var(--shadow-popover);
+  color: var(--color-white);
+  pointer-events: auto;
+}
+
+.toast-icon {
+  display: inline-flex;
+  align-self: flex-start;
+  padding-top: 2px;
+  color: var(--color-mint);
+}
+
+.toast-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toast-message {
+  font-weight: 600;
+}
+
+.toast-detail {
+  font: var(--type-caption);
+  opacity: 0.85;
+}
+
+.toast-action {
+  padding: 4px var(--space-2);
+  border: 0;
+  background: transparent;
+  color: var(--color-yellow);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.toast-action:hover {
+  text-decoration: underline;
+}
+
+.toast-close {
+  display: inline-flex;
+  padding: 4px;
+  border: 0;
+  background: transparent;
+  color: var(--color-white);
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.toast-close:hover {
+  opacity: 1;
+}
+
 /* The colour picker opened from a button. */
 .colour-button-anchor {
   position: relative;

@@ -165,6 +165,7 @@
 }
 
 .rail-list {
+  position: relative;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -175,12 +176,29 @@
 }
 
 .rail-item {
+  -webkit-user-select: none;
+  user-select: none;
   display: flex;
   flex: none;
   align-items: flex-start;
   gap: var(--space-2);
   border-radius: var(--radius-thumb);
   cursor: pointer;
+}
+
+.rail-item-dragged {
+  opacity: 0.45;
+}
+
+/* Where a dragged slide will land. */
+.rail-drop-line {
+  position: absolute;
+  right: var(--space-3);
+  left: var(--space-3);
+  height: 3px;
+  border-radius: 2px;
+  background: var(--color-accent);
+  pointer-events: none;
 }
 
 .rail-number {
