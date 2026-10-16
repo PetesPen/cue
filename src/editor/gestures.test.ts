@@ -469,7 +469,6 @@ describe('snapping a drag (EL-6)', () => {
   });
 
   test.each([
-    ['a turned element', { ...rect('a', 1500, 300, 400, 100), rotation: 30 }, false, undefined],
     [
       'a resize that keeps its proportions (Shift)',
       rect('a', 1500, 300, 400, 100),
@@ -500,5 +499,101 @@ describe('snapping a drag (EL-6)', () => {
     const gesture: Gesture = { kind: 'rotate', start: { x: 0, y: 0 }, boxes: boxesOf([a]) };
 
     expect(snapPointer(gesture, { x: 3, y: 4 }, false, context()).guides).toEqual([]);
+  });
+});
+
+describe('snapping a turned box being resized (EL-6)', () => {
+  const slide = { x: 0, y: 0, width: 1920, height: 1080 };
+  const context = { others: [], slide, threshold: 6 };
+  const turned = (rotation: number) => ({ ...rect('a', 1500, 300, 400, 100), rotation });
+
+  /** Where the corner or edge being dragged is, in slide pixels, after the change. */
+  const handleAt = (change: ElementChange | undefined, handle: 'se' | 'e') => {
+    const p = change?.props;
+    const box = {
+      x: p?.x ?? 0,
+      y: p?.y ?? 0,
+      width: p?.width ?? 0,
+      height: p?.height ?? 0,
+      rotation: p?.rotation ?? 0,
+    };
+    const centre = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+    const local = { x: box.width / 2, y: handle === 'se' ? box.height / 2 : 0 };
+    const turn = (box.rotation * Math.PI) / 180;
+    return {
+      x: centre.x + local.x * Math.cos(turn) - local.y * Math.sin(turn),
+      y: centre.y + local.x * Math.sin(turn) + local.y * Math.cos(turn),
+    };
+  };
+
+  test('Given a turned box and its corner dragged near the right edge of the slide, When the pointer is snapped, Then the corner lands on the edge', () => {
+    const gesture: Gesture = {
+      kind: 'resize',
+      start: { x: 0, y: 0 },
+      handle: 'se',
+      boxes: boxesOf([turned(30)]),
+    };
+    // The corner (the box's bottom right) starts at about x 1900 + a turn; find how far it has to go.
+    const before = handleAt(changesFor(gesture, { x: 0, y: 0 }, false)[0], 'se');
+    const pointer = { x: 1920 - before.x - 4, y: 0 };
+
+    const aimed = snapPointer(gesture, pointer, false, context);
+
+    expect(aimed.guides).toHaveLength(1);
+    const landed = handleAt(changesFor(gesture, aimed.pointer, false)[0], 'se');
+    // Positions are whole slide pixels, so the corner is within one of the edge.
+    expect(Math.abs(landed.x - 1920)).toBeLessThan(1);
+  });
+
+  test('Given a turned box and the middle of its right edge dragged near the slide edge, When the pointer is snapped, Then it lands on the edge, moving along the box own direction', () => {
+    const gesture: Gesture = {
+      kind: 'resize',
+      start: { x: 0, y: 0 },
+      handle: 'e',
+      boxes: boxesOf([turned(20)]),
+    };
+    const before = handleAt(changesFor(gesture, { x: 0, y: 0 }, false)[0], 'e');
+    // The pointer moves along the box's own direction (20 degrees), ending 4 short of x 1920.
+    const along = { x: Math.cos((20 * Math.PI) / 180), y: Math.sin((20 * Math.PI) / 180) };
+    const reach = (1920 - before.x - 4) / along.x;
+    const pointer = { x: along.x * reach, y: along.y * reach };
+
+    const aimed = snapPointer(gesture, pointer, false, context);
+
+    const landed = handleAt(changesFor(gesture, aimed.pointer, false)[0], 'e');
+    expect(Math.abs(landed.x - 1920)).toBeLessThan(1);
+    // The corrected pointer is still on the box's own line: the box was only resized, not slid.
+    expect(aimed.pointer.y / aimed.pointer.x).toBeCloseTo(along.y / along.x, 6);
+  });
+
+  test('Given an edge that meets a guide at a slant, When the pointer is snapped, Then it does not snap to it', () => {
+    // Turned 80 degrees, the right edge moves almost straight down: it would have to travel far to reach
+    // a vertical guide, so it is left alone.
+    const gesture: Gesture = {
+      kind: 'resize',
+      start: { x: 0, y: 0 },
+      handle: 'e',
+      boxes: boxesOf([turned(80)]),
+    };
+    const before = handleAt(changesFor(gesture, { x: 0, y: 0 }, false)[0], 'e');
+    const pointer = { x: 1920 - before.x - 3, y: 0 };
+
+    const aimed = snapPointer(gesture, pointer, false, context);
+
+    expect(aimed.pointer).toEqual(pointer);
+  });
+
+  test('Given a turned box and a corner far from every guide, When the pointer is snapped, Then it is as it was', () => {
+    const gesture: Gesture = {
+      kind: 'resize',
+      start: { x: 0, y: 0 },
+      handle: 'se',
+      boxes: boxesOf([{ ...rect('a', 300, 300, 400, 100), rotation: 30 }]),
+    };
+
+    expect(snapPointer(gesture, { x: 11, y: 7 }, false, context)).toEqual({
+      pointer: { x: 11, y: 7 },
+      guides: [],
+    });
   });
 });

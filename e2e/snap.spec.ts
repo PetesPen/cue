@@ -113,6 +113,30 @@ test.describe('Given two shapes, When one is dragged near the other (EL-6)', () 
     const landed = await slideBox(page, 1);
     expect(landed.x + landed.width).toBe(1920);
   });
+
+  test('Then a turned shape snaps the corner it drags', async ({ page }) => {
+    const slide = await openNewDeck(page);
+    await drawRectangle(page, slide, [1000, 400], [1400, 600]);
+    await page.getByRole('textbox', { name: 'Rotation', exact: true }).fill('20');
+    await page.keyboard.press('Enter');
+    // Its bottom right corner is pulled towards the right edge of the slide and stops 3 pixels short.
+    const handle = page.locator('.sel-box .handle[data-handle="se"]');
+    await expect(handle).toBeVisible();
+    const at = await handle.boundingBox();
+    if (!at) throw new Error('no handle');
+    const edge = (await slide.at(1920, 0)).x;
+    const from = { x: at.x + at.width / 2, y: at.y + at.height / 2 };
+    const scale = await slide.scale();
+    await page.mouse.move(from.x, from.y);
+    await page.mouse.down();
+    await page.mouse.move(edge - 3 * scale, from.y, { steps: 10 });
+    await expect(page.locator('.snap-guides line')).toHaveCount(1);
+    await page.mouse.up();
+
+    // The corner (where the handle is) sits on the edge of the slide.
+    const after = await handle.boundingBox();
+    expect((after?.x ?? 0) + (after?.width ?? 0) / 2).toBeCloseTo(edge, 0);
+  });
 });
 
 test.describe('Given shapes selected, When the Align and Distribute buttons are used (EL-6)', () => {
