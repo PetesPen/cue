@@ -103,13 +103,14 @@ test('Given the ghost, When it is dragged and let go, Then the end moves with it
   await pick('a');
   const placeBefore = node('a').style.left;
 
-  dragGhost(120, -50);
+  // Far from every guide, so the end lands exactly where it is let go (snapping has its own tests).
+  dragGhost(130, -30);
 
   await expect
     .poll(async () => (await stored(store))[0], { timeout: 3000 })
     .toMatchObject({
-      x: 920,
-      y: 550,
+      x: 930,
+      y: 570,
     });
   expect(node('a').style.left).toBe(placeBefore);
   await expect.element(screen.getByRole('button', { name: 'Undo' })).toBeEnabled();

@@ -78,6 +78,7 @@ export {
   cornersOf,
   fitBoxesTo,
   groupBounds,
+  handleEdges,
   isCorner,
   lineBetween,
   lineEnds,
@@ -192,3 +193,5 @@ export {
 export type { Transition, TransitionKind, TransitionSide } from './transition';
 export { clickCount, clickOfStep, clicksOf, playsFor, resolve, stepsOf } from './motion';
 export type { SlideState } from './motion';
+export { ALIGNMENTS, align, distribute, nudged, snapEdges, snapMove } from './snap';
+export type { Alignment, Edges, Guide, Placed, Shift, Snapped } from './snap';

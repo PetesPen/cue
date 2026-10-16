@@ -1,14 +1,20 @@
-import { useRef, type KeyboardEvent, type PointerEvent } from 'react';
+import { useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
 import {
   SLIDE_HEIGHT,
   SLIDE_WIDTH,
+  boundsOf,
   clickOfStep,
   isShape,
   resolve,
+  snapMove,
+  type Guide,
   type MoveStep,
+  type Rect,
   type Slide,
   type SlideElement,
 } from '@/model';
+import { SNAP_DISTANCE } from '../gestures';
+import { SnapGuides } from '../SnapGuides';
 import { elementName } from './labels';
 
 interface MoveGhostProps {
@@ -16,6 +22,8 @@ interface MoveGhostProps {
   /** The Move step whose end is shown, with a drag in progress already applied. */
   readonly step: MoveStep;
   readonly element: SlideElement;
+  /** The outer boxes of the other elements on the slide, which the end snaps to (EL-6). */
+  readonly others: readonly Rect[];
   /** A drag in progress: shown, not saved (decision 18). */
   readonly onDraft: (end: { readonly x: number; readonly y: number } | undefined) => void;
   /** The end is set: one step to undo. */
@@ -31,7 +39,8 @@ const pctY = (y: number) => `${String((y / SLIDE_HEIGHT) * 100)}%`;
  * set the end; with the keyboard, the arrow keys move it (Shift: ten times as far). Overlay only: it
  * is not in thumbnails, in Preview or in the show.
  */
-export function MoveGhost({ slide, step, element, onDraft, onCommit }: MoveGhostProps) {
+export function MoveGhost({ slide, step, element, others, onDraft, onCommit }: MoveGhostProps) {
+  const [guides, setGuides] = useState<readonly Guide[]>([]);
   const host = useRef<HTMLDivElement>(null);
   const drag = useRef<
     | {
@@ -83,13 +92,36 @@ export function MoveGhost({ slide, step, element, onDraft, onCommit }: MoveGhost
     const dy = (event.clientY - current.startY) / current.scale;
     if (!current.moved && Math.hypot(dx, dy) < 3) return;
     current.moved = true;
-    current.end = { x: Math.round(current.x0 + dx), y: Math.round(current.y0 + dy) };
+    let end = { x: Math.round(current.x0 + dx), y: Math.round(current.y0 + dy) };
+    // The end snaps to the slide and to the other elements, as a box dragged on the slide does; Alt
+    // turns it off.
+    if (event.altKey) {
+      setGuides([]);
+    } else {
+      const rect = boundsOf({
+        x: end.x,
+        y: end.y,
+        width: element.width,
+        height: element.height,
+        rotation: element.rotation,
+      });
+      const snap = snapMove(
+        rect,
+        others,
+        { x: 0, y: 0, width: SLIDE_WIDTH, height: SLIDE_HEIGHT },
+        SNAP_DISTANCE / current.scale,
+      );
+      end = { x: Math.round(end.x + snap.dx), y: Math.round(end.y + snap.dy) };
+      setGuides(snap.guides);
+    }
+    current.end = end;
     onDraft(current.end);
   }
 
   function finish(event: PointerEvent<HTMLButtonElement>, commit: boolean) {
     const current = drag.current;
     drag.current = undefined;
+    setGuides([]);
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
@@ -110,6 +142,7 @@ export function MoveGhost({ slide, step, element, onDraft, onCommit }: MoveGhost
 
   return (
     <div ref={host} className="move-overlay">
+      <SnapGuides guides={guides} />
       <svg
         className="move-path"
         viewBox={`0 0 ${String(SLIDE_WIDTH)} ${String(SLIDE_HEIGHT)}`}

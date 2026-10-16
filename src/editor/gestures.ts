@@ -1,10 +1,12 @@
 import {
+  boundsOf,
   boxFromDrag,
   centerOf,
   containsPoint,
   createShape,
   createText,
   groupBounds,
+  handleEdges,
   isLine,
   lineBetween,
   moveBox,
@@ -16,8 +18,12 @@ import {
   resizeGroup,
   rotateBoxes,
   rotationAfterDrag,
+  snapEdges,
+  snapMove,
+  unionRect,
   type Box,
   type ElementChange,
+  type Guide,
   type Handle,
   type Id,
   type Point,
@@ -76,6 +82,9 @@ export const ANGLE_STEP = 15;
 
 /** A pointer must move this far (screen pixels) before a click becomes a drag. */
 export const DRAG_THRESHOLD = 3;
+
+/** A box snaps to a guide when it comes this near (screen pixels, so it does not depend on the zoom). */
+export const SNAP_DISTANCE = 6;
 
 /** The size of a shape made by a click rather than a drag (slide pixels). */
 export const DEFAULT_SHAPE_SIZE = { width: 360, height: 240 } as const;
@@ -315,4 +324,54 @@ export function applyDraft(
     return props ? { ...element, ...normaliseProps(props) } : element;
   });
   return { ...slide, elements: drawing ? [...elements, drawing] : elements };
+}
+
+// Snapping (EL-6) ---------------------------------------------------------------------------------
+
+/** What a dragged box can line up with. */
+export interface SnapContext {
+  /** The outer boxes of the elements that are not being dragged. */
+  readonly others: readonly Rect[];
+  readonly slide: Rect;
+  /** How near a line has to be to snap, in slide pixels (a few screen pixels at the zoom now). */
+  readonly threshold: number;
+}
+
+/**
+ * The pointer moved so that the gesture lands on a guide: a move whose edges or middles come near
+ * those of the slide or another element, a resize whose dragged edge does. Feeding the result to
+ * `changesFor` gives the snapped change, so snapping needs no code of its own in the gestures. A turned
+ * element is resized freely (its sides are not the upright lines the guides are), as is a resize that
+ * keeps its proportions, and the guides are what a snap shows while it holds.
+ */
+export function snapPointer(
+  gesture: Gesture,
+  pointer: Point,
+  shift: boolean,
+  context: SnapContext,
+): { readonly pointer: Point; readonly guides: readonly Guide[] } {
+  const none = { pointer, guides: [] };
+  const delta = { x: pointer.x - gesture.start.x, y: pointer.y - gesture.start.y };
+  if (gesture.kind === 'move') {
+    const moved = unionRect(
+      [...gesture.boxes.values()].map((box) => boundsOf(moveBox(box, delta.x, delta.y))),
+    );
+    const snap = snapMove(moved, context.others, context.slide, context.threshold);
+    return { pointer: { x: pointer.x + snap.dx, y: pointer.y + snap.dy }, guides: snap.guides };
+  }
+  if (gesture.kind === 'resize' && !shift && gesture.lockAspect !== true) {
+    const entries = [...gesture.boxes.values()];
+    const only = entries[0];
+    if (entries.length !== 1 || only?.rotation !== 0) return none;
+    const resized = resizeBox(only, gesture.handle, delta, {});
+    const snap = snapEdges(
+      resized,
+      handleEdges(gesture.handle),
+      context.others,
+      context.slide,
+      context.threshold,
+    );
+    return { pointer: { x: pointer.x + snap.dx, y: pointer.y + snap.dy }, guides: snap.guides };
+  }
+  return none;
 }

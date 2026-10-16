@@ -10,10 +10,12 @@ import {
   HANDLES,
   SLIDE_HEIGHT,
   SLIDE_WIDTH,
+  boundsOf,
   groupBounds,
   isImage,
   systemEnv,
   type ElementChange,
+  type Guide,
   type Id,
   type Point,
   type Rect,
@@ -28,16 +30,20 @@ import {
   changesFor,
   drawnShape,
   drawnText,
+  SNAP_DISTANCE,
   marqueeRect,
   marqueeSelection,
   pickElement,
+  snapPointer,
   type Gesture,
+  type SnapContext,
   type Tool,
 } from './gestures';
 import { SelectionOverlay } from './SelectionOverlay';
 import type { EditMeta } from './useDeckSession';
 import { SlideView, type SlideViewHandle } from './SlideView';
 import { StepBadges } from './animation/StepBadges';
+import { SnapGuides } from './SnapGuides';
 import type { Look } from '@/render';
 import { SHAPE_LABELS, canEditText, describeSelection } from './shapeLabels';
 
@@ -156,6 +162,8 @@ export function Canvas({
   const [readout, setReadout] = useState<string | undefined>();
   const [marquee, setMarquee] = useState<Rect | undefined>();
   const [dropping, setDropping] = useState(false);
+  // The lines a box being dragged has snapped to (EL-6).
+  const [guides, setGuides] = useState<readonly Guide[]>([]);
 
   const selected = slide.elements.filter((element) => selection.includes(element.id));
 
@@ -185,7 +193,26 @@ export function Canvas({
     };
   }
 
+  /** What a box being dragged can line up with: the slide, and every element that is not dragged. */
+  function snapContextFor(gesture: Gesture): SnapContext {
+    const dragged =
+      gesture.kind === 'move' || gesture.kind === 'resize' ? gesture.boxes : undefined;
+    const width = frameRef.current?.getBoundingClientRect().width ?? SLIDE_WIDTH;
+    return {
+      others: slide.elements.filter((e) => !dragged?.has(e.id)).map((e) => boundsOf(boxOf(e))),
+      slide: { x: 0, y: 0, width: SLIDE_WIDTH, height: SLIDE_HEIGHT },
+      threshold: (SNAP_DISTANCE * SLIDE_WIDTH) / Math.max(width, 1),
+    };
+  }
+
+  /** The pointer as a drag sees it: snapped to the guides, unless Alt is held. */
+  function snapped(gesture: Gesture, point: Point, event: { shiftKey: boolean; altKey: boolean }) {
+    if (event.altKey) return { pointer: point, guides: [] };
+    return snapPointer(gesture, point, event.shiftKey, snapContextFor(gesture));
+  }
+
   function clearGesture() {
+    setGuides([]);
     active.current = undefined;
     onDraft(undefined);
     onDrawing(undefined);
@@ -307,8 +334,10 @@ export function Canvas({
       onDrawing(text);
       setReadout(`Text · W ${String(Math.round(text.width))}`);
     } else {
-      const changes = changesFor(gesture, point, event.shiftKey);
+      const aimed = snapped(gesture, point, event);
+      const changes = changesFor(gesture, aimed.pointer, event.shiftKey);
       onDraft(changes);
+      setGuides(aimed.guides);
       setReadout(readoutFor(gesture, changes, slide));
     }
   }
@@ -325,14 +354,21 @@ export function Canvas({
 
     switch (gesture.kind) {
       case 'move':
-        if (moved) onUpdate(changesFor(gesture, point, event.shiftKey), { label: 'Move' });
-        else if (current.clickedId && selection.length > 1 && !event.shiftKey) {
+        if (moved) {
+          onUpdate(changesFor(gesture, snapped(gesture, point, event).pointer, event.shiftKey), {
+            label: 'Move',
+          });
+        } else if (current.clickedId && selection.length > 1 && !event.shiftKey) {
           onSelect([current.clickedId]);
         }
         break;
       case 'resize':
       case 'lineEnd':
-        if (moved) onUpdate(changesFor(gesture, point, event.shiftKey), { label: 'Resize' });
+        if (moved) {
+          onUpdate(changesFor(gesture, snapped(gesture, point, event).pointer, event.shiftKey), {
+            label: 'Resize',
+          });
+        }
         break;
       case 'rotate':
         if (moved) onUpdate(changesFor(gesture, point, event.shiftKey), { label: 'Rotate' });
@@ -496,6 +532,7 @@ export function Canvas({
         <StepBadges slide={slide} activeStepId={badges.activeStepId} />
       )}
       {!onPreviewAdvance && animateOverlay}
+      <SnapGuides guides={guides} />
       {editingId === undefined && !onPreviewAdvance && (selected.length > 0 || marquee) ? (
         <SelectionOverlay elements={selected} chip={chip} marquee={marquee} />
       ) : null}

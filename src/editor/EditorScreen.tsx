@@ -4,6 +4,7 @@ import {
   SLIDE_HEIGHT,
   SLIDE_WIDTH,
   systemEnv,
+  boundsOf,
   canReorder,
   createImage,
   emptyText,
@@ -20,7 +21,7 @@ import { measureTextHeight } from '@/render';
 import { isNearlyFull, readStorageUsage, type StoredImage, type StoredOriginal } from '@/storage';
 import { Canvas } from './Canvas';
 import { DesignPanel, SlidePanel } from './DesignPanel';
-import { applyDraft, type Tool } from './gestures';
+import { applyDraft, boxOf, type Tool } from './gestures';
 import {
   AlertIcon,
   ImageIcon,
@@ -661,9 +662,9 @@ function Editor({
 
   const fonts = useMemo(() => deckFonts(deck), [deck]);
   // The Text section of the Design panel works on the words being edited, or on whole boxes.
-  const commitChanges = (changes: readonly ElementChange[]) => {
+  const commitChanges = (changes: readonly ElementChange[], label?: string) => {
     setDraft(undefined);
-    save(changes);
+    save(changes, label === undefined ? undefined : { label });
   };
   const previewChanges = (changes: readonly ElementChange[] | undefined) => {
     setDraft(changes && fitTextBoxes(currentSlide, changes));
@@ -945,6 +946,9 @@ function Editor({
                   slide={currentSlide}
                   step={ghostStep}
                   element={ghostElement}
+                  others={currentSlide.elements
+                    .filter((e) => e.id !== ghostElement.id)
+                    .map((e) => boundsOf(boxOf(e)))}
                   onDraft={(end) => {
                     setGhostDraft(end && { stepId: ghostStep.id, ...end });
                   }}

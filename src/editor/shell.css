@@ -720,3 +720,26 @@
   width: 100%;
   aspect-ratio: 16 / 9;
 }
+
+/* The guide lines shown while a box snaps (EL-6). */
+.snap-guides {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.snap-guides line {
+  stroke: var(--color-accent);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The Align and Distribute rows hold icon buttons. */
+.align-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
