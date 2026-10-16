@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+import { FOREST, GREEN, MINT, SAGE, YELLOW, openSeededDeck } from './support';
 
 // The first screenshot tests (sprint 2): how shapes are drawn, how opacity fades a whole element, and
 // how a selection looks. They run only in the pinned container, and the reference images are made by
@@ -19,12 +20,6 @@ interface ShapeSeed {
   readonly cornerRadius?: number;
 }
 
-const FOREST = '#14281B';
-const GREEN = '#17803F';
-const MINT = '#7FC8A0';
-const YELLOW = '#F5C542';
-const SAGE = '#E8F0E4';
-
 function shape(seed: ShapeSeed) {
   return {
     kind: 'shape',
@@ -35,49 +30,6 @@ function shape(seed: ShapeSeed) {
     cornerRadius: 0,
     ...seed,
   };
-}
-
-/** Put a one-slide deck in the browser's database and open it in the editor. */
-async function openSeededDeck(page: Page, elements: readonly object[]) {
-  await page.goto('/');
-  await expect(page.getByRole('heading', { name: /Your decks/ })).toBeVisible();
-  await page.evaluate(async (seeded) => {
-    const db = await new Promise<IDBDatabase>((resolve, reject) => {
-      const request = indexedDB.open('cue');
-      request.onsuccess = () => {
-        resolve(request.result);
-      };
-      request.onerror = () => {
-        reject(new Error(request.error?.message ?? 'The database did not open'));
-      };
-    });
-    const now = Date.now();
-    const deck = {
-      schemaVersion: 1,
-      id: 'visual',
-      title: 'Visual test deck',
-      createdAt: now,
-      updatedAt: now,
-      slides: [{ id: 'slide-1', background: '#FFFFFF', notes: '', elements: seeded }],
-    };
-    await new Promise<void>((resolve, reject) => {
-      const tx = db.transaction('decks', 'readwrite');
-      tx.objectStore('decks').put(deck);
-      tx.oncomplete = () => {
-        resolve();
-      };
-      tx.onerror = () => {
-        reject(new Error(tx.error?.message ?? 'The deck was not stored'));
-      };
-    });
-    db.close();
-  }, elements);
-  await page.evaluate(() => {
-    window.location.hash = '#/deck/visual';
-  });
-  await expect(page.getByRole('option', { name: 'Slide 1' })).toBeVisible();
-  // The bundled UI font must be what draws the page, or the images would differ run to run.
-  await page.evaluate(() => document.fonts.ready.then(() => undefined));
 }
 
 test.describe('Given shapes on a slide', () => {
