@@ -1,4 +1,17 @@
 import { freeze } from 'immer';
+import {
+  DEFAULT_DELAY,
+  DEFAULT_DURATION,
+  DEFAULT_EASING,
+  clampDelay,
+  clampDuration,
+  isEasing,
+  isStepEffect,
+  isTrigger,
+  changeStep,
+  createStep,
+  type Step,
+} from './animation';
 import { SCHEMA_VERSION, type Deck, type Slide } from './deck';
 import { DASH_STYLES, SHAPE_KINDS, type Border, type SlideElement } from './elements';
 import { sanitiseRichText, type RichText } from './richtext';
@@ -100,6 +113,39 @@ export function parseElement(value: unknown): SlideElement {
   };
 }
 
+/**
+ * The animation steps of a slide. A deck saved before animations existed has none. A step whose
+ * element is gone is dropped (nothing can play on it), and an odd value in a step falls back to its
+ * default rather than losing the deck.
+ */
+function parseSteps(value: unknown, elements: ReadonlySet<string>): Step[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value))
+    throw new InvalidDeckError('A slide has animations that are not a list');
+  const steps: Step[] = [];
+  for (const raw of value as unknown[]) {
+    if (!isRecord(raw) || typeof raw.id !== 'string' || typeof raw.element !== 'string') {
+      throw new InvalidDeckError('An animation step is missing a field');
+    }
+    if (!elements.has(raw.element) || !isStepEffect(raw.effect)) continue;
+    const base = createStep(
+      raw.id,
+      raw.element,
+      raw.effect,
+      isTrigger(raw.trigger) ? raw.trigger : 'click',
+    );
+    steps.push(
+      changeStep(base, {
+        ...(typeof raw.style === 'string' ? { style: raw.style } : {}),
+        duration: isNumber(raw.duration) ? clampDuration(raw.duration) : DEFAULT_DURATION,
+        delay: isNumber(raw.delay) ? clampDelay(raw.delay) : DEFAULT_DELAY,
+        easing: isEasing(raw.easing) ? raw.easing : DEFAULT_EASING,
+      }),
+    );
+  }
+  return steps;
+}
+
 function parseSlide(value: unknown): Slide {
   if (
     !isRecord(value) ||
@@ -110,11 +156,13 @@ function parseSlide(value: unknown): Slide {
   ) {
     throw new InvalidDeckError('A slide is missing a field');
   }
+  const elements = (value.elements as unknown[]).map(parseElement);
   return {
     id: value.id,
     background: value.background,
     notes: value.notes,
-    elements: (value.elements as unknown[]).map(parseElement),
+    elements,
+    animations: parseSteps(value.animations, new Set(elements.map((e) => e.id))),
   };
 }
 

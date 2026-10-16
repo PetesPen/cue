@@ -44,6 +44,12 @@ export function labelFor(command: Command): string {
       return 'Arrange';
     case 'setBackground':
       return command.all ? 'Change all backgrounds' : 'Change background';
+    case 'addStep':
+      return 'Add animation';
+    case 'updateStep':
+      return 'Change animation';
+    case 'removeStep':
+      return 'Remove animation';
   }
 }
 
@@ -54,6 +60,8 @@ export function idsOf(command: Command): Id[] {
       return [command.element.id];
     case 'addElements':
       return command.elements.map((element) => element.id);
+    case 'addStep':
+      return [command.step.element];
     case 'updateElements':
       return command.changes.map((change) => change.id);
     case 'removeElements':
@@ -66,6 +74,8 @@ export function idsOf(command: Command): Id[] {
     case 'moveSlide':
     case 'duplicateSlide':
     case 'setBackground':
+    case 'updateStep':
+    case 'removeStep':
       return [];
   }
 }

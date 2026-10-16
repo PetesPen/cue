@@ -424,6 +424,7 @@ export function useDeckSession(
         slideId,
         newSlideId,
         elementIds: slide.elements.map(() => env.newId()),
+        stepIds: slide.animations.map(() => env.newId()),
         at: env.now(),
       });
       currentRef.current = newSlideId;

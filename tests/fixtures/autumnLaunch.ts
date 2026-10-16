@@ -89,6 +89,25 @@ function line(id: string, x: number, y: number, width: number, color: string): J
   };
 }
 
+/** An animation step in the stored form: 0.5 s, no delay, ease out (the defaults). */
+function step(
+  id: string,
+  element: string,
+  effect: 'appear' | 'disappear',
+  trigger: 'click' | 'with-previous' = 'click',
+): Json {
+  return {
+    id,
+    element,
+    effect,
+    style: 'fade',
+    trigger,
+    duration: 0.5,
+    delay: 0,
+    easing: 'ease-out',
+  };
+}
+
 /** One slide: a coloured background, a headline, a line of support and a coloured circle. */
 function simple(
   n: number,
@@ -117,6 +136,7 @@ function simple(
       ),
       shape(`${id}-dot`, 'ellipse', { x: 1420, y: 640, width: 320, height: 320 }, circle),
     ],
+    animations: [],
   };
 }
 
@@ -151,6 +171,14 @@ function approach(): Json {
         ),
       ]),
     ],
+    // Click 1: the picture comes in, with the three rows. Click 2: the yellow block leaves.
+    animations: [
+      step('s03-step-1', 's03-image', 'appear'),
+      step('s03-step-2', 's03-row-0', 'appear', 'with-previous'),
+      step('s03-step-3', 's03-row-1', 'appear', 'with-previous'),
+      step('s03-step-4', 's03-row-2', 'appear', 'with-previous'),
+      step('s03-step-5', 's03-block', 'disappear'),
+    ],
   };
 }
 
@@ -180,6 +208,7 @@ function points(n: number, background: string, ink: string, title: string, items
       ),
       shape(`${id}-bar`, 'rectangle', { x: 1600, y: 0, width: 320, height: 1080 }, MINT, 0.5),
     ],
+    animations: [],
   };
 }
 
