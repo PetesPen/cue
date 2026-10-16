@@ -90,8 +90,20 @@
   cursor: pointer;
 }
 
-.toolbar-button:hover {
+.toolbar-button:hover:not(:disabled) {
   background: var(--color-sage);
+}
+
+.toolbar-button:disabled {
+  color: var(--color-disabled-text);
+  cursor: default;
+}
+
+/* A toolbar button that is only an icon (undo, redo). */
+.toolbar-icon {
+  justify-content: center;
+  width: var(--control-toolbar-height);
+  padding: 0;
 }
 
 .banner-area:empty {
@@ -153,6 +165,7 @@
 }
 
 .rail-list {
+  position: relative;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -163,12 +176,29 @@
 }
 
 .rail-item {
+  -webkit-user-select: none;
+  user-select: none;
   display: flex;
   flex: none;
   align-items: flex-start;
   gap: var(--space-2);
   border-radius: var(--radius-thumb);
   cursor: pointer;
+}
+
+.rail-item-dragged {
+  opacity: 0.45;
+}
+
+/* Where a dragged slide will land. */
+.rail-drop-line {
+  position: absolute;
+  right: var(--space-3);
+  left: var(--space-3);
+  height: 3px;
+  border-radius: 2px;
+  background: var(--color-accent);
+  pointer-events: none;
 }
 
 .rail-number {
@@ -336,6 +366,12 @@
    hint while a shape tool is armed (design: Main). All of it sits in percentages of the slide. */
 .slide-frame {
   position: relative;
+}
+
+/* Files held over the slide: it will take them. */
+.slide-frame-dropping {
+  outline: 2px dashed var(--color-accent);
+  outline-offset: 4px;
 }
 
 .slide-frame-drawing {
@@ -646,4 +682,26 @@
 
 .slide-frame * {
   -webkit-user-drag: none;
+}
+
+/* The description of a picture (a few words, so a small box). */
+.alt-field {
+  width: 100%;
+  padding: var(--space-2) 10px;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-field);
+  background: var(--color-white);
+  color: inherit;
+  font: inherit;
+  resize: vertical;
+}
+
+.alt-field:focus-visible {
+  border-color: var(--color-accent);
+  outline: none;
+}
+
+/* The real file chooser is the Image button; the input itself is not shown. */
+.file-input {
+  display: none;
 }

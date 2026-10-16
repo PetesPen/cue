@@ -1,4 +1,4 @@
-/** What can sit on a slide: shapes (EL-3) and text boxes (EL-1); images (EL-4) join this list later. */
+/** What can sit on a slide: shapes (EL-3), text boxes (EL-1) and images (EL-4). */
 
 import { emptyText, type RichText } from './richtext';
 
@@ -74,7 +74,31 @@ export interface TextElement {
   readonly doc: RichText;
 }
 
-export type SlideElement = ShapeElement | TextElement;
+/**
+ * A picture (EL-4). The picture itself is stored once, by the hash of its bytes, and any number of
+ * elements, slides and decks can show it. The box is where and how big it is drawn; it keeps the
+ * picture's proportions unless it is stretched on purpose. It has the fill and border every box has
+ * (a border makes a frame; the fill shows through where the picture is transparent).
+ */
+export interface ImageElement {
+  readonly id: Id;
+  readonly kind: 'image';
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+  readonly rotation: number;
+  /** 0 (invisible) to 1. A picture's own transparency is kept: it fades from there (TR-1). */
+  readonly opacity: number;
+  readonly fill: string;
+  readonly border: Border;
+  /** The content hash of the stored picture. */
+  readonly hash: string;
+  /** What the picture shows, for people who cannot see it. */
+  readonly alt: string;
+}
+
+export type SlideElement = ShapeElement | TextElement | ImageElement;
 
 export function isShape(element: SlideElement): element is ShapeElement {
   return element.kind === 'shape';
@@ -84,9 +108,14 @@ export function isTextBox(element: SlideElement): element is TextElement {
   return element.kind === 'text';
 }
 
+export function isImage(element: SlideElement): element is ImageElement {
+  return element.kind === 'image';
+}
+
 /** The properties of an element that a command may change. Those that do not fit the kind are ignored. */
 export type ElementProps = Partial<Omit<ShapeElement, 'id' | 'kind'>> &
-  Partial<Pick<TextElement, 'padding' | 'doc'>>;
+  Partial<Pick<TextElement, 'padding' | 'doc'>> &
+  Partial<Pick<ImageElement, 'alt'>>;
 
 export interface ElementChange {
   readonly id: Id;
@@ -109,10 +138,12 @@ const SHARED_PROPS = [
 ] as const;
 const SHAPE_PROPS = [...SHARED_PROPS, 'shape', 'cornerRadius', 'text'] as const;
 const TEXT_PROPS = [...SHARED_PROPS, 'padding', 'doc'] as const;
+const IMAGE_PROPS = [...SHARED_PROPS, 'alt'] as const;
 
 /** Only the properties this kind of element has: a corner radius means nothing to a text box. */
 export function applicableProps(element: SlideElement, props: ElementProps): ElementProps {
-  const allowed: readonly string[] = element.kind === 'shape' ? SHAPE_PROPS : TEXT_PROPS;
+  const allowed: readonly string[] =
+    element.kind === 'shape' ? SHAPE_PROPS : element.kind === 'text' ? TEXT_PROPS : IMAGE_PROPS;
   return Object.fromEntries(Object.entries(props).filter(([key]) => allowed.includes(key)));
 }
 
@@ -175,6 +206,29 @@ export function createText(
     border: { color: DEFAULT_BORDER_COLOR, width: 0, dash: 'solid' },
     padding: 0,
     doc,
+  };
+}
+
+/** A new picture, no fill and no border, with its box and what it shows. */
+export function createImage(
+  id: Id,
+  hash: string,
+  box: { x: number; y: number; width: number; height: number },
+  alt = '',
+): ImageElement {
+  return {
+    id,
+    kind: 'image',
+    x: box.x,
+    y: box.y,
+    width: box.width,
+    height: box.height,
+    rotation: 0,
+    opacity: 1,
+    fill: 'none',
+    border: { color: DEFAULT_BORDER_COLOR, width: 0, dash: 'solid' },
+    hash,
+    alt,
   };
 }
 

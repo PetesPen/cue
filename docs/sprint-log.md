@@ -272,3 +272,91 @@ Use https://cue-presentations.netlify.app/. New deck, then:
 
 - **Sprint 2 accepted.** Pull requests 4 to 7 and 10 merged; the screenshot workflow ("Update screenshots") has worked once end to end and its first images are reviewed.
 - Plans for sprints 3 and 4 are written for approval together (`docs/plans/sprint-03.md`, `sprint-04.md`); the next review is Gate 2 after sprint 4.
+
+
+## Sprints 3 and 4: Rich text, notes, pictures, undo and slide management (Gate 2, "Editor alpha")
+
+**Dates:** plans approved 2026-10-16 (with the colour picker, EL-10, added to sprint 3 and Autumn Launch as the Gate 2 deck); both sprints built the same day, with no review between them (the every-other-sprint rhythm).
+
+**Goal:** build and save a real deck of text, shapes and pictures, with undo. **Met on the evidence below; the gate itself is yours to pass or not** (criteria in `docs/development-plan.md`, "Gate 2 criteria"). All nine stories are built and shown working on the Netlify previews, with their tests green on Chromium, Firefox (in CI) and WebKit. Two things wait for you: the reference images of the text screenshot tests (pull requests 15 and 17), and the manual checks.
+
+### What finished
+
+| Story | Status | How it is shown |
+|---|---|---|
+| EL-1 Add rich text | done | T or the Text button, click or drag; double-click or Enter to edit in place; mixed fonts, sizes, colours and styles in one box; lists, alignment, indent, line spacing; fill, border and padding; the floating toolbar and the Text section of the Design panel. A test compares where every piece of text sits in the editor and in the drawn slide for seven mixed samples (identical to 0.01 px); paste tests with the clipboard HTML of Word, Google Docs and a web page |
+| EL-2 Choose fonts | done, except the export part (sprint 9) | font picker as on the board (search, fonts in this deck first, each name in its own typeface); a test for every style button for every font; only the fonts a deck uses are loaded until the picker is opened |
+| SL-6 Add speaker notes | done, except "shown in presenter view" (sprint 8) | plain text under the slide, saved per slide within 2 seconds and when the tab closes |
+| EL-7 Copy, paste and delete | done | Ctrl+C, X, V, D, Delete and Backspace, across slides; the right-click menu; plain text from other programs becomes a text box; a format of our own keeps all formatting |
+| EL-10 Pick any colour | done | one picker for fill, border, text colour: swatches, "In this deck" colours, a shade and brightness area, a hue slider, a code field, an eyedropper where the browser has one; live while dragging, one step; keyboard and screen reader |
+| Text inside a shape (carried from sprint 2) | done | Enter or double-click on a shape; fading the shape fades its text |
+| EL-4 Add images | done | the Image button, drop (centred on the drop point) or paste; PNG, JPEG, GIF, SVG, WebP recognised by their bytes; scaled down over 2560 px with the toast; originals kept under 8 MB; friendly messages; saved with the deck in one transaction; unused photos swept at startup |
+| EL-8 Undo and redo | done | Ctrl+Z, Ctrl+Shift+Z, Ctrl+Y and the top bar buttons; one step per drag, resize, slider drag or burst of typing; property tests over every command, also with merging |
+| SL-3 Reorder slides | done | drag with a drop line, or Ctrl+Shift+Up and Down; undoable |
+| SL-4 Duplicate and delete slides | done | Ctrl+D, Delete, right-click menu; the "Slide N deleted" toast with Undo; the only slide leaves a blank one |
+
+Tests now: 958 Vitest tests (560 at the end of sprint 2). End to end: 88 tests per engine (42 at the end of sprint 2), passing on Chromium and WebKit locally and on all three in CI, and the new ones against the preview of each pull request. Coverage on `model` 97.9%, `render` 99.6%. First-load bundle 134 KB of 300 KB (117 KB at the end of sprint 2); CSS 6.1 KB of 30 KB; the text editor, loaded when text is first edited, 118.5 KB of its own 160 KB budget.
+
+### Not done
+
+- **Notes in the presenter view** (SL-6) and **fonts embedded in the HTML export** (EL-2): they need the presenter (sprint 8) and the export (sprint 9).
+- **Animations and transitions in a duplicated slide** (SL-4): they do not exist yet; sprints 5 and 6 add them to the duplicate.
+- **The text screenshot tests** are written and their five reference images are made, but wait in pull requests 15 (the images) and 17 (the tests, a draft) for your eye. A picture-fading screenshot (the TR-1 criterion about transparency) will join them; the fade itself is tested on the real element.
+- **From the Editor-Text board, not built:** "Track" (letter spacing; no story asks for it) and the "Weight" menu (the Bold button does that job); "Text colour opacity" is TR-2 in sprint 11.
+
+### Gate 2 rehearsal: rebuilding "Our approach", and what was missing or awkward
+
+The fixture deck Autumn Launch (12 slides, as data, in `tests/fixtures/autumnLaunch.ts`) opens and every slide is drawn. Its hero slide is rebuilt through the interface by an end-to-end test (`e2e/autumn-launch.spec.ts`): the eyebrow and the title in different sizes and colours, three rules and three rows of words, a rectangle, a circle, a picture with a description and a 60% fade, notes, undo and redo, a duplicate slide, and a reload. About fifty steps; it passes on Chromium and WebKit. What building it showed:
+
+1. **No slide background.** The design's slides are dark, yellow and mint. There is no control for it (SL-5, a Should), so in the interface you would put a full-slide rectangle at the back. The fixture sets the background in the data. I recommend pulling SL-5 forward: it is small and the sample deck needs it.
+2. **No letter spacing.** The eyebrow ("03 — STRATEGY") is spaced out in the design. Worth a story if you want that look.
+3. **Weights.** The design's titles look heavier than Bold. The fonts are variable (a range of weights), but only Regular and Bold are offered.
+4. **Aligning by eye is slow.** No snap lines or alignment buttons (EL-6, a Should): lining up the rules and rows meant typing positions into the panel.
+5. **No layers panel** (ZO-2, a Should): with the picture and the circle overlapping, selecting the one underneath needs Tab or a selection box.
+6. **List markers** (bullets and numbers) take the size of the box's base text, not the size of the words beside them.
+7. **Rows like "01   Listen first"** are made with spaces; there are no tab stops.
+8. **The Image panel** differs from the board: the description is its own section, not the line at the top beside the file name.
+
+### Problems found along the way (and fixed)
+
+- **ProseMirror puts back cursor moves it did not make for about 50 ms after it puts the cursor in place.** A key pressed in that moment (a test does this; a person cannot) seemed to do nothing. Tests wait a moment; focus is now set at once instead of a frame later, so typing is never lost.
+- **In Safari and other WebKit browsers, a field that moves focus on Enter let the Enter key type a line in the text behind it.** Enter in the number and colour fields no longer does that.
+- **Undoing a deletion of text would have deleted the text box.** Ending the editing of an empty new text box removes it, so undo restarts the editor without ending it.
+- **Typed words could be lost when a tab closed within a second of typing.** Typing in a text box and in the notes now registers what is pending, and it is given to the deck before the deck is saved when the tab closes or the deck is left.
+- **A squash-merge left a button twice** after a merge of main into a branch; found by reading the diff, removed.
+- **Test harness traps** (not product bugs): clipboard and file-drop tests use synthetic events; fonts picked in one test were already loaded in the next, so that test has its own file.
+- I force-pushed nothing this time; branches that depended on a squash-merged branch were brought up to date by merging main and keeping their own files.
+
+### What stays manual (please check by hand)
+
+1. **Typing with an input method** (Japanese, Chinese, accents by dead keys) in a text box; **pasting from Word, a web page and a PDF**, as you would.
+2. **How the floating toolbar and the colour picker feel**, and the picker's layout (it is my own design, from the Style Guide's pieces; the boards show only a swatch and a code).
+3. **Dragging pictures in from your file manager and from a browser; pasting a screenshot**; a real camera photo of 6000 x 4000.
+4. **Undo with a trackpad** and the feel of undoing a burst of typing.
+5. **Text at 200% browser zoom**, and on your Firefox.
+6. **The reference images** (pull request 15): fonts, lists, fading text, the editor, both pickers.
+7. **A full rehearsal:** build a slide of your own from a blank deck (Gate 2 criterion 5).
+
+### Demo script (45 minutes)
+
+Use https://cue-presentations.netlify.app/ (after pull requests 20 and the ones before it are merged; each pull request also has its own preview). New deck, then:
+
+1. (8 min) **Text.** Press T, click the slide, type. Select words: make some bold, change the size and the font (the picker lists each font in its own typeface; try Caveat: no italic button; DM Serif Display: no bold). Make a bullet list, change the alignment and the line spacing. Press Escape, double-click to edit again. Fill a box, give it a border and padding in the Design panel.
+2. (5 min) **Colour.** Select words, open the text colour button, drag across the colour area and watch the words change; type a code; use the eyedropper if your browser has it. Open a shape's fill: the colours the deck uses are listed first.
+3. (4 min) **Paste.** Copy a paragraph from Word or a web page and paste it into a text box: bold, italic, underline and lists stay; other styles go. Copy shapes and a text box, paste on another slide.
+4. (3 min) **Notes.** Type notes under the slide; change slides: each has its own; reload.
+5. (6 min) **Pictures.** Click Image and choose a photo; drop one on the slide; paste a screenshot. Try a huge photo (the toast, Undo). Try a text file renamed .png (a clear message). Describe a picture in the Design panel; fade it; resize it by a corner (proportions stay) and by a side.
+6. (6 min) **Undo.** Make a few edits, press Ctrl+Z many times, then Ctrl+Shift+Z. Type some words, press Ctrl+Z while typing. Delete a slide and use the toast's Undo.
+7. (5 min) **Slides.** Drag a thumbnail (watch the line), Ctrl+Shift+Down on a slide, Ctrl+D to duplicate, right-click a thumbnail.
+8. (8 min) **The real deck.** Open the fixture deck (a developer link on the preview, or run the test), look at slide 3, and try to rebuild a slide of it yourself. Write down what annoys you.
+
+### Retrospective questions (most important first)
+
+1. **Gate 2: yes, no, or not yet?** The five criteria are in `docs/development-plan.md`. Number 5 (building a slide yourself) is the one only you can answer.
+2. **Slide background (SL-5) into sprint 5?** The rebuild needed it. It is small.
+3. **Do you want letter spacing and a heavier weight?** Two small additions to the text controls; each would be a new Could or Should story.
+4. **The colour picker's layout and the Text section of the panel:** are they what you want, or should they be drawn? (The boards do not show either.)
+5. **Reference images** in pull requests 15 and 17: are they right?
+6. **Originals of scaled pictures:** kept under 8 MB when there is room, as the plan said. Is that the right limit?
+7. **Snap lines and a layers panel** (EL-6, ZO-2) made the rebuild slower. They are Shoulds in sprint 11; would you move them earlier?
+8. **Plans for sprints 5 and 6** (written for you to approve together, `docs/plans/sprint-05.md` and `sprint-06.md`).

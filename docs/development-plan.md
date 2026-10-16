@@ -188,6 +188,16 @@ Reviews with the product owner happen every other sprint (agreed 2026-10-16), an
 
 Gate 1 is not about the spike code or about every risk being gone. It is the answer to "do we build on this stack, knowing what we now know?". The things the spikes could not check (real Safari, a second display) stay on the manual list either way.
 
+**Gate 2 criteria** (written by Claude on 2026-10-16, at the start of sprint 3 and shown at the end of sprint 4; the product owner can change them). The question is "can you build and save a real deck of text, shapes and images, with undo?":
+
+1. **Every acceptance criterion of sprints 3 and 4 is shown working** (EL-1, EL-2, SL-6, EL-7, EL-10, EL-4, EL-8, SL-3, SL-4), on the preview deployment, with its automated tests green on Chromium, Firefox and WebKit.
+2. **A real deck can be built.** The fixture deck Autumn Launch (12 slides, from the design; decision 4 settled by Peter on 2026-10-16) opens in the editor and every slide is drawn; its hero slide, "Our approach", is rebuilt through the interface by an end-to-end test (text in several sizes and colours, shapes, a picture with a description and a fade, notes, undo and redo, a duplicate slide, and a reload). What was missing or awkward is written down (`docs/sprint-log.md`).
+3. **Nothing is lost.** Everything survives a reload; a save that does not fit (a full store) is reported, keeps the work on screen, and saves everything together when it can; undo covers every command (property tests).
+4. **Accessibility and budgets hold.** axe finds no violations on the editor with text editing, both pickers, a selected picture, a toast and the slide rail; the first load stays inside 300 KB gzipped and the text editor, loaded when text is first edited, inside its own 160 KB.
+5. **Peter builds a slide himself** from a blank deck in the live app and says whether it feels like a tool he would use (manual; this is the part a machine cannot judge).
+
+Gate 2 is not about polish (slide backgrounds, snapping and a layers panel are later stories) or about animation and presenting (sprints 5 to 8).
+
 If a gate's criteria are not met, the next sprint closes the gap before any new stories start.
 
 **Sprint by sprint**

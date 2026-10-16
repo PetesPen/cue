@@ -304,6 +304,8 @@ export function textExtensions(): Extensions {
       horizontalRule: false,
       link: false,
       trailingNode: false,
+      // One history for the whole deck (decision 18): Ctrl+Z is the app's, not the editor's own.
+      undoRedo: false,
     }),
     TextStyle,
     ParagraphOptions,

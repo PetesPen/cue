@@ -1,7 +1,11 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   SHAPE_KINDS,
+  SLIDE_HEIGHT,
+  SLIDE_WIDTH,
+  systemEnv,
   canReorder,
+  createImage,
   emptyText,
   isShape,
   isTextBox,
@@ -13,11 +17,28 @@ import {
   type SlideElement,
 } from '@/model';
 import { measureTextHeight } from '@/render';
-import { isNearlyFull } from '@/storage';
+import { isNearlyFull, readStorageUsage, type StoredImage, type StoredOriginal } from '@/storage';
 import { Canvas } from './Canvas';
 import { DesignPanel } from './DesignPanel';
 import { applyDraft, type Tool } from './gestures';
-import { PlusIcon, ShapeIcon, TextIcon } from './Icons';
+import {
+  AlertIcon,
+  ImageIcon,
+  InfoIcon,
+  PlusIcon,
+  RedoIcon,
+  ShapeIcon,
+  TextIcon,
+  UndoIcon,
+} from './Icons';
+import {
+  CASCADE,
+  IMAGE_ACCEPT,
+  ImageImportError,
+  fitInSlide,
+  importImage,
+  placeCentred,
+} from './importImage';
 import { Inspector } from './Inspector';
 import { Logo } from './Logo';
 import { NotesField } from './NotesField';
@@ -25,6 +46,7 @@ import { ContextMenu, MenuButton, type MenuItem } from './Menu';
 import { SaveIndicator } from './SaveIndicator';
 import { SHAPE_LABELS, describeSelection } from './shapeLabels';
 import { SlideRail } from './SlideRail';
+import { Toasts, type ToastData } from './Toast';
 import { NearlyFullBanner, SaveFailedBanner } from './StorageBanner';
 import { ColourContext, deckColours } from './colour/deckColours';
 import { deckFonts } from './text/deckFonts';
@@ -32,7 +54,7 @@ import { boxFormat, textOf } from './text/format';
 import { fitTextBoxes } from './textLayout';
 import { useDeckLock } from './useDeckLock';
 import { useDeckStore } from './StoreContext';
-import { useDeckSession, type DeckSession } from './useDeckSession';
+import { useDeckSession, type DeckSession, type EditMeta, type View } from './useDeckSession';
 import { useStorageUsage } from './useStorageUsage';
 import { useClipboard } from './useClipboard';
 import { useTextEditing } from './useTextEditing';
@@ -136,6 +158,11 @@ function isTyping(target: EventTarget | null): boolean {
   );
 }
 
+/** A field with its own undo: the browser's, not ours. (A text being edited is not one; its undo is ours.) */
+function isField(target: EventTarget | null): boolean {
+  return target instanceof HTMLElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
+}
+
 /** The slide with one element's text left out: the editor draws it instead while it is being edited. */
 function withoutText(slide: Slide, id: Id): Slide {
   return {
@@ -174,8 +201,8 @@ function Editor({
   const [menuAt, setMenuAt] = useState<Point | undefined>();
 
   // Text is edited in place: the editor holds it, and the deck gets it in whole steps.
-  const save = (changes: readonly ElementChange[]) => {
-    session.updateElements(fitTextBoxes(currentSlide, changes));
+  const save = (changes: readonly ElementChange[], meta?: EditMeta) => {
+    session.updateElements(fitTextBoxes(currentSlide, changes), meta);
   };
   const text = useTextEditing({
     slide: currentSlide,
@@ -184,6 +211,23 @@ function Editor({
     registerFlush: session.registerFlush,
   });
   const editingId = text.editing?.id;
+
+  // Toasts last a few seconds, and an Undo in one is only offered while its step is still the last.
+  const [toasts, setToasts] = useState<readonly (ToastData & { readonly expects?: number })[]>([]);
+  const dismissToast = (id: string) => {
+    setToasts((was) => was.filter((toast) => toast.id !== id));
+  };
+  function showToast(toast: Omit<ToastData, 'id'>) {
+    const id = systemEnv.newId();
+    // A toast with an Undo is about the next step the history records, and goes when another follows.
+    const expects = toast.action ? session.history.done.length + 1 : undefined;
+    setToasts((was) => [...was, { ...toast, id, ...(expects === undefined ? {} : { expects }) }]);
+  }
+  const liveToasts = toasts.filter(
+    (toast) =>
+      toast.expects === undefined ||
+      (session.history.done.length === toast.expects && !session.canRedo),
+  );
 
   const slide = useMemo(() => {
     const changes = text.height ? [...(draft ?? []), text.height] : draft;
@@ -230,6 +274,126 @@ function Editor({
     focusCanvas();
   }
 
+  function duplicateSlide(id: Id) {
+    text.finish();
+    session.duplicateSlide(id);
+  }
+
+  /** Delete a slide, and offer to bring it back (the toast from the States board, SL-4). */
+  function deleteSlide(id: Id) {
+    const number = deck.slides.findIndex((slide) => slide.id === id) + 1;
+    if (number === 0) return;
+    text.finish();
+    session.deleteSlide(id);
+    showToast({
+      message: `Slide ${String(number)} deleted`,
+      action: {
+        label: 'Undo',
+        onAction: () => {
+          stepHistory('undo');
+        },
+      },
+    });
+  }
+
+  const fileInput = useRef<HTMLInputElement>(null);
+
+  /**
+   * Add picture files to the slide (EL-4): each is checked, scaled down if huge, and placed in the middle
+   * (or round `at`, in client pixels); all of them are one step to undo. What cannot be added is said, in
+   * words, and nothing of it is kept.
+   */
+  async function addImages(files: readonly File[], at?: { x: number; y: number }) {
+    text.finish();
+    const rect = frame.current?.getBoundingClientRect();
+    const centre =
+      at && rect && rect.width > 0
+        ? {
+            x: ((at.x - rect.left) / rect.width) * SLIDE_WIDTH,
+            y: ((at.y - rect.top) / rect.height) * SLIDE_HEIGHT,
+          }
+        : undefined;
+    const pictures: {
+      image: StoredImage;
+      original?: StoredOriginal;
+      element: ReturnType<typeof createImage>;
+      scaledFrom?: { width: number; height: number };
+    }[] = [];
+    const notes: Omit<ToastData, 'id'>[] = [];
+
+    for (const file of files) {
+      try {
+        const imported = await importImage(file);
+        const usage = await readStorageUsage();
+        if (usage && usage.quota - usage.usage < imported.image.bytes.length * 2) {
+          notes.push({
+            message: 'There isn’t room for this picture',
+            detail: `${file.name}: delete decks you no longer need, then try again.`,
+            icon: <AlertIcon />,
+          });
+          continue;
+        }
+        const size = fitInSlide(imported.width, imported.height);
+        const place = placeCentred(size, centre, pictures.length * CASCADE);
+        pictures.push({
+          image: imported.image,
+          // The original is kept for the export only where there is plenty of room.
+          ...(imported.original &&
+          usage &&
+          usage.quota - usage.usage > imported.original.bytes.length * 6
+            ? { original: imported.original }
+            : {}),
+          element: createImage(systemEnv.newId(), imported.image.hash, { ...place, ...size }),
+          ...(imported.scaledFrom ? { scaledFrom: imported.scaledFrom } : {}),
+        });
+      } catch (error) {
+        const reason = error instanceof ImageImportError ? error.reason : 'unreadable';
+        notes.push({
+          message:
+            reason === 'notImage'
+              ? 'That file isn’t a picture Cue can use'
+              : reason === 'tooBig'
+                ? 'That file is too big'
+                : 'That picture couldn’t be read',
+          detail:
+            reason === 'notImage'
+              ? `${file.name}: use PNG, JPEG, GIF, SVG or WebP.`
+              : reason === 'tooBig'
+                ? `${file.name}: pictures over 40 MB are not added.`
+                : `${file.name}: it may be damaged.`,
+          icon: <AlertIcon />,
+        });
+      }
+    }
+
+    if (pictures.length > 0) {
+      session.addImages(
+        pictures.map(({ image, original, element }) => ({
+          image,
+          ...(original ? { original } : {}),
+          element,
+        })),
+      );
+      select(pictures.map(({ element }) => element.id));
+      focusCanvas();
+      for (const { scaledFrom, element } of pictures) {
+        if (!scaledFrom) continue;
+        showToast({
+          message: 'Image scaled to fit',
+          detail: `${String(scaledFrom.width)} × ${String(scaledFrom.height)} became ${String(Math.round(element.width))} × ${String(Math.round(element.height))} to keep your deck light.`,
+          icon: <InfoIcon />,
+          action: {
+            label: 'Undo',
+            onAction: () => {
+              stepHistory('undo');
+            },
+          },
+        });
+      }
+    }
+    for (const note of notes) showToast(note);
+  }
+
   function goToSlide(id: Id) {
     text.finish();
     session.selectSlide(id);
@@ -249,14 +413,34 @@ function Editor({
     addElements: session.addElements,
     removeElements: session.removeElements,
     select,
+    onImages: (files) => {
+      void addImages(files);
+    },
     fitted: (element) =>
       isTextBox(element) ? { ...element, height: measureTextHeight(element) } : element,
     focusCanvas,
   });
 
-  const latest = useRef({ add, arrange, pickTool, clipboard });
+  /**
+   * Undo or redo one step (EL-8). Words being typed are given to the deck first, so they are part of
+   * what is undone; afterwards the slide and the elements the step was about are shown again.
+   */
+  function stepHistory(which: 'undo' | 'redo') {
+    text.saveNow();
+    const view: View | undefined = which === 'undo' ? session.undo() : session.redo();
+    if (!view) return;
+    if (text.editing) {
+      // The deck changed under the editor: it starts again from what the deck holds.
+      text.reload();
+    } else {
+      setSelection({ slideId: view.slideId ?? currentSlide.id, ids: view.ids });
+      focusCanvas();
+    }
+  }
+
+  const latest = useRef({ add, arrange, pickTool, clipboard, stepHistory });
   useEffect(() => {
-    latest.current = { add, arrange, pickTool, clipboard };
+    latest.current = { add, arrange, pickTool, clipboard, stepHistory };
   });
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -272,6 +456,15 @@ function Editor({
         event.preventDefault();
         latest.current.pickTool('text');
         return;
+      }
+      // Undo and redo are the app's, everywhere but in a field that has its own (a title, a number).
+      if ((event.ctrlKey || event.metaKey) && !event.altKey && !isField(event.target)) {
+        const key = event.key.toLowerCase();
+        if (key === 'z' || key === 'y') {
+          event.preventDefault();
+          latest.current.stepHistory(key === 'y' || event.shiftKey ? 'redo' : 'undo');
+          return;
+        }
       }
       // Delete and Ctrl+D act on the selected elements, but not while words are being typed.
       if (!isTyping(event.target)) {
@@ -350,7 +543,7 @@ function Editor({
     text.editing && editingElement ? (
       <Suspense fallback={null}>
         <TextEditor
-          key={text.editing.id}
+          key={`${text.editing.id}:${String(text.version)}`}
           element={editingElement}
           doc={editedDoc ?? emptyText()}
           at={text.editing.at}
@@ -440,7 +633,7 @@ function Editor({
             <a className="logo-link" href="#/" aria-label="All decks">
               <Logo />
             </a>
-            <TitleField title={deck.title} onChange={session.renameDeck} />
+            <TitleField key={session.revision} title={deck.title} onChange={session.renameDeck} />
           </div>
           <div className="top-center">
             <button
@@ -472,6 +665,64 @@ function Editor({
               <ShapeIcon />
               Shape
             </MenuButton>
+            <button
+              type="button"
+              className="toolbar-button"
+              aria-label="Add image"
+              title="Add image"
+              onClick={() => {
+                fileInput.current?.click();
+              }}
+            >
+              <ImageIcon />
+              Image
+            </button>
+            <input
+              ref={fileInput}
+              type="file"
+              className="file-input"
+              accept={IMAGE_ACCEPT}
+              multiple
+              tabIndex={-1}
+              aria-label="Image files"
+              onChange={(event) => {
+                const files = [...(event.target.files ?? [])];
+                // So the same file can be chosen again straight after.
+                event.target.value = '';
+                void addImages(files);
+              }}
+            />
+            <span className="toolbar-divider" aria-hidden="true" />
+            <button
+              type="button"
+              className="toolbar-button toolbar-icon"
+              aria-label="Undo"
+              aria-keyshortcuts="Control+Z Meta+Z"
+              title={session.undoLabel ? `Undo ${session.undoLabel} (Ctrl+Z)` : 'Undo (Ctrl+Z)'}
+              disabled={!session.canUndo}
+              onClick={() => {
+                stepHistory('undo');
+              }}
+            >
+              <UndoIcon />
+            </button>
+            <button
+              type="button"
+              className="toolbar-button toolbar-icon"
+              aria-label="Redo"
+              aria-keyshortcuts="Control+Shift+Z Control+Y Meta+Shift+Z"
+              title={
+                session.redoLabel
+                  ? `Redo ${session.redoLabel} (Ctrl+Shift+Z)`
+                  : 'Redo (Ctrl+Shift+Z)'
+              }
+              disabled={!session.canRedo}
+              onClick={() => {
+                stepHistory('redo');
+              }}
+            >
+              <RedoIcon />
+            </button>
           </div>
           <div className="top-right">
             <SaveIndicator state={saveState} />
@@ -490,6 +741,12 @@ function Editor({
           slides={deck.slides}
           currentId={currentSlide.id}
           onSelect={goToSlide}
+          onMove={(id, toIndex) => {
+            text.finish();
+            session.moveSlide(id, toIndex);
+          }}
+          onDuplicate={duplicateSlide}
+          onDelete={deleteSlide}
           onAdd={add}
         />
 
@@ -511,6 +768,9 @@ function Editor({
             }}
             onDrawing={setDrawing}
             onContextMenu={setMenuAt}
+            onDropFiles={(files, at) => {
+              void addImages(files, at);
+            }}
             editingId={editingId}
             onEdit={text.start}
             onFinishEdit={text.finish}
@@ -535,13 +795,15 @@ function Editor({
           )}
         </main>
 
+        <Toasts toasts={liveToasts} onDismiss={dismissToast} />
+
         <section className="notes" aria-label="Speaker notes">
           <div className="notes-header">
             <span className="section-label">Speaker notes</span>
             <span className="caption">Shown in presenter view</span>
           </div>
           <NotesField
-            key={currentSlide.id}
+            key={`${currentSlide.id}:${String(session.revision)}`}
             slideId={currentSlide.id}
             notes={currentSlide.notes}
             onSave={session.setNotes}

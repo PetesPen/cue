@@ -11,13 +11,27 @@ export interface StoredImage {
   readonly bytes: Uint8Array<ArrayBuffer>;
 }
 
+/**
+ * The picture as it came in, kept only when it was scaled down on import and is small enough (EL-4),
+ * for the export to use. Stored apart from the scaled picture, so showing a slide never loads it. Keyed
+ * by the hash of the scaled picture it belongs to.
+ */
+export interface StoredOriginal {
+  readonly hash: string;
+  readonly type: string;
+  readonly bytes: Uint8Array<ArrayBuffer>;
+}
+
 export class CueDatabase extends Dexie {
   decks!: EntityTable<Deck, 'id'>;
   images!: EntityTable<StoredImage, 'hash'>;
+  originals!: EntityTable<StoredOriginal, 'hash'>;
 
   constructor(name: string) {
     super(name);
-    // Version 1. Changing a table's keys or indexes needs a new version() with an upgrade.
+    // Changing a table's keys or indexes needs a new version() with an upgrade. Version 2 only adds
+    // a table, which needs none.
     this.version(1).stores({ decks: 'id, updatedAt', images: 'hash' });
+    this.version(2).stores({ decks: 'id, updatedAt', images: 'hash', originals: 'hash' });
   }
 }

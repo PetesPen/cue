@@ -11,6 +11,7 @@ import {
   SLIDE_HEIGHT,
   SLIDE_WIDTH,
   groupBounds,
+  isImage,
   systemEnv,
   type ElementChange,
   type Id,
@@ -34,6 +35,7 @@ import {
   type Tool,
 } from './gestures';
 import { SelectionOverlay } from './SelectionOverlay';
+import type { EditMeta } from './useDeckSession';
 import { SlideView } from './SlideView';
 import { SHAPE_LABELS, canEditText, describeSelection } from './shapeLabels';
 
@@ -66,11 +68,13 @@ interface CanvasProps {
   readonly onToolDone: () => void;
   readonly onAddElement: (element: SlideElement) => void;
   /** One command per finished gesture or key press (decision 18). */
-  readonly onUpdate: (changes: readonly ElementChange[]) => void;
+  readonly onUpdate: (changes: readonly ElementChange[], meta?: EditMeta) => void;
   /** A drag in progress, to be shown but not saved. */
   readonly onDraft: (changes: readonly ElementChange[] | undefined) => void;
   readonly onDrawing: (element: SlideElement | undefined) => void;
   readonly onContextMenu: (at: Point) => void;
+  /** Picture files dropped on the slide, and where (client pixels). */
+  readonly onDropFiles: (files: readonly File[], at: { x: number; y: number }) => void;
   /** The element whose text is being edited in place, if any (its editor is the `editor` child). */
   readonly editingId: Id | undefined;
   /** Start editing the text of an element; `at` is where the pointer was, to put the cursor there. */
@@ -122,6 +126,7 @@ export function Canvas({
   onDraft,
   onDrawing,
   onContextMenu,
+  onDropFiles,
   editingId,
   onEdit,
   onFinishEdit,
@@ -131,6 +136,7 @@ export function Canvas({
   const active = useRef<Active | undefined>(undefined);
   const [readout, setReadout] = useState<string | undefined>();
   const [marquee, setMarquee] = useState<Rect | undefined>();
+  const [dropping, setDropping] = useState(false);
 
   const selected = slide.elements.filter((element) => selection.includes(element.id));
 
@@ -200,8 +206,15 @@ export function Canvas({
         });
       } else {
         const resizeHandle = HANDLES.find((h) => h === kind);
-        if (resizeHandle)
-          begin(event, { kind: 'resize', start: point, handle: resizeHandle, boxes });
+        if (resizeHandle) {
+          // A picture dragged by a corner keeps its proportions; by a side, it is stretched on purpose.
+          const lockAspect =
+            selected.length === 1 &&
+            first !== undefined &&
+            isImage(first) &&
+            resizeHandle.length === 2;
+          begin(event, { kind: 'resize', start: point, handle: resizeHandle, boxes, lockAspect });
+        }
       }
       return;
     }
@@ -288,15 +301,17 @@ export function Canvas({
 
     switch (gesture.kind) {
       case 'move':
-        if (moved) onUpdate(changesFor(gesture, point, event.shiftKey));
+        if (moved) onUpdate(changesFor(gesture, point, event.shiftKey), { label: 'Move' });
         else if (current.clickedId && selection.length > 1 && !event.shiftKey) {
           onSelect([current.clickedId]);
         }
         break;
       case 'resize':
-      case 'rotate':
       case 'lineEnd':
-        if (moved) onUpdate(changesFor(gesture, point, event.shiftKey));
+        if (moved) onUpdate(changesFor(gesture, point, event.shiftKey), { label: 'Resize' });
+        break;
+      case 'rotate':
+        if (moved) onUpdate(changesFor(gesture, point, event.shiftKey), { label: 'Rotate' });
         break;
       case 'draw': {
         const shape = drawnShape(gesture, point, event.shiftKey, moved);
@@ -348,7 +363,11 @@ export function Canvas({
       const step = event.shiftKey ? 10 : 1;
       const dx = event.key === 'ArrowLeft' ? -step : event.key === 'ArrowRight' ? step : 0;
       const dy = event.key === 'ArrowUp' ? -step : event.key === 'ArrowDown' ? step : 0;
-      onUpdate(selected.map((e) => ({ id: e.id, props: { x: e.x + dx, y: e.y + dy } })));
+      onUpdate(
+        selected.map((e) => ({ id: e.id, props: { x: e.x + dx, y: e.y + dy } })),
+        // Presses of the arrow keys close together are one step to undo.
+        { label: 'Move', mergeKey: `nudge:${selected.map((e) => e.id).join(',')}` },
+      );
       return;
     }
 
@@ -373,6 +392,21 @@ export function Canvas({
     if (hit && canEditText(hit)) onEdit(hit.id, { x: event.clientX, y: event.clientY });
   }
 
+  /** Files being dragged over the slide: say they may be dropped here. */
+  function onDragOver(event: React.DragEvent<HTMLDivElement>) {
+    if (!event.dataTransfer.types.includes('Files')) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+    setDropping(true);
+  }
+
+  function onDrop(event: React.DragEvent<HTMLDivElement>) {
+    setDropping(false);
+    if (event.dataTransfer.files.length === 0) return;
+    event.preventDefault();
+    onDropFiles([...event.dataTransfer.files], { x: event.clientX, y: event.clientY });
+  }
+
   function handleContextMenu(event: React.MouseEvent<HTMLDivElement>) {
     if (inEditor(event.target)) return;
     event.preventDefault();
@@ -392,7 +426,13 @@ export function Canvas({
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <div
       ref={frameRef}
-      className={tool ? 'slide-frame slide-frame-drawing' : 'slide-frame'}
+      className={
+        tool
+          ? 'slide-frame slide-frame-drawing'
+          : dropping
+            ? 'slide-frame slide-frame-dropping'
+            : 'slide-frame'
+      }
       role="group"
       aria-label={label}
       aria-describedby={tool ? 'drawing-hint' : undefined}
@@ -403,6 +443,11 @@ export function Canvas({
       onPointerCancel={clearGesture}
       onKeyDown={onKeyDown}
       onDoubleClick={onDoubleClick}
+      onDragOver={onDragOver}
+      onDragLeave={() => {
+        setDropping(false);
+      }}
+      onDrop={onDrop}
       onContextMenu={handleContextMenu}
     >
       <SlideView slide={slide} />
