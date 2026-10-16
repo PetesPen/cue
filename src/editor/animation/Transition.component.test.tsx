@@ -150,3 +150,89 @@ test('Given the Fade tile, When it is chosen again, Then nothing is saved as a n
 
   await expect.element(screen.getByRole('button', { name: 'Undo' })).toBeDisabled();
 });
+
+// TN-4: preview a transition.
+
+const layerIds = () =>
+  [...document.querySelectorAll<HTMLElement>('.canvas .cue-layer .cue-slide')].map(
+    (slide) => slide.dataset.slideId,
+  );
+
+test('Given slide 3 with Slide chosen, When Preview transition is pressed, Then slide 2 is replaced by slide 3 coming in, and the canvas ends on slide 3', async () => {
+  const store = createTestStore();
+  const screen = await openWith(store, [{}, {}, { kind: 'slide', duration: 0.3 }]);
+  await openTransition(screen, 3);
+
+  await expect.element(screen.getByText('Slide 2')).toBeVisible();
+  await expect.element(screen.getByText('Slide 3', { exact: true }).last()).toBeVisible();
+  await screen.getByRole('button', { name: 'Preview transition' }).click();
+
+  // Two slides are on the canvas while it plays: slide 2 and slide 3 over it.
+  await expect.poll(layerIds).toEqual(['deck-2', 'deck-3']);
+  // And at the end only slide 3 is left, where the editor draws it.
+  await expect.poll(layerIds).toEqual(['deck-3']);
+  await expect.element(screen.getByRole('button', { name: 'Preview transition' })).toBeEnabled();
+  expect(await stored(store)).toEqual(['none', 'none', 'slide']);
+});
+
+test('Given a transition playing, When the canvas is clicked or Esc is pressed, Then it lands at once on the selected slide', async () => {
+  const screen = await openWith(createTestStore(), [{}, { kind: 'push', duration: 3 }]);
+  await openTransition(screen, 2);
+  await screen.getByRole('button', { name: 'Preview transition' }).click();
+  await expect.poll(layerIds).toHaveLength(2);
+  await expect.element(screen.getByRole('button', { name: 'Preview transition' })).toBeDisabled();
+
+  await userEvent.click(must('.slide-frame'));
+
+  await expect.poll(layerIds).toEqual(['deck-2']);
+
+  await screen.getByRole('button', { name: 'Preview transition' }).click();
+  await expect.poll(layerIds).toHaveLength(2);
+  await userEvent.keyboard('{Escape}');
+
+  await expect.poll(layerIds).toEqual(['deck-2']);
+});
+
+test('Given a transition playing, When the Animate tab is opened, Then it lands at once', async () => {
+  const screen = await openWith(createTestStore(), [{}, { kind: 'fade', duration: 3 }]);
+  await openTransition(screen, 2);
+  await screen.getByRole('button', { name: 'Preview transition' }).click();
+  await expect.poll(layerIds).toHaveLength(2);
+
+  await screen.getByRole('tab', { name: 'Animate' }).click();
+
+  await expect.poll(layerIds).toEqual(['deck-2']);
+});
+
+test('Given a slide with no transition, When the Transition tab is open, Then the preview is offered but cannot be pressed', async () => {
+  const screen = await openWith(createTestStore(), [{}, {}]);
+
+  await openTransition(screen, 2);
+
+  await expect.element(screen.getByRole('button', { name: 'Preview transition' })).toBeDisabled();
+});
+
+test('Given the first slide, When the Transition tab is open, Then the bar offers no preview', async () => {
+  const screen = await openWith(createTestStore(), [{ kind: 'fade' }, {}]);
+
+  await openTransition(screen, 1);
+
+  expect(document.querySelector('[aria-label="Transition preview"]')).toBeNull();
+  expect(screen.getByRole('button', { name: 'Preview transition' }).elements()).toHaveLength(0);
+});
+
+test('Given a preview that has played, Then the deck has no new step in its history', async () => {
+  const screen = await openWith(createTestStore(), [{}, { kind: 'fade', duration: 0.2 }]);
+  await openTransition(screen, 2);
+
+  await screen.getByRole('button', { name: 'Preview transition' }).click();
+  await expect.poll(layerIds).toEqual(['deck-2']);
+
+  await expect.element(screen.getByRole('button', { name: /^Undo/ })).toBeDisabled();
+});
+
+function must(selector: string): HTMLElement {
+  const node = document.querySelector<HTMLElement>(selector);
+  if (!node) throw new Error(`nothing matches ${selector}`);
+  return node;
+}

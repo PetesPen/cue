@@ -46,8 +46,10 @@ import { ShortcutsDialog } from './ShortcutsDialog';
 import { AnimatePanel } from './animation/AnimatePanel';
 import { MoveGhost } from './animation/MoveGhost';
 import { PreviewBar } from './animation/PreviewBar';
+import { TransitionBar } from './animation/TransitionBar';
 import { TransitionPanel } from './animation/TransitionPanel';
 import { usePreview } from './animation/usePreview';
+import { useTransitionPreview } from './animation/useTransitionPreview';
 import type { SlideViewHandle } from './SlideView';
 import { Logo } from './Logo';
 import { NotesField } from './NotesField';
@@ -280,6 +282,11 @@ function Editor({
   const preview = usePreview(currentSlide, viewRef);
   const previewing = preview.click !== undefined;
   const { stop: stopPreview, forward: previewForward, back: previewBack } = preview;
+  // Preview transition (TN-4): the slide before plays into this one, on the Transition tab.
+  const transitionPreview = useTransitionPreview(viewRef);
+  const { stop: stopTransition } = transitionPreview;
+  const transitionPlaying = transitionPreview.playing;
+  const previousSlide = index > 0 ? deck.slides[index - 1] : undefined;
   const look = useMemo<Look>(
     () => (preview.click === undefined ? EDITING : { mode: 'click', click: preview.click }),
     [preview.click],
@@ -316,6 +323,23 @@ function Editor({
   useEffect(() => {
     if (tab !== 'animate' && previewing) stopPreview();
   }, [tab, previewing, stopPreview]);
+  // Leaving the Transition tab, or Esc, ends a transition that is playing, and it lands at once.
+  useEffect(() => {
+    if (tab !== 'transition' && transitionPlaying) stopTransition();
+  }, [tab, transitionPlaying, stopTransition]);
+  useEffect(() => {
+    if (!transitionPlaying) return;
+    function onKey(event: KeyboardEvent) {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      event.stopPropagation();
+      stopTransition();
+    }
+    window.addEventListener('keydown', onKey, true);
+    return () => {
+      window.removeEventListener('keydown', onKey, true);
+    };
+  }, [transitionPlaying, stopTransition]);
   useEffect(() => {
     if (!previewing) return;
     function onKey(event: KeyboardEvent) {
@@ -965,7 +989,9 @@ function Editor({
                 />
               ) : undefined
             }
-            onPreviewAdvance={previewing ? previewForward : undefined}
+            onPreviewAdvance={
+              previewing ? previewForward : transitionPlaying ? stopTransition : undefined
+            }
             onStepSlide={(by) => {
               const next = deck.slides[index + by];
               if (next) goToSlide(next.id);
@@ -979,6 +1005,21 @@ function Editor({
               onPlay={previewForward}
               onForward={previewForward}
               onStop={stopPreview}
+            />
+          )}
+          {tab === 'transition' && previousSlide && (
+            <TransitionBar
+              number={index + 1}
+              canPlay={currentSlide.transition.kind !== 'none'}
+              playing={transitionPlaying}
+              onPlay={() => {
+                text.finish();
+                setMenuAt(undefined);
+                setTool(undefined);
+                setSelection({ slideId: currentSlide.id, ids: [] });
+                transitionPreview.start(previousSlide, currentSlide);
+                focusCanvas();
+              }}
             />
           )}
           {menuAt && (none ? clipboard.canPaste() : true) && (

@@ -109,22 +109,28 @@ export function createSlideStage(host: HTMLElement, slide: Slide, look: Look = P
   /** A transition in progress: the layer going away, and the animations that move the layers. */
   let pending: { readonly leaving: Layer; readonly animations: Animation[] } | undefined;
 
+  /** End a transition now: the slide that was arriving stays, at rest, and the one leaving is gone. */
+  const endTransition = () => {
+    if (!pending) return;
+    for (const animation of pending.animations) animation.cancel();
+    removeLayer(pending.leaving);
+    pending = undefined;
+  };
+
   const settle = () => {
-    if (pending) {
-      for (const animation of pending.animations) animation.cancel();
-      removeLayer(pending.leaving);
-      pending = undefined;
-    }
+    endTransition();
     current.renderer.settle();
   };
 
+  // Drawing a slide, or playing a click on it, ends a transition; like the slide renderer's own `update`,
+  // it leaves a click's animations alone (the editor draws the new look right after it starts one).
   const show = (next: Slide, how: Look = PLAIN) => {
-    settle();
+    endTransition();
     current.renderer.update(next, undefined, how);
   };
 
   const play = (next: Slide, from: number, to: number) => {
-    settle();
+    endTransition();
     return current.renderer.play(next, from, to);
   };
 
