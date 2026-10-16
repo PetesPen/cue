@@ -94,6 +94,17 @@ export type Command =
       readonly ids: readonly Id[];
       readonly mode: ReorderMode;
       readonly at: number;
+    }
+  /**
+   * The background colour of a slide (SL-5), or of every slide with `all` (Apply to all slides). One
+   * command either way, so it is one undo step. `slideId` is the slide being edited.
+   */
+  | {
+      readonly type: 'setBackground';
+      readonly slideId: Id;
+      readonly background: string;
+      readonly all: boolean;
+      readonly at: number;
     };
 
 export interface Applied {
@@ -217,6 +228,16 @@ export function applyCommand(deck: Deck, command: Command): Applied {
         );
         const byId = new Map(slide.elements.map((e) => [e.id, e]));
         slide.elements = order.flatMap((id) => byId.get(id) ?? []);
+        break;
+      }
+      case 'setBackground': {
+        const slide = draft.slides.find((s) => s.id === command.slideId);
+        if (!slide) throw new CommandError(`Slide ${command.slideId} is not in deck ${deck.id}`);
+        if (command.all) {
+          for (const each of draft.slides) each.background = command.background;
+        } else {
+          slide.background = command.background;
+        }
         break;
       }
     }

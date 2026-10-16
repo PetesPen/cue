@@ -230,7 +230,7 @@ test.describe('Given a shape on the slide, When it is manipulated (EL-5)', () =>
     // Click empty space, then Shift-click two shapes.
     const empty = await slide.at(900, 800);
     await page.mouse.click(empty.x, empty.y);
-    await expect(page.getByText('Nothing selected.')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Apply to all slides' })).toBeVisible();
     const a = await slide.at(1350, 800);
     await page.mouse.click(a.x, a.y);
     await page.keyboard.down('Shift');

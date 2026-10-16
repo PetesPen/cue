@@ -25,6 +25,12 @@ describe('what a step is called (EL-8)', () => {
       'Add slide',
     );
     expect(labelFor({ type: 'renameDeck', title: 'x', at: 1 })).toBe('Rename deck');
+    expect(
+      labelFor({ type: 'setBackground', slideId: 's', background: '#000000', all: false, at: 1 }),
+    ).toBe('Change background');
+    expect(
+      labelFor({ type: 'setBackground', slideId: 's', background: '#000000', all: true, at: 1 }),
+    ).toBe('Change all backgrounds');
     expect(labelFor({ type: 'addElement', slideId: 's', element: shape, at: 1 })).toBe('Add');
     expect(labelFor({ type: 'removeElements', slideId: 's', ids: ['a'], at: 1 })).toBe('Delete');
     expect(labelFor({ type: 'addElements', slideId: 's', elements: [shape], at: 1 })).toBe('Paste');

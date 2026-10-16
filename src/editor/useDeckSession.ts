@@ -71,6 +71,8 @@ export interface DeckSession {
   readonly addElements: (elements: readonly SlideElement[], meta?: EditMeta) => void;
   /** The speaker notes of a slide (SL-6). */
   readonly setNotes: (slideId: Id, notes: string) => void;
+  /** The background colour of the current slide, or of every slide (SL-5). */
+  readonly setBackground: (background: string, all: boolean) => void;
   /**
    * Put new pictures on the current slide, in one step (EL-4). Their bytes are saved with the deck, in
    * the same transaction, the next time it is saved; until then they are only in memory.
@@ -304,6 +306,15 @@ export function useDeckSession(
     [dispatch, env],
   );
 
+  const setBackground = useCallback(
+    (background: string, all: boolean) => {
+      const slideId = currentRef.current;
+      if (slideId === undefined) return;
+      dispatch({ type: 'setBackground', slideId, background, all, at: env.now() });
+    },
+    [dispatch, env],
+  );
+
   const addImages = useCallback(
     (
       pictures: readonly {
@@ -454,6 +465,7 @@ export function useDeckSession(
     duplicateSlide,
     addElements,
     setNotes,
+    setBackground,
     undo,
     redo,
     history,

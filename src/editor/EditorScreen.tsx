@@ -19,7 +19,7 @@ import {
 import { measureTextHeight } from '@/render';
 import { isNearlyFull, readStorageUsage, type StoredImage, type StoredOriginal } from '@/storage';
 import { Canvas } from './Canvas';
-import { DesignPanel } from './DesignPanel';
+import { DesignPanel, SlidePanel } from './DesignPanel';
 import { applyDraft, type Tool } from './gestures';
 import {
   AlertIcon,
@@ -198,6 +198,10 @@ function Editor({
   // A drag in progress, shown on the canvas but not saved until it ends (decision 18).
   const [draft, setDraft] = useState<readonly ElementChange[] | undefined>();
   const [drawing, setDrawing] = useState<SlideElement | undefined>();
+  // A background colour being dragged in the picker: shown on the canvas, saved when it is chosen.
+  const [backgroundDraft, setBackgroundDraft] = useState<
+    { readonly slideId: Id; readonly background: string } | undefined
+  >();
   const [menuAt, setMenuAt] = useState<Point | undefined>();
 
   // Text is edited in place: the editor holds it, and the deck gets it in whole steps.
@@ -231,9 +235,13 @@ function Editor({
 
   const slide = useMemo(() => {
     const changes = text.height ? [...(draft ?? []), text.height] : draft;
-    const shown = applyDraft(currentSlide, changes, drawing);
+    const drafted = applyDraft(currentSlide, changes, drawing);
+    const shown =
+      backgroundDraft?.slideId === currentSlide.id
+        ? { ...drafted, background: backgroundDraft.background }
+        : drafted;
     return text.ready && editingId !== undefined ? withoutText(shown, editingId) : shown;
-  }, [currentSlide, draft, drawing, text.height, text.ready, editingId]);
+  }, [currentSlide, draft, drawing, backgroundDraft, text.height, text.ready, editingId]);
   const selectedIds = useMemo(
     () =>
       selection.slideId === currentSlide.id
@@ -823,7 +831,18 @@ function Editor({
                 onCommit={commitChanges}
                 onReorder={arrange}
               />
-            ) : undefined
+            ) : (
+              <SlidePanel
+                background={slide.background}
+                onPreview={(background) => {
+                  setBackgroundDraft({ slideId: currentSlide.id, background });
+                }}
+                onCommit={(background, all) => {
+                  setBackgroundDraft(undefined);
+                  session.setBackground(background, all);
+                }}
+              />
+            )
           }
         />
       </div>
