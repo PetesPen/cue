@@ -759,5 +759,9 @@
 .present-split .menu-anchor .menu {
   right: 0;
   left: auto;
-  min-width: 260px;
+  min-width: 340px;
+}
+
+.present-split .menu-item {
+  white-space: nowrap;
 }
