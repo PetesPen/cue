@@ -11,36 +11,24 @@ Polish: layout, timer, access.
 
 ## Demo at the review
 
-Backgrounds, snapping, timer colours, zoom, keyboard-only use.
+Image backgrounds, timer colours, zoom, keyboard-only use.
 
 ## Key automated tests
 
-Snap and align unit tests; timer state tests; full axe scan and keyboard end to end.
+Timer state tests; full axe scan and keyboard end to end.
 
-## Stories (5)
+## Stories (4)
 
-0 Must, 5 Should. Story order below is the suggested build order.
+EL-6 (align and snap) moved to sprint 6 on 2026-10-16: Peter values the snap lines and asked for them earlier. SL-5 is split: its colour part is in sprint 5.
 
-### SL-5 Set a slide background (Should)
+0 Must, 4 Should. Story order below is the suggested build order.
 
-As a presenter, I want to set a background colour or image, so that slides can have their own look.
+### SL-5 Set a slide background: the image (Should)
 
-Acceptance criteria:
-- [ ] Choose a solid colour or an image, with an optional opacity.
-- [ ] "Apply to all slides" is available.
-
-Design: [`Main`](../../design/screenshots/Main.png) ([source](../../design/boards/Main.dc.html))
-
-Tests: write each criterion as a Given / When / Then example first; each example becomes a test name. Push tests down the pyramid where possible.
-
-### EL-6 Align and snap (Should)
-
-As a presenter, I want smart guides and alignment tools, so that slides look tidy without effort.
+Carried from sprint 5, where the solid colour and "Apply to all slides" were built.
 
 Acceptance criteria:
-- [ ] Elements snap to slide edges, slide centre and other elements, with visible guide lines.
-- [ ] Align left, centre, right, top, middle and bottom for a selection.
-- [ ] Distribute horizontally and vertically for three or more elements.
+- [ ] Choose an image as the background, with an optional opacity.
 
 Design: [`Main`](../../design/screenshots/Main.png) ([source](../../design/boards/Main.dc.html))
 

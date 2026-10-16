@@ -360,3 +360,20 @@ Use https://cue-presentations.netlify.app/ (after pull requests 20 and the ones 
 6. **Originals of scaled pictures:** kept under 8 MB when there is room, as the plan said. Is that the right limit?
 7. **Snap lines and a layers panel** (EL-6, ZO-2) made the rebuild slower. They are Shoulds in sprint 11; would you move them earlier?
 8. **Plans for sprints 5 and 6** (written for you to approve together, `docs/plans/sprint-05.md` and `sprint-06.md`).
+
+### Review outcome (2026-10-16)
+
+Peter tried the live app: "I've had a play and I'm really happy with it."
+
+1. **Gate 2 (editor alpha): accepted.** All nine stories of sprints 3 and 4 are accepted.
+2. **Slide background (SL-5)** into sprint 5: yes. Built there as the solid colour and "Apply to all slides"; the image background and its opacity stay in sprint 12.
+3. **Letter spacing and a heavier weight:** fine for the moment; no story added.
+4. **The colour picker's layout and the Text section of the panel:** kept as built.
+5. **The reference images** of pull requests 15 and 17: fine. Both still need merging (the first into the branch of the second, then the second into `main`); the merge waits for Peter to say "merge the screenshots", as before.
+6. **Originals of scaled pictures** (under 8 MB): fine.
+7. **Snap lines** earlier: yes, "I really value the snap lines": align and snap (EL-6) moved from sprint 12 to sprint 6. "Not so concerned about layers panels just yet": ZO-2 stays in sprint 11.
+8. **The animation timing controls (AN-4)** into sprint 5 rather than sprint 11: yes.
+9. **Decision 20** (fonts, italics and mixed selections): "that makes sense, I'm happy with things as you've done them".
+10. **The plans for sprints 5 and 6:** approved, with the three changes above.
+
+Next: sprints 5 and 6 are built with no review between them; the next review is after sprint 6.

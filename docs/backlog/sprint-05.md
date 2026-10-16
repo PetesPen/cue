@@ -1,6 +1,6 @@
 # Sprint 5: Keyboard, speed and first animations
 
-- Capacity: 14 engineering days (2 engineers, about 80% focus, 2 weeks)
+- Capacity: 14 engineering days (the plan, `docs/plans/sprint-05.md`, comes to 19 with SL-5, AN-4 and the first Preview bar; Peter approved that on 2026-10-16) (2 engineers, about 80% focus, 2 weeks)
 - Next: [sprint-06.md](sprint-06.md) · Previous: [sprint-04.md](sprint-04.md)
 
 Work only on this sprint's goal. New ideas go to the backlog, not into the sprint (see `CLAUDE.md`). Tick the boxes as criteria are shown working on the preview deployment.
@@ -11,15 +11,29 @@ Keyboard, speed and first animations.
 
 ## Demo at the review
 
-Drive the editor by keyboard; elements fade in and out on click in preview.
+Drive the editor by keyboard; set a slide background; elements fade in and out on click in preview, with duration, delay and easing you choose.
 
 ## Key automated tests
 
-Performance budgets for 50 elements and 50 slides; motion resolver unit tests; opacity match across renderers.
+Performance budgets for 50 elements and 50 slides; motion resolver unit tests; easing and duration unit tests; opacity match across renderers.
 
-## Stories (5)
+## Stories (7)
 
-5 Must, 0 Should. Story order below is the suggested build order.
+5 Must, 2 Should. Story order below is the suggested build order.
+
+### SL-5 Set a slide background (Should)
+
+As a presenter, I want to set a background colour or image, so that slides can have their own look.
+
+Pulled into this sprint by Peter on 2026-10-16 (the Gate 2 rebuild needed it). Built here: the solid colour and "Apply to all slides". The image and its opacity stay in sprint 12.
+
+Acceptance criteria:
+- [ ] Choose a solid colour or an image, with an optional opacity. (Solid colour here; the image and its opacity are carried to sprint 12.)
+- [ ] "Apply to all slides" is available.
+
+Design: [`Main`](../../design/screenshots/Main.png) ([source](../../design/boards/Main.dc.html))
+
+Tests: write each criterion as a Given / When / Then example first; each example becomes a test name. Push tests down the pyramid where possible.
 
 ### UX-2 Fast, keyboard-first work (Must)
 
@@ -83,6 +97,21 @@ Acceptance criteria:
 Design: [`Main`](../../design/screenshots/Main.png) ([source](../../design/boards/Main.dc.html))
 
 Tests: write each criterion as a Given / When / Then example first; each example becomes a test name. At least one end-to-end test is required (Must story).
+
+### AN-4 Control timing and feel (Should)
+
+As a presenter, I want duration, delay and easing, so that motion feels deliberate.
+
+Moved here from sprint 11 by Peter on 2026-10-16.
+
+Acceptance criteria:
+- [ ] Duration from 0.1 to 5 seconds and delay from 0 to 5 seconds.
+- [ ] Easing presets: linear, ease-in, ease-out and ease-in-out.
+- [ ] Sensible defaults (0.5 s, ease-out) mean most steps need no tuning.
+
+Design: [`Editor-Animate`](../../design/screenshots/Editor-Animate.png) ([source](../../design/boards/Editor-Animate.dc.html))
+
+Tests: write each criterion as a Given / When / Then example first; each example becomes a test name. Push tests down the pyramid where possible.
 
 ## Definition of done reminder
 

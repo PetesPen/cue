@@ -11,15 +11,17 @@ Polish: layers, motion, transitions.
 
 ## Demo at the review
 
-Layers panel, timing controls, step back, direction, apply to all.
+Layers panel, step back, direction, apply to all.
 
 ## Key automated tests
 
-Layer drag tests; easing and duration unit tests; step-back resolver tests.
+Layer drag tests; step-back resolver tests.
 
-## Stories (7)
+## Stories (6)
 
-0 Must, 7 Should. Story order below is the suggested build order.
+AN-4 (timing and easing controls) moved to sprint 5 on 2026-10-16: Peter asked for it with the first animations.
+
+0 Must, 6 Should. Story order below is the suggested build order.
 
 ### ZO-2 See and rearrange layers (Should)
 
@@ -56,19 +58,6 @@ Acceptance criteria:
 - [ ] Element opacity and colour alpha multiply together, and the format panel shows the result.
 
 Design: [`Main`](../../design/screenshots/Main.png) ([source](../../design/boards/Main.dc.html)), [`Editor-Text`](../../design/screenshots/Editor-Text.png) ([source](../../design/boards/Editor-Text.dc.html))
-
-Tests: write each criterion as a Given / When / Then example first; each example becomes a test name. Push tests down the pyramid where possible.
-
-### AN-4 Control timing and feel (Should)
-
-As a presenter, I want duration, delay and easing, so that motion feels deliberate.
-
-Acceptance criteria:
-- [ ] Duration from 0.1 to 5 seconds and delay from 0 to 5 seconds.
-- [ ] Easing presets: linear, ease-in, ease-out and ease-in-out.
-- [ ] Sensible defaults (0.5 s, ease-out) mean most steps need no tuning.
-
-Design: [`Editor-Animate`](../../design/screenshots/Editor-Animate.png) ([source](../../design/boards/Editor-Animate.dc.html))
 
 Tests: write each criterion as a Given / When / Then example first; each example becomes a test name. Push tests down the pyramid where possible.
 
