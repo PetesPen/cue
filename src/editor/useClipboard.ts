@@ -72,6 +72,8 @@ interface Params {
   readonly select: (ids: readonly Id[]) => void;
   /** A new text box from pasted words: given its height from its text. */
   readonly fitted: (element: SlideElement) => SlideElement;
+  /** Picture files pasted from the clipboard (a screenshot, a copied image). */
+  readonly onImages: (files: readonly File[]) => void;
   /** Give the slide the keyboard again after a menu. */
   readonly focusCanvas: () => void;
 }
@@ -156,6 +158,14 @@ export function useClipboard(params: Params): Clipboard {
       if (isTyping(event.target) || !event.clipboardData) return;
       event.preventDefault();
       const ours = event.clipboardData.getData(ELEMENTS_MIME);
+      // A copied picture (a screenshot, an image from a web page) comes as a file.
+      const pictures = [...event.clipboardData.files].filter((file) =>
+        file.type.startsWith('image/'),
+      );
+      if (ours === '' && pictures.length > 0) {
+        latest.current.onImages(pictures);
+        return;
+      }
       const elements = ours === '' ? undefined : parseElements(ours);
       if (elements) {
         place(elements, nextOffset(ours));

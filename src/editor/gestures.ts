@@ -43,6 +43,8 @@ export type Gesture =
       readonly start: Point;
       readonly handle: Handle;
       readonly boxes: ReadonlyMap<Id, Box>;
+      /** A picture dragged by a corner keeps its proportions, as Shift does for anything. */
+      readonly lockAspect?: boolean;
     }
   | {
       readonly kind: 'lineEnd';
@@ -124,7 +126,14 @@ export function changesFor(gesture: Gesture, pointer: Point, shift: boolean): El
       if (entries.length === 1 && only) {
         const [id, box] = only;
         return [
-          { id, props: asProps(resizeBox(box, gesture.handle, delta, { keepAspect: shift })) },
+          {
+            id,
+            props: asProps(
+              resizeBox(box, gesture.handle, delta, {
+                keepAspect: shift || gesture.lockAspect === true,
+              }),
+            ),
+          },
         ];
       }
       const resized = resizeGroup(

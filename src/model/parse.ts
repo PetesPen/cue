@@ -80,6 +80,13 @@ export function parseElement(value: unknown): SlideElement {
     return { ...box, kind: 'text', padding: value.padding, doc: parseText(value.doc, id) };
   }
 
+  if (value.kind === 'image') {
+    if (typeof value.hash !== 'string' || value.hash === '' || typeof value.alt !== 'string') {
+      throw new InvalidDeckError('Image ' + id + ' has no picture or no description');
+    }
+    return { ...box, kind: 'image', hash: value.hash, alt: value.alt };
+  }
+
   const shape = SHAPE_KINDS.find((kind) => kind === value.shape);
   if (value.kind !== 'shape' || !shape || !isNumber(value.cornerRadius)) {
     throw new InvalidDeckError('Slide element ' + id + ' is not a valid shape');

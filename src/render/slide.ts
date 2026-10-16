@@ -1,14 +1,17 @@
 import {
   SLIDE_HEIGHT,
   SLIDE_WIDTH,
+  isImage,
   isShape,
   type Id,
+  type ImageElement,
   type RichText,
   type ShapeElement,
   type Slide,
   type SlideElement,
   type TextElement,
 } from '@/model';
+import { imageSource } from './images';
 import { drawShape } from './shapes';
 import { createTextBody, ensureFonts, renderText } from './text';
 import './slide.css';
@@ -103,9 +106,44 @@ function paintTextBox(node: HTMLElement, element: TextElement): void {
   showText(node, body, element.doc);
 }
 
+/** A picture: an image drawn to fill the box, which sits at the proportions chosen for it. */
+function paintImage(node: HTMLElement, element: ImageElement): void {
+  node.classList.add('cue-image-box');
+  node.style.background = element.fill === 'none' ? '' : element.fill;
+  node.style.border =
+    element.border.width > 0
+      ? `${String(element.border.width)}px ${element.border.dash} ${element.border.color}`
+      : '';
+  let img = node.querySelector<HTMLImageElement>(':scope > img.cue-image');
+  if (!img) {
+    img = document.createElement('img');
+    img.className = 'cue-image';
+    img.draggable = false;
+    node.append(img);
+  }
+  img.alt = element.alt;
+  const source = imageSource();
+  const hash = element.hash;
+  if (img.dataset.hash === hash && img.getAttribute('src')) return;
+  img.dataset.hash = hash;
+  const url = source?.url(hash);
+  if (url !== undefined) {
+    img.src = url;
+    return;
+  }
+  img.removeAttribute('src');
+  const shown = img;
+  // The picture is on its way: draw it as soon as it is, if this box still wants that picture.
+  source?.load(hash, () => {
+    const ready = source.url(hash);
+    if (ready !== undefined && shown.dataset.hash === hash) shown.src = ready;
+  });
+}
+
 function paint(node: HTMLElement, element: SlideElement): void {
   styleBox(node, element);
   if (isShape(element)) paintShape(node, element);
+  else if (isImage(element)) paintImage(node, element);
   else paintTextBox(node, element);
 }
 

@@ -368,6 +368,12 @@
   position: relative;
 }
 
+/* Files held over the slide: it will take them. */
+.slide-frame-dropping {
+  outline: 2px dashed var(--color-accent);
+  outline-offset: 4px;
+}
+
 .slide-frame-drawing {
   cursor: crosshair;
 }
@@ -676,4 +682,26 @@
 
 .slide-frame * {
   -webkit-user-drag: none;
+}
+
+/* The description of a picture (a few words, so a small box). */
+.alt-field {
+  width: 100%;
+  padding: var(--space-2) 10px;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-field);
+  background: var(--color-white);
+  color: inherit;
+  font: inherit;
+  resize: vertical;
+}
+
+.alt-field:focus-visible {
+  border-color: var(--color-accent);
+  outline: none;
+}
+
+/* The real file chooser is the Image button; the input itself is not shown. */
+.file-input {
+  display: none;
 }

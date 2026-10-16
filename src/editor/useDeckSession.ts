@@ -5,6 +5,7 @@ import {
   canRedo,
   canUndo,
   emptyHistory,
+  imageHashes,
   record,
   redo as redoStep,
   redoLabel,
@@ -17,11 +18,19 @@ import {
   type Env,
   type History,
   type Id,
+  type ImageElement,
   type ReorderMode,
   type Slide,
   type SlideElement,
 } from '@/model';
-import { Autosaver, type DeckStore, type SaveState } from '@/storage';
+import {
+  Autosaver,
+  type DeckStore,
+  type SaveState,
+  type StoredImage,
+  type StoredOriginal,
+} from '@/storage';
+import { useImageCache } from './imageCache';
 import { idsOf, labelFor } from './historyLabels';
 
 type Loaded =
@@ -62,6 +71,18 @@ export interface DeckSession {
   readonly addElements: (elements: readonly SlideElement[], meta?: EditMeta) => void;
   /** The speaker notes of a slide (SL-6). */
   readonly setNotes: (slideId: Id, notes: string) => void;
+  /**
+   * Put new pictures on the current slide, in one step (EL-4). Their bytes are saved with the deck, in
+   * the same transaction, the next time it is saved; until then they are only in memory.
+   */
+  readonly addImages: (
+    pictures: readonly {
+      readonly image: StoredImage;
+      readonly original?: StoredOriginal;
+      readonly element: ImageElement;
+    }[],
+    meta?: EditMeta,
+  ) => void;
   /** Take elements off the current slide (delete, cut). */
   readonly removeElements: (ids: readonly Id[], meta?: EditMeta) => void;
   /** Delete a slide (SL-4); the slide to show afterwards is chosen. A deck always keeps one. */
@@ -106,6 +127,10 @@ export function useDeckSession(
   const deckRef = useRef<Deck | undefined>(undefined);
   const currentRef = useRef<Id | undefined>(undefined);
   const flushers = useRef(new Set<() => void>());
+  // Pictures added in this session that are not in the store yet, saved with the deck that shows them.
+  const pendingImages = useRef(new Map<string, StoredImage>());
+  const pendingOriginals = useRef(new Map<string, StoredOriginal>());
+  const images = useImageCache();
   // The history lives as long as the deck is open and is empty when it is opened (EL-8).
   const historyRef = useRef<History>(emptyHistory);
   const [history, setHistory] = useState<History>(emptyHistory);
@@ -114,7 +139,27 @@ export function useDeckSession(
   useEffect(() => {
     let active = true;
     const autosaver = new Autosaver({
-      save: (deck) => store.save(deck),
+      save: async (deck) => {
+        // The photos this deck shows that are not stored yet go in the same transaction as the deck, so
+        // a save that does not fit leaves nothing behind, and the photos wait for the next try.
+        const shown = imageHashes(deck);
+        const waiting = [...pendingImages.current.values()].filter((image) =>
+          shown.has(image.hash),
+        );
+        const originals = waiting.flatMap(
+          (image) => pendingOriginals.current.get(image.hash) ?? [],
+        );
+        await store.save(deck, waiting, originals);
+        for (const original of originals) {
+          if (pendingOriginals.current.get(original.hash) === original) {
+            pendingOriginals.current.delete(original.hash);
+          }
+        }
+        for (const image of waiting) {
+          if (pendingImages.current.get(image.hash) === image)
+            pendingImages.current.delete(image.hash);
+        }
+      },
       onChange: setSaveState,
     });
     saver.current = autosaver;
@@ -259,6 +304,35 @@ export function useDeckSession(
     [dispatch, env],
   );
 
+  const addImages = useCallback(
+    (
+      pictures: readonly {
+        readonly image: StoredImage;
+        readonly original?: StoredOriginal;
+        readonly element: ImageElement;
+      }[],
+      meta?: EditMeta,
+    ) => {
+      const slideId = currentRef.current;
+      if (slideId === undefined || pictures.length === 0) return;
+      for (const { image, original } of pictures) {
+        pendingImages.current.set(image.hash, image);
+        if (original) pendingOriginals.current.set(image.hash, original);
+        images?.add(image);
+      }
+      dispatch(
+        {
+          type: 'addElements',
+          slideId,
+          elements: pictures.map((picture) => picture.element),
+          at: env.now(),
+        },
+        { label: 'Add image', ...meta },
+      );
+    },
+    [dispatch, env, images],
+  );
+
   const removeElements = useCallback(
     (ids: readonly Id[], meta?: EditMeta) => {
       const slideId = currentRef.current;
@@ -374,6 +448,7 @@ export function useDeckSession(
     updateElements,
     reorderElements,
     removeElements,
+    addImages,
     deleteSlide,
     moveSlide,
     duplicateSlide,

@@ -345,3 +345,54 @@ describe('what can hold text (EL-1, EL-3)', () => {
     expect(canEditText(createText('t', { x: 0, y: 0 }))).toBe(true);
   });
 });
+
+describe('resizing a picture (EL-4)', () => {
+  const picture = rect('p', 100, 100, 400, 200);
+
+  test('Given a picture, When a corner is dragged sideways only, Then it keeps its proportions', () => {
+    const gesture: Gesture = {
+      kind: 'resize',
+      start: { x: 500, y: 300 },
+      handle: 'se',
+      boxes: boxesOf([picture]),
+      lockAspect: true,
+    };
+
+    const resized = byId(changesFor(gesture, { x: 700, y: 300 }, false), 'p');
+
+    expect((resized?.width ?? 0) / (resized?.height ?? 1)).toBeCloseTo(2, 2);
+    expect(resized?.width).toBeGreaterThan(400);
+  });
+
+  test('Given a picture, When a side is dragged, Then it is stretched on purpose', () => {
+    const gesture: Gesture = {
+      kind: 'resize',
+      start: { x: 500, y: 200 },
+      handle: 'e',
+      boxes: boxesOf([picture]),
+      lockAspect: false,
+    };
+
+    expect(byId(changesFor(gesture, { x: 700, y: 200 }, false), 'p')).toMatchObject({
+      width: 600,
+      height: 200,
+    });
+  });
+
+  test('Given anything else, When a corner is dragged, Then proportions are free unless Shift is held', () => {
+    const shape = rect('a', 100, 100, 400, 200);
+    const gesture: Gesture = {
+      kind: 'resize',
+      start: { x: 500, y: 300 },
+      handle: 'se',
+      boxes: boxesOf([shape]),
+    };
+
+    expect(byId(changesFor(gesture, { x: 700, y: 300 }, false), 'a')).toMatchObject({
+      width: 600,
+      height: 200,
+    });
+    const held = byId(changesFor(gesture, { x: 700, y: 300 }, true), 'a');
+    expect((held?.width ?? 0) / (held?.height ?? 1)).toBeCloseTo(2, 2);
+  });
+});

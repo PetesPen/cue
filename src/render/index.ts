@@ -2,4 +2,6 @@
 export { createSlideRenderer, mountSlide } from './slide';
 export type { SlideRenderer } from './slide';
 export { arrowHead } from './shapes';
+export { imageSource, setImageSource } from './images';
+export type { ImageSource } from './images';
 export { INDENT_STEP, createTextBody, ensureFonts, measureTextHeight, renderText } from './text';
