@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
+import { FONTS } from '../src/model/fonts';
 import { loadTokens } from './support/tokens';
 
 interface Face {
@@ -88,4 +89,30 @@ describe('Given the bundled fonts (EL-2, docs/decisions.md: open licences only)'
       .digest('hex');
     expect(readme).toContain(`\`${name}\` ${hash}`);
   });
+});
+
+describe('Given the style table in src/model/fonts.ts (decisions 7, 11 and 20)', () => {
+  const declared = [...css.matchAll(/@font-face\s*\{([^}]*)\}/g)].map(([, body = '']) => ({
+    family: /font-family:\s*'([^']+)'/.exec(body)?.[1] ?? '',
+    italic: /font-style:\s*italic/.test(body),
+    maxWeight: Math.max(
+      ...(/font-weight:\s*([\d ]+);/.exec(body)?.[1] ?? '400').trim().split(/\s+/).map(Number),
+    ),
+  }));
+
+  test("When the families are listed, Then they are the design's slide families, in the same order", () => {
+    expect(FONTS.map((f) => f.family)).toEqual(tokens.font.slideFamilies);
+  });
+
+  test.each(FONTS.map((f) => [f.family, f] as const))(
+    'When %s is compared with its font files, Then the table is true about italic and bold',
+    (family, info) => {
+      const faces = declared.filter((face) => face.family === family);
+      // Italic exists only where a real italic file is bundled.
+      expect(info.italic).toBe(faces.some((face) => face.italic));
+      // Bold exists only where the upright file goes up to a bold weight (700 or more).
+      const upright = faces.filter((face) => !face.italic);
+      expect(info.bold).toBe(upright.some((face) => face.maxWeight >= 700));
+    },
+  );
 });

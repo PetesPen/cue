@@ -123,3 +123,99 @@ describe('parseDeck with elements (EL-3)', () => {
     },
   );
 });
+
+describe('parseDeck with text (EL-1)', () => {
+  const textBox = {
+    id: 't1',
+    kind: 'text',
+    x: 100,
+    y: 100,
+    width: 600,
+    height: 90,
+    rotation: 0,
+    opacity: 1,
+    fill: 'none',
+    border: { color: '#14281B', width: 0, dash: 'solid' },
+    padding: 8,
+    doc: {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          attrs: { align: 'center' },
+          content: [{ type: 'text', text: 'Our approach', marks: [{ type: 'bold' }] }],
+        },
+      ],
+    },
+  };
+  const withElement = (element: unknown) => ({
+    ...createDeck(env),
+    slides: [{ id: 's', background: '#FFFFFF', notes: '', elements: [element] }],
+  });
+
+  test('Given a deck with a text box, When it goes through JSON and is parsed, Then it is identical', () => {
+    const deck = parseDeck(withElement(textBox));
+
+    expect(parseDeck(JSON.parse(JSON.stringify(deck)) as unknown)).toEqual(deck);
+    expect(deck.slides[0]?.elements[0]).toMatchObject({ kind: 'text', padding: 8 });
+  });
+
+  test('Given text with marks and attributes Cue does not know, When the deck is parsed, Then they are dropped and the words stay', () => {
+    const dirty = {
+      ...textBox,
+      doc: {
+        type: 'doc',
+        content: [
+          {
+            type: 'paragraph',
+            content: [
+              { type: 'text', text: 'Hi', marks: [{ type: 'link', attrs: { href: 'x' } }] },
+            ],
+          },
+        ],
+      },
+    };
+
+    const element = parseDeck(withElement(dirty)).slides[0]?.elements[0];
+
+    expect(element?.kind === 'text' && element.doc.content[0]).toEqual({
+      type: 'paragraph',
+      content: [{ type: 'text', text: 'Hi' }],
+    });
+  });
+
+  test('Given a shape that holds text, When the deck is parsed, Then the text is kept', () => {
+    const shape = {
+      id: 'e1',
+      kind: 'shape',
+      shape: 'ellipse',
+      x: 0,
+      y: 0,
+      width: 300,
+      height: 200,
+      rotation: 0,
+      opacity: 1,
+      fill: '#7FC8A0',
+      border: { color: '#14281B', width: 0, dash: 'solid' },
+      cornerRadius: 0,
+      text: textBox.doc,
+    };
+
+    const element = parseDeck(withElement(shape)).slides[0]?.elements[0];
+
+    expect(element?.kind === 'shape' && element.text).toEqual(textBox.doc);
+  });
+
+  test.each([
+    ['text that is not a document', { ...textBox, doc: 'Our approach' }],
+    ['no padding', { ...textBox, padding: undefined }],
+    ['a padding that is not a number', { ...textBox, padding: 'wide' }],
+    ['no border', { ...textBox, border: undefined }],
+    [
+      'a shape text that is not a document',
+      { ...textBox, kind: 'shape', shape: 'ellipse', cornerRadius: 0, text: 5 },
+    ],
+  ])('Given %s, When the deck is parsed, Then it is rejected', (_name, broken) => {
+    expect(() => parseDeck(withElement(broken))).toThrow(InvalidDeckError);
+  });
+});

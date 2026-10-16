@@ -3,7 +3,14 @@ import { applyPatches } from 'immer';
 import { describe, expect, test } from 'vitest';
 import { CommandError, applyCommand, type Command } from './commands';
 import { createSlide, type Deck } from './deck';
-import { createShape, SHAPE_KINDS, type ShapeKind, type SlideElement } from './elements';
+import {
+  createShape,
+  createText,
+  SHAPE_KINDS,
+  type ShapeKind,
+  type SlideElement,
+} from './elements';
+import { textFromString } from './richtext';
 import { parseDeck } from './parse';
 
 function deckWithElements(...ids: string[]): Deck {
@@ -21,6 +28,11 @@ function deckWithElements(...ids: string[]): Deck {
     updatedAt: 1000,
     slides: [slide, createSlide('s2')],
   };
+}
+
+/** A deck whose first slide holds exactly these elements. */
+function deckHolding(...elements: SlideElement[]): Deck {
+  return { ...deckWithElements(), slides: [{ ...createSlide('s1'), elements }, createSlide('s2')] };
 }
 
 const idsOn = (deck: Deck, slideId = 's1') =>
@@ -258,5 +270,118 @@ describe('element commands as a whole (EL-8 groundwork)', () => {
         },
       ),
     );
+  });
+});
+
+describe('removeElements, addElements and setNotes (EL-7, SL-6)', () => {
+  test('Given three elements, When two are removed, Then only the third is left, in order', () => {
+    const { deck } = applyCommand(deckWithElements('a', 'b', 'c'), {
+      type: 'removeElements',
+      slideId: 's1',
+      ids: ['a', 'c'],
+      at: 3000,
+    });
+
+    expect(idsOn(deck)).toEqual(['b']);
+    expect(deck.updatedAt).toBe(3000);
+  });
+
+  test('Given ids that are not on the slide, When they are removed, Then nothing else changes', () => {
+    const { deck } = applyCommand(deckWithElements('a'), {
+      type: 'removeElements',
+      slideId: 's1',
+      ids: ['ghost'],
+      at: 3000,
+    });
+
+    expect(idsOn(deck)).toEqual(['a']);
+  });
+
+  test('Given a slide, When several elements are added, Then they land on top in the order given', () => {
+    const { deck } = applyCommand(deckWithElements('a'), {
+      type: 'addElements',
+      slideId: 's1',
+      elements: [
+        createShape('x', 'ellipse', { x: 0, y: 0, width: 5, height: 5 }),
+        createText('y', { x: 0, y: 0 }),
+      ],
+      at: 3000,
+    });
+
+    expect(idsOn(deck)).toEqual(['a', 'x', 'y']);
+  });
+
+  test('Given an id already on the slide, When it is added again, Then the whole command fails and nothing is added', () => {
+    const before = deckWithElements('a');
+
+    expect(() =>
+      applyCommand(before, {
+        type: 'addElements',
+        slideId: 's1',
+        elements: [
+          createShape('x', 'ellipse', { x: 0, y: 0, width: 5, height: 5 }),
+          createShape('a', 'rectangle', { x: 0, y: 0, width: 1, height: 1 }),
+        ],
+        at: 3000,
+      }),
+    ).toThrow(/already on slide/);
+    expect(idsOn(before)).toEqual(['a']);
+  });
+
+  test('Given a slide, When notes are set, Then they are kept with that slide only', () => {
+    const { deck } = applyCommand(deckWithElements(), {
+      type: 'setNotes',
+      slideId: 's1',
+      notes: 'Open with the customer problem.\nThen pause.',
+      at: 3000,
+    });
+
+    expect(deck.slides[0]?.notes).toBe('Open with the customer problem.\nThen pause.');
+    expect(deck.slides[1]?.notes).toBe('');
+  });
+
+  test.each(['removeElements', 'addElements', 'setNotes'] as const)(
+    'Given an unknown slide, When %s runs, Then it fails',
+    (type) => {
+      const command: Command =
+        type === 'removeElements'
+          ? { type, slideId: 'nope', ids: [], at: 1 }
+          : type === 'addElements'
+            ? { type, slideId: 'nope', elements: [], at: 1 }
+            : { type, slideId: 'nope', notes: '', at: 1 };
+
+      expect(() => applyCommand(deckWithElements(), command)).toThrow(CommandError);
+    },
+  );
+
+  test('Given a text box and a shape, When changes meant for the other kind are sent, Then they are ignored', () => {
+    const text = createText('t', { x: 0, y: 0 });
+    const deck = deckHolding(text);
+
+    const { deck: next } = applyCommand(deck, {
+      type: 'updateElements',
+      slideId: 's1',
+      changes: [{ id: 't', props: { x: 40, cornerRadius: 12, padding: 8 } }],
+      at: 2,
+    });
+
+    expect(next.slides[0]?.elements[0]).toMatchObject({ x: 40, padding: 8 });
+    expect(next.slides[0]?.elements[0]).not.toHaveProperty('cornerRadius');
+  });
+
+  test('Given a command that edits text, When it is applied and undone, Then the original comes back', () => {
+    const text = createText('t', { x: 0, y: 0 });
+    const deck = deckHolding(text);
+    const doc = textFromString('Our approach');
+
+    const { deck: next, inverse } = applyCommand(deck, {
+      type: 'updateElements',
+      slideId: 's1',
+      changes: [{ id: 't', props: { doc, height: 90 } }],
+      at: 2,
+    });
+
+    expect(next.slides[0]?.elements[0]).toMatchObject({ doc, height: 90 });
+    expect(applyPatches(next, inverse)).toEqual(deck);
   });
 });

@@ -4,13 +4,13 @@ import {
   SLIDE_WIDTH,
   boundsOf,
   groupBounds,
-  isLine,
   lineEnds,
   type Box,
   type Rect,
   type SlideElement,
 } from '@/model';
 import { boxOf } from './gestures';
+import { isLineElement } from './shapeLabels';
 
 /**
  * The selection chrome (design: Main): a green outline with white square handles, a round handle to
@@ -58,7 +58,7 @@ export function SelectionOverlay({ elements, chip, marquee }: Props) {
         />
       )}
 
-      {only && isLine(only.shape) ? (
+      {only && isLineElement(only) ? (
         <LineHandles box={boxOf(only)} />
       ) : (
         bounds && (

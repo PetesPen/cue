@@ -1,10 +1,22 @@
-import { SLIDE_HEIGHT, SLIDE_WIDTH, type Id, type Slide, type SlideElement } from '@/model';
+import {
+  SLIDE_HEIGHT,
+  SLIDE_WIDTH,
+  isShape,
+  type Id,
+  type RichText,
+  type ShapeElement,
+  type Slide,
+  type SlideElement,
+  type TextElement,
+} from '@/model';
 import { drawShape } from './shapes';
+import { createTextBody, ensureFonts, renderText } from './text';
 import './slide.css';
 
 /** A slide drawn into a host element. Call `update` with a changed slide; `destroy` removes it. */
 export interface SlideRenderer {
-  readonly update: (slide: Slide) => void;
+  /** `hidden` elements keep their place but are not shown (the one being edited, drawn by the editor). */
+  readonly update: (slide: Slide, hidden?: ReadonlySet<Id>) => void;
   readonly destroy: () => void;
 }
 
@@ -13,7 +25,9 @@ interface Drawn {
   readonly node: HTMLElement;
 }
 
-/** Place and style an element's box. Opacity is on the whole box: fill, border and later text fade together. */
+const NOBODY: ReadonlySet<Id> = new Set();
+
+/** Place and style an element's box. Opacity is on the whole box: fill, border and text fade together. */
 function styleBox(node: HTMLElement, element: SlideElement): void {
   node.style.left = `${String(element.x)}px`;
   node.style.top = `${String(element.y)}px`;
@@ -21,24 +35,78 @@ function styleBox(node: HTMLElement, element: SlideElement): void {
   node.style.height = `${String(element.height)}px`;
   node.style.transform = element.rotation === 0 ? '' : `rotate(${String(element.rotation)}deg)`;
   node.style.opacity = element.opacity === 1 ? '' : String(element.opacity);
-  node.dataset.shape = element.shape;
+  node.dataset.kind = element.kind;
+  if (isShape(element)) node.dataset.shape = element.shape;
 }
 
 function createNode(element: SlideElement): HTMLElement {
   const node = document.createElement('div');
   node.className = 'cue-element';
   node.dataset.elementId = element.id;
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('class', 'cue-shape');
-  svg.setAttribute('aria-hidden', 'true');
-  node.append(svg);
+  if (isShape(element)) {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'cue-shape');
+    svg.setAttribute('aria-hidden', 'true');
+    node.append(svg);
+  }
   return node;
+}
+
+let paintCounter = 0;
+
+/**
+ * Show `doc` in `holder` (a `.cue-text`). Text stays hidden until the fonts it uses have loaded, so a
+ * slide never flashes a fallback font; `node` remembers which paint it is waiting for.
+ */
+function showText(node: HTMLElement, body: HTMLElement, doc: RichText): void {
+  renderText(body, doc);
+  paintCounter += 1;
+  const token = String(paintCounter);
+  node.dataset.paint = token;
+  node.dataset.fonts = 'loading';
+  void ensureFonts(doc).then(() => {
+    if (node.dataset.paint === token) delete node.dataset.fonts;
+  });
+}
+
+function paintShape(node: HTMLElement, element: ShapeElement): void {
+  const svg = node.querySelector('svg');
+  if (svg) drawShape(svg, element);
+  let holder = node.querySelector<HTMLElement>(':scope > .cue-shape-text');
+  if (!element.text) {
+    holder?.remove();
+    return;
+  }
+  if (!holder) {
+    holder = document.createElement('div');
+    holder.className = 'cue-shape-text';
+    holder.append(createTextBody());
+    node.append(holder);
+  }
+  const body = holder.firstElementChild;
+  if (body instanceof HTMLElement) showText(node, body, element.text);
+}
+
+function paintTextBox(node: HTMLElement, element: TextElement): void {
+  node.classList.add('cue-text-box');
+  node.style.background = element.fill === 'none' ? '' : element.fill;
+  node.style.padding = `${String(element.padding)}px`;
+  node.style.border =
+    element.border.width > 0
+      ? `${String(element.border.width)}px ${element.border.dash} ${element.border.color}`
+      : '';
+  let body = node.querySelector<HTMLElement>(':scope > .cue-text');
+  if (!body) {
+    body = createTextBody();
+    node.append(body);
+  }
+  showText(node, body, element.doc);
 }
 
 function paint(node: HTMLElement, element: SlideElement): void {
   styleBox(node, element);
-  const svg = node.querySelector('svg');
-  if (svg) drawShape(svg, element);
+  if (isShape(element)) paintShape(node, element);
+  else paintTextBox(node, element);
 }
 
 /**
@@ -66,7 +134,7 @@ export function createSlideRenderer(host: HTMLElement, slide: Slide): SlideRende
 
   const drawn = new Map<Id, Drawn>();
 
-  const update = (next: Slide) => {
+  const update = (next: Slide, hidden: ReadonlySet<Id> = NOBODY) => {
     surface.dataset.slideId = next.id;
     surface.style.background = next.background;
 
@@ -91,6 +159,7 @@ export function createSlideRenderer(host: HTMLElement, slide: Slide): SlideRende
         entry = { element, node: entry.node };
         drawn.set(element.id, entry);
       }
+      entry.node.style.visibility = hidden.has(element.id) ? 'hidden' : '';
       // Back to front is document order: put each node right after the one before it.
       const wanted: ChildNode | null = previous ? previous.nextSibling : surface.firstChild;
       if (wanted !== entry.node) surface.insertBefore(entry.node, wanted);

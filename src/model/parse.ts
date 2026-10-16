@@ -1,6 +1,7 @@
 import { freeze } from 'immer';
 import { SCHEMA_VERSION, type Deck, type Slide } from './deck';
-import { DASH_STYLES, SHAPE_KINDS, type SlideElement } from './elements';
+import { DASH_STYLES, SHAPE_KINDS, type Border, type SlideElement } from './elements';
+import { sanitiseRichText, type RichText } from './richtext';
 
 /** The stored deck was written by a newer Cue than this one. Say so; never guess (SV-3). */
 export class UnsupportedVersionError extends Error {
@@ -22,33 +23,48 @@ function isNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
 }
 
+function parseBorder(value: unknown, id: string): Border {
+  if (
+    !isRecord(value) ||
+    typeof value.color !== 'string' ||
+    !isNumber(value.width) ||
+    !DASH_STYLES.some((dash) => dash === value.dash)
+  ) {
+    throw new InvalidDeckError('Slide element ' + id + ' has no valid border');
+  }
+  return {
+    color: value.color,
+    width: value.width,
+    dash: DASH_STYLES.find((dash) => dash === value.dash) ?? 'solid',
+  };
+}
+
+function parseText(value: unknown, id: string): RichText {
+  try {
+    return sanitiseRichText(value);
+  } catch {
+    throw new InvalidDeckError('Slide element ' + id + ' has text that is not a text document');
+  }
+}
+
 function parseElement(value: unknown): SlideElement {
   if (!isRecord(value) || typeof value.id !== 'string') {
     throw new InvalidDeckError('A slide element has no id');
   }
-  const { border } = value;
+  const id = value.id;
   if (
-    value.kind !== 'shape' ||
-    !SHAPE_KINDS.some((shape) => shape === value.shape) ||
     !isNumber(value.x) ||
     !isNumber(value.y) ||
     !isNumber(value.width) ||
     !isNumber(value.height) ||
     !isNumber(value.rotation) ||
     !isNumber(value.opacity) ||
-    !isNumber(value.cornerRadius) ||
-    typeof value.fill !== 'string' ||
-    !isRecord(border) ||
-    typeof border.color !== 'string' ||
-    !isNumber(border.width) ||
-    !DASH_STYLES.some((dash) => dash === border.dash)
+    typeof value.fill !== 'string'
   ) {
-    throw new InvalidDeckError(`Slide element ${value.id} is not a valid shape`);
+    throw new InvalidDeckError('Slide element ' + id + ' has a box that is not valid');
   }
-  return {
-    id: value.id,
-    kind: 'shape',
-    shape: SHAPE_KINDS.find((shape) => shape === value.shape) ?? 'rectangle',
+  const box = {
+    id,
     x: value.x,
     y: value.y,
     width: value.width,
@@ -56,12 +72,24 @@ function parseElement(value: unknown): SlideElement {
     rotation: value.rotation,
     opacity: value.opacity,
     fill: value.fill,
-    border: {
-      color: border.color,
-      width: border.width,
-      dash: DASH_STYLES.find((dash) => dash === border.dash) ?? 'solid',
-    },
+    border: parseBorder(value.border, id),
+  };
+
+  if (value.kind === 'text') {
+    if (!isNumber(value.padding)) throw new InvalidDeckError('Text box ' + id + ' has no padding');
+    return { ...box, kind: 'text', padding: value.padding, doc: parseText(value.doc, id) };
+  }
+
+  const shape = SHAPE_KINDS.find((kind) => kind === value.shape);
+  if (value.kind !== 'shape' || !shape || !isNumber(value.cornerRadius)) {
+    throw new InvalidDeckError('Slide element ' + id + ' is not a valid shape');
+  }
+  return {
+    ...box,
+    kind: 'shape',
+    shape,
     cornerRadius: value.cornerRadius,
+    ...(value.text === undefined ? {} : { text: parseText(value.text, id) }),
   };
 }
 

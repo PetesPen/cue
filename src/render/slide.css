@@ -28,3 +28,64 @@
   display: block;
   overflow: visible;
 }
+
+/* Text (EL-1). These are the rules ProseMirror puts on the editor, so that this renderer breaks lines
+   in the same places (docs/spikes/SP-2.md, rule 2). The same class is on the editor's own text. */
+.cue-text {
+  white-space: break-spaces;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  font-variant-ligatures: none;
+  font-feature-settings: 'liga' 0;
+}
+
+.cue-text p {
+  margin: 0;
+}
+
+.cue-text ul,
+.cue-text ol {
+  margin: 0;
+  padding-left: 1.5em;
+}
+
+/* A text box: the element's own box carries its fill, border and padding. */
+.cue-text-box {
+  box-sizing: border-box;
+}
+
+/* Text inside a shape sits in the middle of it and is centred unless a paragraph says otherwise. */
+.cue-shape-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.cue-shape-text > .cue-text {
+  width: 100%;
+}
+
+/* Until its fonts have loaded, text is not shown rather than shown in the wrong font. */
+[data-fonts='loading'] .cue-text {
+  visibility: hidden;
+}
+
+/* Where text is measured: out of sight, out of the way, never part of the page. */
+.cue-measure-holder {
+  position: absolute;
+  top: 0;
+  left: -100000px;
+  width: 0;
+  height: 0;
+  overflow: visible;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* A measuring probe is a slide's worth of text rules without the slide's size or position. */
+.cue-measure {
+  position: static;
+}
