@@ -24,8 +24,10 @@ import { DesignPanel, SlidePanel } from './DesignPanel';
 import { applyDraft, boxOf, type Tool } from './gestures';
 import {
   AlertIcon,
+  ChevronDownIcon,
   ImageIcon,
   InfoIcon,
+  PlayIcon,
   PlusIcon,
   RedoIcon,
   ShapeIcon,
@@ -41,6 +43,7 @@ import {
   placeCentred,
 } from './importImage';
 import { Hint } from './Hint';
+import { shortcutText } from './shortcuts';
 import { Inspector, type TabId } from './Inspector';
 import { ShortcutsDialog } from './ShortcutsDialog';
 import { AnimatePanel } from './animation/AnimatePanel';
@@ -53,7 +56,11 @@ import { useTransitionPreview } from './animation/useTransitionPreview';
 import type { SlideViewHandle } from './SlideView';
 import { Logo } from './Logo';
 import { NotesField } from './NotesField';
+import { BlockedAudienceDialog } from './BlockedAudienceDialog';
 import { ContextMenu, MenuButton, type MenuItem } from './Menu';
+import { useOpenAudience } from './PresentContext';
+import { clearEditor, peekEditor, rememberEditor } from './resume';
+import { navigate } from './route';
 import { SaveIndicator } from './SaveIndicator';
 import { SHAPE_LABELS, describeSelection } from './shapeLabels';
 import { EDITING, type Look } from '@/render';
@@ -200,10 +207,17 @@ function Editor({
   const index = deck.slides.indexOf(currentSlide);
 
   // What is selected is remembered with its slide, so a selection never follows you to another slide.
-  const [selection, setSelection] = useState<{ slideId: Id; ids: readonly Id[] }>({
-    slideId: currentSlide.id,
-    ids: [],
+  const [selection, setSelection] = useState<{ slideId: Id; ids: readonly Id[] }>(() => {
+    // Back from a show, the same elements are selected again.
+    const resume = peekEditor(deck.id);
+    return {
+      slideId: currentSlide.id,
+      ids: resume?.slideId === currentSlide.id ? resume.selection : [],
+    };
   });
+  useEffect(() => {
+    clearEditor();
+  }, []);
   const [tool, setTool] = useState<Tool | undefined>();
   // A drag in progress, shown on the canvas but not saved until it ends (decision 18).
   const [draft, setDraft] = useState<readonly ElementChange[] | undefined>();
@@ -272,7 +286,7 @@ function Editor({
   }, []);
 
   // Animations: the Animate tab, the step whose settings are open, and Preview (AN-1, AN-5, AN-6).
-  const [tab, setTab] = useState<TabId>('design');
+  const [tab, setTab] = useState<TabId>(() => peekEditor(deck.id)?.tab ?? 'design');
   const [activeStepId, setActiveStepId] = useState<Id | undefined>();
   // The end of a Move being dragged: shown, and saved as one step when it is let go (decision 18).
   const [ghostDraft, setGhostDraft] = useState<
@@ -340,6 +354,32 @@ function Editor({
       window.removeEventListener('keydown', onKey, true);
     };
   }, [transitionPlaying, stopTransition]);
+
+  // Present (PM-1): the audience window opens from the click, and this tab turns into the presenter
+  // view. Ending the show brings the editor back as it was left (slide, selection and tab).
+  const openAudience = useOpenAudience();
+  const [blockedAt, setBlockedAt] = useState<number | undefined>();
+  const presentButton = useRef<HTMLButtonElement>(null);
+
+  function startShow(slideIndex: number) {
+    rememberEditor({ deckId: deck.id, slideId: currentSlide.id, selection: selectedIds, tab });
+    if (openAudience?.(deck.id, slideIndex)) {
+      navigate({ page: 'show', deckId: deck.id, view: 'presenter', slide: slideIndex });
+    } else {
+      setBlockedAt(slideIndex);
+    }
+  }
+
+  async function present(from: 'start' | 'current') {
+    if (!openAudience) return;
+    text.finish();
+    stopPreview();
+    stopTransition();
+    setMenuAt(undefined);
+    // The show reads the deck as it is stored, so what is still being typed is saved first.
+    await session.saveNow();
+    startShow(from === 'current' ? index : 0);
+  }
   useEffect(() => {
     if (!previewing) return;
     function onKey(event: KeyboardEvent) {
@@ -564,6 +604,9 @@ function Editor({
       fileInput.current?.click();
     },
     saveNow: session.saveNow,
+    present: (from: 'start' | 'current') => {
+      void present(from);
+    },
   });
   useEffect(() => {
     latest.current = {
@@ -579,6 +622,9 @@ function Editor({
         fileInput.current?.click();
       },
       saveNow: session.saveNow,
+      present: (from: 'start' | 'current') => {
+        void present(from);
+      },
     };
   });
   useEffect(() => {
@@ -588,7 +634,13 @@ function Editor({
       // Save now: the page saves itself, so this only makes sure, and keeps the browser's Save Page away.
       if (mod && !event.altKey && !event.shiftKey && key === 's') {
         event.preventDefault();
-        latest.current.saveNow();
+        void latest.current.saveNow();
+        return;
+      }
+      // Present from the beginning, or with Shift from this slide.
+      if (mod && !event.altKey && event.key === 'Enter') {
+        event.preventDefault();
+        if (!event.repeat) latest.current.present(event.shiftKey ? 'current' : 'start');
         return;
       }
       // Duplicate the slide, from anywhere.
@@ -797,6 +849,27 @@ function Editor({
     },
   }));
 
+  const presentItems: readonly MenuItem[] = [
+    {
+      id: 'present-start',
+      label: 'Present from the beginning',
+      shortcut: shortcutText('present.start'),
+      keyShortcuts: 'Control+Enter Meta+Enter',
+      onSelect: () => {
+        void present('start');
+      },
+    },
+    {
+      id: 'present-here',
+      label: 'Present from this slide',
+      shortcut: shortcutText('present.here'),
+      keyShortcuts: 'Control+Shift+Enter Meta+Shift+Enter',
+      onSelect: () => {
+        void present('current');
+      },
+    },
+  ];
+
   return (
     <ColourContext.Provider value={colourContext}>
       <div className="shell">
@@ -911,6 +984,33 @@ function Editor({
           </div>
           <div className="top-right">
             <SaveIndicator state={saveState} />
+            {openAudience && (
+              <div className="present-split">
+                <Hint label="Present" shortcut="present.start">
+                  <button
+                    ref={presentButton}
+                    type="button"
+                    className="button button-primary present-button"
+                    aria-keyshortcuts="Control+Enter Meta+Enter"
+                    onClick={() => {
+                      void present('start');
+                    }}
+                  >
+                    <PlayIcon />
+                    Present
+                  </button>
+                </Hint>
+                <MenuButton
+                  variant="toolbar"
+                  label="Ways to present"
+                  items={presentItems}
+                  hint={{ label: 'Ways to present' }}
+                >
+                  <ChevronDownIcon />
+                  <span className="visually-hidden">Ways to present</span>
+                </MenuButton>
+              </div>
+            )}
           </div>
         </header>
 
@@ -1042,6 +1142,27 @@ function Editor({
 
         <Toasts toasts={liveToasts} onDismiss={dismissToast} />
 
+        {blockedAt !== undefined && (
+          <BlockedAudienceDialog
+            returnFocusTo={presentButton}
+            onCancel={() => {
+              clearEditor();
+              setBlockedAt(undefined);
+            }}
+            onTryAgain={() => {
+              // A new click is a new chance: the pop-up is asked for again.
+              setBlockedAt(undefined);
+              startShow(blockedAt);
+            }}
+            onOneWindow={() => {
+              setBlockedAt(undefined);
+              // This click is what lets the browser go full screen.
+              void document.documentElement.requestFullscreen().catch(() => undefined);
+              navigate({ page: 'show', deckId: deck.id, view: 'single', slide: blockedAt });
+            }}
+          />
+        )}
+
         {helpOpen && (
           <ShortcutsDialog
             returnFocusTo={frame}
@@ -1067,6 +1188,7 @@ function Editor({
 
         <Inspector
           onTab={setTab}
+          initialTab={tab}
           transition={
             <TransitionPanel
               number={index + 1}

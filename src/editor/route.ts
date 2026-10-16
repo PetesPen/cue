@@ -1,21 +1,9 @@
 import { useSyncExternalStore } from 'react';
+import { parseRoute, routeHash, type Route } from '@/model';
 
-/** Two screens, chosen by the address hash so refresh and links work with no server setting. */
-export type Route = { readonly page: 'home' } | { readonly page: 'deck'; readonly deckId: string };
-
-const DECK_PREFIX = '#/deck/';
-
-export function parseRoute(hash: string): Route {
-  if (hash.startsWith(DECK_PREFIX)) {
-    const deckId = decodeURIComponent(hash.slice(DECK_PREFIX.length));
-    if (deckId !== '') return { page: 'deck', deckId };
-  }
-  return { page: 'home' };
-}
-
-export function routeHash(route: Route): string {
-  return route.page === 'home' ? '#/' : `${DECK_PREFIX}${encodeURIComponent(route.deckId)}`;
-}
+// The addresses themselves are in `model` (the show reads them too); here they are put to use.
+export { parseRoute, routeHash };
+export type { Route };
 
 export function navigate(route: Route): void {
   window.location.hash = routeHash(route);

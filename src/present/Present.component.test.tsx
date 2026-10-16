@@ -1,0 +1,267 @@
+import { afterEach, describe, expect, test, vi } from 'vitest';
+import { userEvent } from 'vitest/browser';
+import { render } from 'vitest-browser-react';
+import {
+  createDeck,
+  createShape,
+  createSlide,
+  createStep,
+  startShow,
+  type Deck,
+  type Env,
+  type ShowPlace,
+} from '@/model';
+import { AudienceWindow } from './AudienceWindow';
+import { clickSummary, formatElapsed, PresenterView } from './PresenterView';
+import { Show } from './show';
+
+const env: Env = { newId: () => 'id', now: () => 0 };
+const box = { x: 200, y: 100, width: 400, height: 300 };
+
+/** Three slides; the second has notes, two clicks and something that moves. */
+const deck: Deck = {
+  ...createDeck(env, 'Talk'),
+  slides: [
+    { ...createSlide('a'), notes: '' },
+    {
+      ...createSlide('b'),
+      notes: 'Open with the customer problem.',
+      elements: [createShape('e1', 'rectangle', box), createShape('e2', 'ellipse', box)],
+      animations: [
+        createStep('s1', 'e1', 'appear'),
+        { ...createStep('s2', 'e2', 'move'), effect: 'move', x: 900, y: 400 },
+      ],
+    },
+    { ...createSlide('c'), notes: 'Thank them.' },
+  ],
+};
+
+const shows: Show[] = [];
+const join = (start: ShowPlace = startShow(deck)) => {
+  const show = new Show(deck, start, 'presenter');
+  shows.push(show);
+  return show;
+};
+
+afterEach(() => {
+  shows.length = 0;
+  vi.restoreAllMocks();
+});
+
+const stagesIn = () =>
+  [...document.querySelectorAll<HTMLElement>('.show-stage .cue-layer .cue-slide')].map(
+    (slide) => slide.dataset.slideId,
+  );
+const opacityOf = (id: string) => {
+  const node = document.querySelector(`.show-stage [data-element-id="${id}"]`);
+  if (!node) throw new Error(`no ${id}`);
+  return Number(getComputedStyle(node).opacity);
+};
+
+describe('the presenter view (PM-2)', () => {
+  test('Given a show at slide 2, When the view opens, Then it has the slide, what is next, the notes, every slide, the timer and the clock', async () => {
+    const show = join(startShow(deck, 1));
+
+    const screen = await render(<PresenterView show={show} />);
+
+    await expect.element(screen.getByRole('heading', { name: 'Talk', level: 1 })).toBeVisible();
+    await expect.element(screen.getByText('Slide 2 of 3')).toBeVisible();
+    await expect
+      .element(screen.getByText('No clicks').or(screen.getByText('Click 0 of 2')))
+      .toBeVisible();
+    await expect.element(screen.getByText('Open with the customer problem.')).toBeVisible();
+    await expect.element(screen.getByRole('heading', { name: 'Next · Click 1' })).toBeVisible();
+    // Every slide, with the current one marked.
+    const strip = screen.getByRole('region', { name: 'All slides' });
+    await expect
+      .element(strip.getByRole('button', { name: 'Slide 2', exact: true }))
+      .toHaveAttribute('aria-current', 'true');
+    expect(strip.getByRole('button').elements()).toHaveLength(3);
+    await expect.element(screen.getByLabelText('Time of day')).toBeVisible();
+    await expect.element(screen.getByLabelText(/^Elapsed/)).toHaveTextContent('00:00');
+    expect(stagesIn()).toEqual(['b']);
+  });
+
+  test('Given the next click, Then the badge says what it does, and the preview shows that state', async () => {
+    const show = join(startShow(deck, 1));
+    const screen = await render(<PresenterView show={show} />);
+
+    await expect.element(screen.getByText('Appears')).toBeVisible();
+    await userEvent.click(screen.getByRole('button', { name: 'Next click' }).element());
+    await expect.element(screen.getByRole('heading', { name: 'Next · Click 2' })).toBeVisible();
+    await expect.element(screen.getByText('Moves')).toBeVisible();
+    await expect.element(screen.getByText('Click 1 of 2')).toBeVisible();
+    // The picture fades in, then it is at its own opacity.
+    await expect.poll(() => opacityOf('e1')).toBe(1);
+  });
+
+  test('Given the last click of the last slide, Then the next preview says End of presentation and the button ends the show', async () => {
+    const show = join(startShow(deck, 2));
+    const ended = vi.fn();
+    show.onEnd(ended);
+    const screen = await render(<PresenterView show={show} />);
+
+    await expect.element(screen.getByText('End of presentation')).toBeVisible();
+    await expect.element(screen.getByText('last slide')).toBeVisible();
+    await userEvent.click(screen.getByRole('button', { name: 'End show' }).last().element());
+
+    expect(ended).toHaveBeenCalledTimes(1);
+  });
+
+  test('Given the first place of the show, Then Back is off; after a move it steps back', async () => {
+    const show = join();
+    const screen = await render(<PresenterView show={show} />);
+    await expect.element(screen.getByRole('button', { name: 'Back' })).toBeDisabled();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Next slide' }).element());
+    await expect.element(screen.getByText('Slide 2 of 3')).toBeVisible();
+    await userEvent.click(screen.getByRole('button', { name: 'Back' }).element());
+
+    await expect.element(screen.getByText('Slide 1 of 3')).toBeVisible();
+    expect(show.getPlace()).toEqual({ slide: 0, click: 0, blank: 'none' });
+  });
+
+  test('Given the Blank screen button, When it is pressed twice, Then the screen blanks and comes back, and the view says so', async () => {
+    const show = join();
+    const screen = await render(<PresenterView show={show} />);
+    const blank = screen.getByRole('button', { name: 'Blank screen' });
+
+    await userEvent.click(blank.element());
+    await expect.element(screen.getByText(/Black screen: press B/)).toBeVisible();
+    await expect.element(blank).toHaveAttribute('aria-pressed', 'true');
+    await userEvent.click(blank.element());
+
+    expect(show.getPlace().blank).toBe('none');
+  });
+
+  test('Given the keys, Then Right, Left, W and End move the show, and a typed number then Enter jumps', async () => {
+    const show = join();
+    await render(<PresenterView show={show} />);
+
+    await userEvent.keyboard('{ArrowRight}');
+    expect(show.getPlace()).toEqual({ slide: 1, click: 0, blank: 'none' });
+    await userEvent.keyboard('{ArrowRight}{ArrowRight}');
+    expect(show.getPlace()).toEqual({ slide: 1, click: 2, blank: 'none' });
+    await userEvent.keyboard('{ArrowLeft}');
+    expect(show.getPlace().click).toBe(1);
+    await userEvent.keyboard('w');
+    expect(show.getPlace().blank).toBe('white');
+    await userEvent.keyboard('w');
+    await userEvent.keyboard('{End}');
+    expect(show.getPlace().slide).toBe(2);
+    await userEvent.keyboard('2{Enter}');
+    expect(show.getPlace().slide).toBe(1);
+    await userEvent.keyboard('{Home}');
+    expect(show.getPlace().slide).toBe(0);
+  });
+
+  test('Given the Jump to box, When a number is typed and Enter pressed, Then it jumps there and the box is cleared', async () => {
+    const show = join();
+    const screen = await render(<PresenterView show={show} />);
+    const box = screen.getByLabelText('Jump to');
+
+    await userEvent.fill(box.element(), '3');
+    await userEvent.keyboard('{Enter}');
+
+    expect(show.getPlace().slide).toBe(2);
+    await expect.element(box).toHaveValue('');
+  });
+
+  test('Given the timer, When it is paused, started and reset, Then the buttons say what they do', async () => {
+    const show = join();
+    const screen = await render(<PresenterView show={show} />);
+
+    await expect.element(screen.getByRole('button', { name: 'Start timer' })).toBeVisible();
+    await userEvent.keyboard('{ArrowRight}');
+    await expect.element(screen.getByRole('button', { name: 'Pause timer' })).toBeVisible();
+    await userEvent.click(screen.getByRole('button', { name: 'Pause timer' }).element());
+    await expect.element(screen.getByRole('button', { name: 'Start timer' })).toBeVisible();
+    await userEvent.click(screen.getByRole('button', { name: 'Reset timer' }).element());
+
+    await expect.element(screen.getByLabelText(/^Elapsed/)).toHaveTextContent('00:00');
+  });
+});
+
+describe('the audience window (PM-1, PM-2)', () => {
+  test('Given a show, When the window opens, Then it has the slide and only a hint, and no controls', async () => {
+    const show = join(startShow(deck, 1));
+
+    const screen = await render(<AudienceWindow show={show} />);
+
+    expect(stagesIn()).toEqual(['b']);
+    await expect.element(screen.getByText(/to end the show/)).toBeVisible();
+    expect(document.querySelectorAll('button, input, a, [tabindex]')).toHaveLength(0);
+    expect(getComputedStyle(must('.audience')).cursor).toBe('none');
+  });
+
+  test('Given the slide, When the window is any size, Then the frame is the largest 16:9 box that fits', async () => {
+    const show = join();
+    await render(<AudienceWindow show={show} />);
+
+    const frame = must('.audience-frame').getBoundingClientRect();
+
+    // The test window is 1440 wide and 900 tall: the width is what limits it.
+    expect(frame.width).toBeCloseTo(1440, 0);
+    expect(frame.height).toBeCloseTo((1440 * 9) / 16, 0);
+  });
+
+  test('Given the keys, Then they move the show, B and W blank the window in black and in white, and the hint goes after a while', async () => {
+    const show = join();
+    await render(<AudienceWindow show={show} />);
+
+    await userEvent.keyboard('{ArrowRight}');
+    expect(stagesIn()).toEqual(['b']);
+    await userEvent.keyboard('b');
+    expect(must('.audience-blank').dataset.colour).toBe('black');
+    await userEvent.keyboard('w');
+    expect(must('.audience-blank').dataset.colour).toBe('white');
+    await userEvent.keyboard('w');
+    expect(document.querySelector('.audience-blank')).toBeNull();
+    await expect.poll(() => document.querySelector('.audience-hint'), { timeout: 5000 }).toBeNull();
+  });
+
+  test('Given Escape, Then the show ends', async () => {
+    const show = join();
+    const ended = vi.fn();
+    show.onEnd(ended);
+    await render(<AudienceWindow show={show} />);
+
+    await userEvent.keyboard('{Escape}');
+
+    expect(ended).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('what the presenter view says', () => {
+  test.each([
+    [[], ''],
+    [[createStep('1', 'a', 'appear')], 'Appears'],
+    [[createStep('1', 'a', 'appear'), createStep('2', 'b', 'appear', 'with-previous')], 'Appears'],
+    [
+      [createStep('1', 'a', 'appear'), createStep('2', 'b', 'disappear', 'with-previous')],
+      'Appears · Disappears',
+    ],
+  ])(
+    'Given the steps of a click %#, When they are summed up, Then the badge reads "%s"',
+    (steps, label) => {
+      expect(clickSummary(steps)).toBe(label);
+    },
+  );
+
+  test.each([
+    [0, '00:00'],
+    [999, '00:00'],
+    [61_000, '01:01'],
+    [12 * 60_000 + 48_000, '12:48'],
+    [3_725_000, '1:02:05'],
+    [-5, '00:00'],
+  ])('Given %d ms, When the elapsed time is formatted, Then it reads %s', (ms, text) => {
+    expect(formatElapsed(ms)).toBe(text);
+  });
+});
+
+function must(selector: string): HTMLElement {
+  const node = document.querySelector<HTMLElement>(selector);
+  if (!node) throw new Error(`nothing matches ${selector}`);
+  return node;
+}

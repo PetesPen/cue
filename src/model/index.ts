@@ -217,3 +217,5 @@ export {
   upcoming,
 } from './show';
 export type { Blank, Movement, ShowPlace, Upcoming } from './show';
+export { parseRoute, routeHash } from './route';
+export type { Route, ShowView } from './route';

@@ -743,3 +743,21 @@
   align-items: center;
   justify-content: center;
 }
+
+/* Present and the menu of other ways to present, at the right of the top bar (board: Main). */
+.present-split {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.present-button {
+  gap: 6px;
+}
+
+/* At the right edge of the top bar, the menu opens leftwards from its button. */
+.present-split .menu-anchor .menu {
+  right: 0;
+  left: auto;
+  min-width: 260px;
+}

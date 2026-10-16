@@ -35,9 +35,11 @@ describe('the table of shortcuts (UX-2)', () => {
   test('Given the shortcuts that need features not built yet, Then the sheet leaves them out until they work', () => {
     const planned = SHORTCUTS.filter((s) => s.planned === true).map((s) => s.group);
 
-    expect(new Set(planned)).toEqual(new Set(['Presenting', 'General']));
+    // Export is the one still to come (sprint 10); the show's keys work since sprint 7.
+    expect(planned).toEqual(['General']);
     expect(listed().every((s) => s.planned !== true)).toBe(true);
-    expect(listed().some((s) => s.group === 'Presenting')).toBe(false);
+    expect(listed().some((s) => s.group === 'Presenting')).toBe(true);
+    expect(listed().some((s) => s.id === 'general.export')).toBe(false);
   });
 
   test('Given Mod, When it is drawn, Then it is Ctrl, or ⌘ on a Mac', () => {
