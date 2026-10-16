@@ -127,6 +127,8 @@ test('Given the picker, When Down and Enter are pressed, Then the next font is c
 
   await userEvent.keyboard('{ArrowDown}{Enter}');
   await expect.poll(() => family()).toBe('Figtree');
+  // The editor takes focus back a frame later (TipTap's focus command); Escape before that goes nowhere.
+  await expect.poll(() => editor()?.contains(document.activeElement)).toBe(true);
   await userEvent.keyboard('{Escape}');
 
   await expect
