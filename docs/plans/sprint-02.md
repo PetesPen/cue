@@ -1,6 +1,6 @@
 # Sprint 2 plan: Elements you can move
 
-Status: **built; waiting for Peter's review** (approved by Peter on 2026-10-16), including: text inside a shape moves to sprint 3, the shape style panel is Claude's design, the load of 18 days is fine ("whatever works"), and decision 18. The GitHub setting for screenshot baselines is done. Written 2026-10-15. Stories: EL-5, EL-3, ZO-1, TR-1 and the new SV-7 (all Must). Planned load 18 engineering days against a capacity of 16 (SV-7 came from decision 16); velocity is unmeasured and is re-estimated after this sprint.
+Status: **built and accepted by Peter on 2026-10-16**, including: text inside a shape moves to sprint 3, the shape style panel is Claude's design, the load of 18 days is fine ("whatever works"), and decision 18. The GitHub setting for screenshot baselines is done. Written 2026-10-15. Stories: EL-5, EL-3, ZO-1, TR-1 and the new SV-7 (all Must). Planned load 18 engineering days against a capacity of 16 (SV-7 came from decision 16); velocity is unmeasured and is re-estimated after this sprint.
 
 ## Outcome at the review
 

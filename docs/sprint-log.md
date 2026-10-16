@@ -258,3 +258,17 @@ Use https://cue-presentations.netlify.app/. New deck, then:
 1. **How often do you want to review?** Reviewing every sprint is the plan. Every two sprints would roughly halve the calendar time, at the cost of bigger things to check at once. Which do you prefer?
 2. **What did you expect to find that is not there?** For example, Delete and copy-paste of shapes are in sprint 3 (EL-7), Undo in sprint 4 (EL-8). Anything you would move earlier?
 3. **Screenshot review** worked as designed (a workflow made the images and opened a pull request for you). Is that the right amount of effort for you each time a screenshot changes, or should I say in the pull request what to look at first?
+
+### Peter's answers (2026-10-16)
+
+1. Accepted all five stories (EL-5, EL-3, ZO-1, TR-1, SV-7).
+2. "Merge the screenshots": done. The three reference images are merged into the screenshot-tests branch, and that pull request is made ready to merge once its own check has compared against them.
+3. Review frequency: every other sprint is fine ("I've been happy with the progress to date"). Recorded as working rule 9: reviews after sprints 4, 6, 7, 9, 10, 12 and 13.
+4. He turned the Netlify badge off. Checked: production serves no extra script and all 84 end-to-end checks pass against it.
+5. Questions from him: is there a proper colour chooser on the to-do list, and are there plans for different design palettes? Answers are in decision 19: no picker was planned (only swatches and hex); palettes are TH-1, a Could after v1.0. A story EL-10 is proposed.
+6. Not yet answered: the build choices to confirm (default shape size on a click, the Arrange row as the "toolbar", box-based hit-testing, palette plus hex).
+
+### Review outcome (2026-10-16)
+
+- **Sprint 2 accepted.** Pull requests 4 to 7 and 10 merged; the screenshot workflow ("Update screenshots") has worked once end to end and its first images are reviewed.
+- Plans for sprints 3 and 4 are written for approval together (`docs/plans/sprint-03.md`, `sprint-04.md`); the next review is Gate 2 after sprint 4.

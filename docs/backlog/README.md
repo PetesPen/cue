@@ -39,6 +39,7 @@ One file per sprint, with the stories (full acceptance criteria), demo, key test
 | EL-7 | Copy, paste and delete | Must | [3](sprint-03.md) |
 | EL-8 | Undo and redo | Must | [4](sprint-04.md) |
 | EL-9 | Group elements | Could | [after v1.0](after-v1.md) |
+| EL-10 | Pick any colour (proposed, not yet accepted: sprint 3 suggested) | Should | to be confirmed (decision 19) |
 | ZO-1 | Reorder with commands | Must | [2](sprint-02.md) |
 | ZO-2 | See and rearrange layers | Should | [11](sprint-11.md) |
 | ZO-3 | Lock, hide and rename layers | Should | [11](sprint-11.md) |

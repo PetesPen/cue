@@ -23,7 +23,7 @@ Pull request 2 got a Netlify deploy preview at `https://deploy-preview-2--cue-pr
 
 The live site (production) serves a page with one extra script that the deploy previews do not have: `/.netlify/scripts/hud?variant=public`. It is Netlify's **Powered by Netlify badge**, which Netlify turns on by default for public projects on its free plans. The badge needs an inline script, our content policy forbids inline scripts, so the browser blocks it and logs one console error on every page load. Visitors see nothing and nothing else breaks. It is not the Netlify Drawer (Peter switched that off, and the previews are clean). Four end-to-end tests ("no console errors") fail when run against production for this reason: `E2E_BASE_URL=https://cue-presentations.netlify.app npm run e2e:deployed` gave 30 of 34 passing on Chromium and WebKit after sprint 1, and 78 of 84 after sprint 2: every failure is a "no console errors" check, and the preview of every pull request passes them all.
 
-To switch it off (no redeploy needed, per Netlify's documentation): Netlify, Project configuration, General, "Powered by Netlify badge", turn off, save. We do not weaken the content policy for it.
+**Switched off by Peter on 2026-10-16; production now serves no Netlify script and all 84 end-to-end checks pass against it.** For the record, to switch it off (no redeploy needed, per Netlify's documentation): Netlify, Project configuration, General, "Powered by Netlify badge", turn off, save. We do not weaken the content policy for it.
 
 ## Left: needs Peter (accounts and permissions, so Claude cannot do these)
 

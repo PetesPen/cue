@@ -167,7 +167,7 @@ The first complete show, with every Must story, is ready at the end of sprint 10
 
 ### The five gates
 
-A gate is a checkpoint at the end of a phase. At the sprint review the product owner says yes or no to it. A yes means the next phase starts. A no, or "not yet", means the next sprint closes the gap before any new stories begin. Claude never marks a gate passed; only the product owner does, and the answer is recorded in `docs/decisions.md` and the "Current state" section of `CLAUDE.md`.
+Reviews with the product owner happen every other sprint (agreed 2026-10-16), and always at a gate: after sprints 4 (Gate 2), 6, 7 (Gate 3), 9, 10 (Gate 4), 12 and 13 (Gate 5); plans are approved in pairs. A gate is a checkpoint at the end of a phase. At the sprint review the product owner says yes or no to it. A yes means the next phase starts. A no, or "not yet", means the next sprint closes the gap before any new stories begin. Claude never marks a gate passed; only the product owner does, and the answer is recorded in `docs/decisions.md` and the "Current state" section of `CLAUDE.md`.
 
 | Gate | Name | Ends sprint | The question being answered |
 |---|---|---|---|

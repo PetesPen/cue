@@ -123,6 +123,15 @@ Every item on a slide is an element with a position, size, rotation, opacity and
 - Group and ungroup via shortcut and menu.
 - A group behaves as a single element for z-order, opacity and animation.
 
+**EL-10 Pick any colour (Should, proposed on 2026-10-16 after Peter's question; not yet accepted, so the totals do not count it).** As a presenter, I want a proper colour chooser, so that I can pick any colour by eye without knowing its hex code.
+
+- Every colour control (shape fill and border, text colour, box fill, later the slide background) opens the same picker: the design's colours as swatches, an area to drag across for shade and brightness, a slider for hue, and a hex field.
+- Colours used recently in the deck are offered first.
+- Where the browser has an eyedropper, a button picks a colour from anywhere on screen.
+- The canvas updates live while a colour is dragged, and the change is one step (decision 18).
+- It works with the keyboard and tells a screen reader which colour it holds.
+- The boards show only a swatch and a hex field, so the picker's look is not drawn: Peter draws it or approves Claude's layout. Palettes (a switcher between sets of swatches) are TH-1, a Could after v1.0, unless Peter asks for a light version inside this story (decision 19).
+
 ## Z-order
 
 Elements stack within a slide, with the last in the list drawn on top.
