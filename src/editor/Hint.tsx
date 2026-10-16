@@ -37,7 +37,8 @@ export function Hint({ label, shortcut, children }: HintProps) {
     setAt(undefined);
   };
   const show = () => {
-    const box = host.current?.getBoundingClientRect();
+    // The wrapper has no box of its own: the hint goes under the control inside it.
+    const box = host.current?.firstElementChild?.getBoundingClientRect();
     if (box) setAt({ x: box.left + box.width / 2, y: box.bottom + 6 });
   };
 

@@ -418,8 +418,9 @@
   gap: var(--space-1);
 }
 
+/* The wrapper of a control with a hint takes no part in the layout: the control sits where it did. */
 .hint-host {
-  display: inline-flex;
+  display: contents;
 }
 
 /* The hint of a control: its name and its keys, below it, over everything. */
