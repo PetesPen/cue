@@ -45,6 +45,13 @@ export { CommandError, applyCommand } from './commands';
 export type { Applied, Command } from './commands';
 export { InvalidDeckError, UnsupportedVersionError, parseDeck } from './parse';
 export {
+  CLIPBOARD_FORMAT,
+  CLIPBOARD_VERSION,
+  copiesOf,
+  parseElements,
+  serialiseElements,
+} from './clipboard';
+export {
   HANDLES,
   angleOf,
   boundsOf,
@@ -82,6 +89,7 @@ export {
   MIXED,
   emptyText,
   fontsUsed,
+  indentText,
   isEmptyText,
   listKind,
   normaliseColour,
@@ -91,6 +99,7 @@ export {
   sanitiseRichText,
   setListKind,
   summariseStyle,
+  summariseText,
   textFromString,
   textRuns,
 } from './richtext';
@@ -100,6 +109,7 @@ export type {
   Inline,
   ListBlock,
   ListItem,
+  ListKind,
   Mixed,
   Paragraph,
   ParagraphAttrs,
@@ -108,6 +118,7 @@ export type {
   StyleSummary,
   TextMark,
   TextStyleAttrs,
+  TextSummary,
 } from './richtext';
 export { DEFAULT_FONT, FONTS, fontCapabilities, isBundledFont } from './fonts';
 export type { FontInfo, FontKind } from './fonts';

@@ -5,6 +5,7 @@ import {
   fitBoxesTo,
   groupBounds,
   isShape,
+  isTextBox,
   type Border,
   type DashStyle,
   type ElementChange,
@@ -13,10 +14,14 @@ import {
   type ReorderMode,
   type ShapeElement,
   type SlideElement,
+  type TextElement,
 } from '@/model';
-import { ColourField, MIXED, NumberField, Segmented, common } from './fields';
+import { ColourField } from './colour/ColourField';
+import { MIXED, NumberField, Segmented, common } from './fields';
 import { boxOf } from './gestures';
 import { describeSelection, isLineElement } from './shapeLabels';
+import type { TextFormat } from './text/format';
+import { TextSection } from './text/TextSection';
 
 interface DesignPanelProps {
   /** The selected shapes as they are now, including a slider drag in progress. */
@@ -28,6 +33,10 @@ interface DesignPanelProps {
   /** Save a change: one command. */
   readonly onCommit: (changes: readonly ElementChange[]) => void;
   readonly onReorder: (mode: ReorderMode) => void;
+  /** What changes the text: the words being edited, or all the text of the selected boxes. */
+  readonly textFormat: TextFormat | undefined;
+  /** Fonts the deck uses, listed first in the font picker. */
+  readonly deckFonts: readonly string[];
 }
 
 const ARRANGE: readonly { readonly mode: ReorderMode; readonly label: string }[] = [
@@ -62,7 +71,15 @@ function Section({
  * The Design tab when something is selected (design: Main): position and size, opacity, arrange, and
  * the look of the shape. Values that differ across a multi-selection read "Mixed".
  */
-export function DesignPanel({ elements, order, onPreview, onCommit, onReorder }: DesignPanelProps) {
+export function DesignPanel({
+  elements,
+  order,
+  onPreview,
+  onCommit,
+  onReorder,
+  textFormat,
+  deckFonts,
+}: DesignPanelProps) {
   const ids = elements.map((e) => e.id);
   const only = elements.length === 1 ? elements[0] : undefined;
   const lines = elements.every(isLineElement);
@@ -70,6 +87,9 @@ export function DesignPanel({ elements, order, onPreview, onCommit, onReorder }:
     (e): e is ShapeElement => isShape(e) && e.shape === 'roundedRectangle',
   );
   const anyRounded = rounded.length > 0;
+  const textBoxes = elements.filter(isTextBox);
+  // A text box is as tall as its text needs, so it has no height to set.
+  const autoHeight = elements.every(isTextBox);
   const hasFill = elements.some((e) => !isLineElement(e));
   const pending = useRef<readonly ElementChange[] | undefined>(undefined);
 
@@ -121,6 +141,12 @@ export function DesignPanel({ elements, order, onPreview, onCommit, onReorder }:
         <span className="panel-name">{describeSelection(elements)}</span>
       </div>
 
+      {textFormat && (
+        <Section title="Text">
+          <TextSection format={textFormat} deckFonts={deckFonts} />
+        </Section>
+      )}
+
       <Section title="Position and size">
         <div className="field-grid">
           <NumberField
@@ -148,7 +174,7 @@ export function DesignPanel({ elements, order, onPreview, onCommit, onReorder }:
               setBounds({ width });
             }}
           />
-          {!lines && (
+          {!lines && !autoHeight && (
             <NumberField
               label="Height"
               shortLabel="H"
@@ -231,6 +257,13 @@ export function DesignPanel({ elements, order, onPreview, onCommit, onReorder }:
               elements.filter((e) => !isLineElement(e)),
               (e) => e.fill,
             )}
+            onPreview={(fill) => {
+              onPreview(
+                elements
+                  .filter((e) => !isLineElement(e))
+                  .map((e) => ({ id: e.id, props: { fill } })),
+              );
+            }}
             onChange={(fill) => {
               onCommit(
                 elements
@@ -242,10 +275,32 @@ export function DesignPanel({ elements, order, onPreview, onCommit, onReorder }:
         </Section>
       )}
 
+      {textBoxes.length > 0 && (
+        <Section title="Padding">
+          <div className="field-grid">
+            <NumberField
+              label="Padding"
+              shortLabel="Pad"
+              value={common(textBoxes, (e: TextElement) => e.padding)}
+              min={0}
+              max={500}
+              onCommit={(padding) => {
+                onCommit(textBoxes.map((e) => ({ id: e.id, props: { padding } })));
+              }}
+            />
+          </div>
+        </Section>
+      )}
+
       <Section title={lines ? 'Line' : 'Border'}>
         <ColourField
           label={lines ? 'Line colour' : 'Border colour'}
           value={common(elements, (e) => e.border.color)}
+          onPreview={(color) => {
+            onPreview(
+              elements.map((e) => ({ id: e.id, props: { border: { ...e.border, color } } })),
+            );
+          }}
           onChange={(color) => {
             border({ color });
           }}

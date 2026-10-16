@@ -1,5 +1,4 @@
 import { useState, type KeyboardEvent } from 'react';
-import { PALETTE, parseHex } from './palette';
 
 /** A value that is the same for everything selected, or `mixed`. */
 export const MIXED = 'mixed';
@@ -24,6 +23,8 @@ interface NumberFieldProps {
   readonly onCommit: (value: number) => void;
   readonly min?: number;
   readonly max?: number;
+  /** How far Up and Down move the value (Shift moves ten times as far). */
+  readonly step?: number;
   readonly suffix?: string;
 }
 
@@ -38,6 +39,7 @@ export function NumberField({
   onCommit,
   min = -Infinity,
   max = Infinity,
+  step = 1,
   suffix,
 }: NumberFieldProps) {
   const [text, setText] = useState<string | undefined>();
@@ -55,16 +57,20 @@ export function NumberField({
 
   function onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Enter') {
+      // Enter is only for this field: a change can move focus to the text being edited (Safari does it
+      // at once), and the key would then type a new line there.
+      event.preventDefault();
       commit();
       event.currentTarget.select();
     } else if (event.key === 'Escape') {
       setText(undefined);
     } else if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
       event.preventDefault();
-      const step = (event.shiftKey ? 10 : 1) * (event.key === 'ArrowUp' ? 1 : -1);
+      const move = (event.shiftKey ? 10 : 1) * step * (event.key === 'ArrowUp' ? 1 : -1);
       const base = text !== undefined ? Number(text) : value === MIXED ? 0 : value;
       setText(undefined);
-      if (Number.isFinite(base)) onCommit(clamp(base + step));
+      // Rounded, so 1.2 + 0.1 is 1.3 and not 1.3000000000000003.
+      if (Number.isFinite(base)) onCommit(clamp(Math.round((base + move) * 1000) / 1000));
     }
   }
 
@@ -93,80 +99,6 @@ export function NumberField({
         </span>
       )}
     </label>
-  );
-}
-
-interface ColourFieldProps {
-  readonly label: string;
-  /** A hex colour, `none`, or mixed. */
-  readonly value: Mixed<string>;
-  readonly onChange: (value: string) => void;
-  /** Offer "None" (an unfilled shape). */
-  readonly allowNone?: boolean;
-}
-
-/** The design's colours as swatches, and a hex field for any other colour. */
-export function ColourField({ label, value, onChange, allowNone = false }: ColourFieldProps) {
-  const [text, setText] = useState<string | undefined>();
-  const shown = text ?? (value === MIXED || value === 'none' ? '' : value);
-
-  function commit() {
-    if (text === undefined) return;
-    setText(undefined);
-    const colour = parseHex(text);
-    if (colour && colour !== value) onChange(colour);
-  }
-
-  return (
-    <div className="colour-field" role="group" aria-label={label}>
-      <div className="swatches">
-        {allowNone && (
-          <button
-            type="button"
-            className="swatch swatch-none"
-            aria-label="No fill"
-            aria-pressed={value === 'none'}
-            title="None"
-            onClick={() => {
-              onChange('none');
-            }}
-          />
-        )}
-        {PALETTE.map((swatch) => (
-          <button
-            key={swatch.value}
-            type="button"
-            className="swatch"
-            style={{ background: swatch.value }}
-            aria-label={swatch.name}
-            aria-pressed={value !== MIXED && value.toUpperCase() === swatch.value}
-            title={swatch.name}
-            onClick={() => {
-              onChange(swatch.value);
-            }}
-          />
-        ))}
-      </div>
-      <label className="field-box field-box-hex">
-        <span className="field-box-label" aria-hidden="true">
-          #
-        </span>
-        <input
-          aria-label={`${label} as hex`}
-          value={shown.replace('#', '')}
-          placeholder={value === MIXED ? 'Mixed' : value === 'none' ? 'None' : '17803F'}
-          maxLength={7}
-          onChange={(event) => {
-            setText(event.target.value);
-          }}
-          onBlur={commit}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') commit();
-            else if (event.key === 'Escape') setText(undefined);
-          }}
-        />
-      </label>
-    </div>
   );
 }
 

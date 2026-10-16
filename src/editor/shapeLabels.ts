@@ -1,4 +1,4 @@
-import { isLine, isShape, type ShapeKind, type SlideElement } from '@/model';
+import { isLine, isShape, isTextBox, type ShapeKind, type SlideElement } from '@/model';
 
 export const SHAPE_LABELS: Readonly<Record<ShapeKind, string>> = {
   rectangle: 'Rectangle',
@@ -24,4 +24,9 @@ export function describeSelection(elements: readonly SlideElement[]): string {
 /** A line or an arrow: it has two ends, not a box with sides. */
 export function isLineElement(element: SlideElement): boolean {
   return isShape(element) && isLine(element.shape);
+}
+
+/** Can this element be edited as text (Enter, or a double click)? A text box, or a shape that is not a line. */
+export function canEditText(element: SlideElement): boolean {
+  return isTextBox(element) || (isShape(element) && !isLine(element.shape));
 }

@@ -4,9 +4,11 @@ import { FONTS, fontCapabilities, isBundledFont } from './fonts';
 import {
   DEFAULT_TEXT_STYLE,
   InvalidTextError,
+  MAX_INDENT,
   MIXED,
   emptyText,
   fontsUsed,
+  indentText,
   isEmptyText,
   listKind,
   normaliseColour,
@@ -15,6 +17,7 @@ import {
   sanitiseRichText,
   setListKind,
   summariseStyle,
+  summariseText,
   textFromString,
   textRuns,
   type Inline,
@@ -383,6 +386,8 @@ describe('summariseStyle (what the toolbar and panel show)', () => {
       strike: false,
       align: 'left',
       lineHeight: 1.2,
+      canBold: true,
+      canItalic: true,
     });
   });
 
@@ -409,6 +414,31 @@ describe('summariseStyle (what the toolbar and panel show)', () => {
 
   test('Given an empty box, When it is summarised, Then it shows the defaults', () => {
     expect(summariseStyle(emptyText()).fontFamily).toBe('Instrument Sans');
+  });
+
+  test.each([
+    ['Caveat', true, false],
+    ['Bricolage Grotesque', true, false],
+    ['DM Serif Display', false, true],
+    ['Figtree', true, true],
+  ])(
+    'Given text in %s, When it is summarised, Then bold is offered: %s, italic: %s',
+    (fontFamily, canBold, canItalic) => {
+      const summary = summariseStyle(doc(para(run('a', [style({ fontFamily })]))));
+
+      expect(summary).toMatchObject({ canBold, canItalic });
+    },
+  );
+
+  test('Given a selection mixing a font with italic and one without, When it is summarised, Then italic is not offered (decision 20)', () => {
+    const mixed = doc(
+      para(
+        run('a', [style({ fontFamily: 'Figtree' })]),
+        run('b', [style({ fontFamily: 'Caveat' })]),
+      ),
+    );
+
+    expect(summariseStyle(mixed)).toMatchObject({ canBold: true, canItalic: false });
   });
 });
 
@@ -492,5 +522,45 @@ describe('lists', () => {
     });
 
     expect(listKind(mixed)).toBe(MIXED);
+  });
+});
+
+describe('indent and the summary of a whole text (the panel with a box selected)', () => {
+  const two = doc(para(run('a')), para(run('b')));
+
+  test('Given plain paragraphs, When they are indented twice, Then each is two levels in, and back to none', () => {
+    const indented = indentText(indentText(two, 1), 1);
+
+    expect(summariseText(indented).indent).toBe(2);
+    expect(summariseText(indentText(indented, -5)).indent).toBe(0);
+  });
+
+  test('Given an indent beyond the limit, When it is asked for, Then it stops at the limit', () => {
+    let text = two;
+    for (let i = 0; i < 10; i++) text = indentText(text, 1);
+
+    expect(summariseText(text).indent).toBe(MAX_INDENT);
+  });
+
+  test('Given paragraphs with different indents, When they are summarised, Then the indent is mixed', () => {
+    const mixed = doc(
+      { type: 'paragraph', attrs: { indent: 2 }, content: [run('a')] },
+      para(run('b')),
+    );
+
+    expect(summariseText(mixed).indent).toBe(MIXED);
+  });
+
+  test('Given a list, When it is indented, Then the list is left as it was', () => {
+    const list = setListKind(two, 'bulletList');
+
+    expect(indentText(list, 1)).toEqual(list);
+    expect(summariseText(list).list).toBe('bulletList');
+  });
+
+  test('Given styled text, When it is summarised, Then the style comes with the list and indent', () => {
+    const summary = summariseText(doc(para(run('a', [{ type: 'bold' }]))));
+
+    expect(summary).toMatchObject({ bold: true, list: 'none', indent: 0 });
   });
 });

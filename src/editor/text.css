@@ -1,0 +1,317 @@
+/* Editing text (design: Editor-Text): the editor over the slide, its floating toolbar, the font
+   picker, and the buttons shared by the toolbar and the Design panel. Sizes and colours come from
+   design/tokens.css; the few literal values are copied from the board and marked "board". */
+
+.toolbar-button[aria-pressed='true'] {
+  background: var(--color-accent-tint);
+  color: var(--color-accent-tint-text);
+}
+
+/* The text editor sits over the slide in the slide's own 1920 x 1080 space, scaled the same way the
+   drawn slide is, so its lines break where the drawn text's do. */
+.text-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.text-scaler {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  text-rendering: geometricPrecision;
+}
+
+.text-edit-box {
+  position: absolute;
+  box-sizing: border-box;
+  transform-origin: 50% 50%;
+  outline: var(--selection-outline);
+  outline-offset: 0;
+  pointer-events: auto;
+  cursor: text;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Text in a shape is centred in the shape, as the drawn text is. */
+.text-edit-box.cue-shape-text {
+  outline-offset: 0;
+}
+
+/* TipTap's own wrapper must not be a box of its own, so the text sits exactly where drawn text does. */
+.text-host {
+  display: contents;
+}
+
+.text-edit-box .ProseMirror {
+  outline: none;
+  caret-color: currentcolor;
+}
+
+.text-edit-box .cue-selection {
+  background: rgba(23, 128, 63, 0.28);
+}
+
+.text-edit-box .ProseMirror ::selection {
+  background: rgba(23, 128, 63, 0.28);
+}
+
+/* Buttons that change text: used in the floating toolbar and the Design panel. */
+.tool-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 30px; /* board: Editor-Text */
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-field);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tool-button:hover:not(:disabled) {
+  background: var(--color-sage);
+}
+
+.tool-button[aria-pressed='true'] {
+  background: var(--color-accent-tint);
+  color: var(--color-accent-tint-text);
+}
+
+.tool-button:disabled {
+  color: var(--color-disabled-text);
+  cursor: default;
+}
+
+.tool-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.glyph-underline {
+  text-decoration: underline;
+}
+
+.glyph-strike {
+  text-decoration: line-through;
+}
+
+/* The "A" of the text colour button, with a bar in the colour. */
+.glyph-colour {
+  border-bottom: 3px solid var(--swatch, var(--color-forest));
+  line-height: 1;
+  padding-bottom: 1px;
+}
+
+/* The floating toolbar. It sits above the text, or below it near the top of the slide. */
+.text-toolbar {
+  --toolbar-width: 560px;
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  width: max-content;
+  max-width: 100%;
+  padding: 5px 6px; /* board: Editor-Text */
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+  background: var(--color-white);
+  box-shadow: var(--shadow-popover);
+  transform: translateY(calc(-100% - 10px));
+}
+
+.text-toolbar[data-below='true'] {
+  transform: translateY(10px);
+}
+
+.toolbar-divider {
+  align-self: stretch;
+  width: 1px;
+  margin: 3px 4px;
+  background: var(--color-hairline);
+}
+
+.toolbar-size {
+  display: inline-flex;
+  width: 62px;
+}
+
+.toolbar-size .field-box {
+  height: 30px;
+  padding: 0 8px;
+}
+
+.toolbar-size .field-box-label {
+  display: none;
+}
+
+/* The font picker: a button and, when open, the search and the list under it. */
+.font-picker {
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+}
+
+.text-section .font-picker {
+  display: flex;
+}
+
+.font-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+  min-width: 150px; /* board: Editor-Text */
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-field);
+  background: var(--color-white);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.font-button:hover {
+  background: var(--color-app-bg);
+}
+
+.font-button-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.font-popover {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  left: 0;
+  z-index: 4;
+  width: 268px; /* board: Editor-Text */
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+  background: var(--color-white);
+  box-shadow: var(--shadow-popover);
+}
+
+.font-search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 32px;
+  margin: var(--space-2);
+  padding: 0 10px;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-field);
+  color: var(--color-muted);
+}
+
+.font-search:focus-within {
+  border-color: var(--color-accent);
+}
+
+.font-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-forest);
+  font: inherit;
+  outline: none;
+}
+
+.font-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.font-group {
+  padding: var(--space-2) var(--space-3) var(--space-1);
+  color: var(--color-muted);
+  font: var(--type-section-label);
+  letter-spacing: var(--tracking-section-label);
+  text-transform: uppercase;
+}
+
+.font-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 34px;
+  padding: 0 var(--space-3);
+  cursor: pointer;
+}
+
+.font-option-active {
+  background: var(--color-sage);
+}
+
+.font-option[aria-selected='true'] {
+  background: var(--color-accent-tint);
+  color: var(--color-accent-tint-text);
+}
+
+.font-check {
+  display: inline-flex;
+  width: 14px;
+  color: var(--color-accent);
+}
+
+.font-option-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.font-option-kind {
+  color: var(--color-muted);
+  font: var(--type-caption);
+}
+
+.font-empty {
+  margin: 0;
+  padding: var(--space-3);
+  color: var(--color-muted);
+  font: var(--type-caption);
+}
+
+.font-footer {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--color-hairline);
+  color: var(--color-muted);
+  font: var(--type-caption);
+}
+
+/* The colour picker opened from a button. */
+.colour-button-anchor {
+  position: relative;
+  display: inline-flex;
+}
+
+.colour-popover {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  left: 0;
+  z-index: 4;
+  width: 244px;
+  padding: var(--space-3);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+  background: var(--color-white);
+  box-shadow: var(--shadow-popover);
+}

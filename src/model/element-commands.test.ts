@@ -385,3 +385,35 @@ describe('removeElements, addElements and setNotes (EL-7, SL-6)', () => {
     expect(applyPatches(next, inverse)).toEqual(deck);
   });
 });
+
+describe('text inside a shape (EL-3, EL-1)', () => {
+  const withText = (): SlideElement => ({
+    ...createShape('s', 'ellipse', { x: 0, y: 0, width: 100, height: 100 }),
+    text: textFromString('Hello'),
+  });
+
+  test('Given a shape with text, When its text is changed to some other words, Then the shape holds them', () => {
+    const { deck } = applyCommand(deckHolding(withText()), {
+      type: 'updateElements',
+      slideId: 's1',
+      changes: [{ id: 's', props: { text: textFromString('Bye') } }],
+      at: 2,
+    });
+
+    expect(deck.slides[0]?.elements[0]).toMatchObject({ text: textFromString('Bye') });
+  });
+
+  test('Given a shape with text, When its text is emptied, Then the shape has no text at all, and undo brings the words back', () => {
+    const before = deckHolding(withText());
+
+    const { deck, inverse } = applyCommand(before, {
+      type: 'updateElements',
+      slideId: 's1',
+      changes: [{ id: 's', props: { text: textFromString('  ') } }],
+      at: 2,
+    });
+
+    expect(deck.slides[0]?.elements[0]).not.toHaveProperty('text');
+    expect(applyPatches(deck, inverse)).toEqual(before);
+  });
+});

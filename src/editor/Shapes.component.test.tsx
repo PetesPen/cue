@@ -301,7 +301,11 @@ test('Given a rectangle, When its fill swatch and hex are changed, Then the shap
   const screen = await openWith(store, rectangle('a', 200, 100));
   await pick('a');
 
-  await screen.getByRole('group', { name: 'Fill' }).getByRole('button', { name: 'Yellow' }).click();
+  await screen.getByRole('button', { name: 'Choose fill' }).click();
+  await screen
+    .getByRole('dialog', { name: 'Fill picker' })
+    .getByRole('button', { name: 'Yellow' })
+    .click();
   await expect
     .poll(() => elementNode('a')?.querySelector('rect')?.getAttribute('fill'))
     .toBe('#F5C542');
@@ -321,6 +325,7 @@ test('Given a shape, When "no fill" is chosen, Then it is not filled', async () 
   const screen = await openWith(store, rectangle('a', 200, 100));
   await pick('a');
 
+  await screen.getByRole('button', { name: 'Choose fill' }).click();
   await screen.getByRole('button', { name: 'No fill' }).click();
 
   await expect
@@ -333,10 +338,13 @@ test('Given a shape, When the border colour, width and dash change, Then the bor
   const screen = await openWith(store, rectangle('a', 200, 100));
   await pick('a');
 
+  await screen.getByRole('button', { name: 'Choose border colour' }).click();
   await screen
-    .getByRole('group', { name: 'Border colour' })
+    .getByRole('dialog', { name: 'Border colour picker' })
     .getByRole('button', { name: 'Red' })
     .click();
+  // The open picker covers what is under it; Escape closes it.
+  await userEvent.keyboard('{Escape}');
   await screen.getByRole('textbox', { name: 'Border width' }).fill('12');
   await userEvent.keyboard('{Enter}');
   await screen

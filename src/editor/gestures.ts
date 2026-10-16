@@ -3,6 +3,7 @@ import {
   centerOf,
   containsPoint,
   createShape,
+  createText,
   groupBounds,
   isLine,
   lineBetween,
@@ -25,6 +26,7 @@ import {
   type ShapeKind,
   type Slide,
   type SlideElement,
+  type TextElement,
 } from '@/model';
 import { isLineElement } from './shapeLabels';
 
@@ -61,7 +63,11 @@ export type Gesture =
       readonly start: Point;
       readonly shape: ShapeKind;
       readonly id: Id;
-    };
+    }
+  | { readonly kind: 'drawText'; readonly start: Point; readonly id: Id };
+
+/** What the toolbar has armed for the next drag on the slide: a shape, or a text box. */
+export type Tool = ShapeKind | 'text';
 
 /** Snap lines and rotations to this many degrees while Shift is held. */
 export const ANGLE_STEP = 15;
@@ -173,6 +179,7 @@ export function changesFor(gesture: Gesture, pointer: Point, shift: boolean): El
 
     case 'marquee':
     case 'draw':
+    case 'drawText':
       return [];
   }
 }
@@ -221,6 +228,28 @@ export function drawnShape(
     y: Math.round(drawn.y),
     width: Math.round(drawn.width),
     height: Math.round(drawn.height),
+  });
+}
+
+/** A text box no narrower than this (slide pixels) is made by dragging. */
+export const MIN_TEXT_WIDTH = 80;
+
+/**
+ * The text box a click or drag has made: a click puts the default width at that point, a drag sets the
+ * width (and where it starts). Its height is the editor's to measure from the text.
+ */
+export function drawnText(
+  gesture: Extract<Gesture, { kind: 'drawText' }>,
+  pointer: Point,
+  moved: boolean,
+): TextElement {
+  const { id, start } = gesture;
+  if (!moved) return createText(id, { x: Math.round(start.x), y: Math.round(start.y) });
+  const drawn = boxFromDrag(start, pointer);
+  return createText(id, {
+    x: Math.round(drawn.x),
+    y: Math.round(drawn.y),
+    width: Math.max(MIN_TEXT_WIDTH, Math.round(drawn.width)),
   });
 }
 

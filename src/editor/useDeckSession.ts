@@ -36,6 +36,18 @@ export interface DeckSession {
   /** Change properties of elements on the current slide: one command, one step (decision 18). */
   readonly updateElements: (changes: readonly ElementChange[]) => void;
   readonly reorderElements: (ids: readonly Id[], mode: ReorderMode) => void;
+  /** Put new elements on top of the current slide, in order (paste, duplicate). */
+  readonly addElements: (elements: readonly SlideElement[]) => void;
+  /** The speaker notes of a slide (SL-6). */
+  readonly setNotes: (slideId: Id, notes: string) => void;
+  /** Take elements off the current slide (delete, cut). */
+  readonly removeElements: (ids: readonly Id[]) => void;
+  /**
+   * Something that holds typed words not yet given to the deck (the notes, a text being edited)
+   * registers a function that does so. They run before the deck is saved when the tab is closed or
+   * the deck is left. Returns the way to unregister.
+   */
+  readonly registerFlush: (flush: () => void) => () => void;
   /** Try saving again after a failed save. */
   readonly retrySave: () => void;
 }
@@ -55,6 +67,7 @@ export function useDeckSession(
   const saver = useRef<Autosaver | undefined>(undefined);
   const deckRef = useRef<Deck | undefined>(undefined);
   const currentRef = useRef<Id | undefined>(undefined);
+  const flushers = useRef(new Set<() => void>());
 
   useEffect(() => {
     let active = true;
@@ -84,8 +97,13 @@ export function useDeckSession(
         setLoaded({ phase: 'unreadable', newer: error instanceof UnsupportedVersionError });
       });
 
-    // A closing tab or window gets one last save (best effort: the browser may cut it short).
-    const flush = () => void autosaver.flush();
+    // A closing tab or window gets one last save (best effort: the browser may cut it short), after
+    // whatever is still being typed has been given to the deck.
+    const waiting = flushers.current;
+    const flush = () => {
+      for (const pending of waiting) pending();
+      void autosaver.flush();
+    };
     const onVisibility = () => {
       if (document.visibilityState === 'hidden') flush();
     };
@@ -97,6 +115,7 @@ export function useDeckSession(
       window.removeEventListener('pagehide', flush);
       document.removeEventListener('visibilitychange', onVisibility);
       // Leaving the deck (to the library, say) saves what is pending first.
+      for (const pending of waiting) pending();
       void autosaver.flush().then(() => {
         autosaver.dispose();
       });
@@ -159,6 +178,38 @@ export function useDeckSession(
     [dispatch, env],
   );
 
+  const addElements = useCallback(
+    (elements: readonly SlideElement[]) => {
+      const slideId = currentRef.current;
+      if (slideId === undefined || elements.length === 0) return;
+      dispatch({ type: 'addElements', slideId, elements, at: env.now() });
+    },
+    [dispatch, env],
+  );
+
+  const setNotes = useCallback(
+    (slideId: Id, notes: string) => {
+      dispatch({ type: 'setNotes', slideId, notes, at: env.now() });
+    },
+    [dispatch, env],
+  );
+
+  const removeElements = useCallback(
+    (ids: readonly Id[]) => {
+      const slideId = currentRef.current;
+      if (slideId === undefined || ids.length === 0) return;
+      dispatch({ type: 'removeElements', slideId, ids, at: env.now() });
+    },
+    [dispatch, env],
+  );
+
+  const registerFlush = useCallback((flush: () => void) => {
+    flushers.current.add(flush);
+    return () => {
+      flushers.current.delete(flush);
+    };
+  }, []);
+
   const retrySave = useCallback(() => {
     void saver.current?.retry();
   }, []);
@@ -178,6 +229,10 @@ export function useDeckSession(
     addElement,
     updateElements,
     reorderElements,
+    removeElements,
+    addElements,
+    setNotes,
+    registerFlush,
     retrySave,
   };
 }

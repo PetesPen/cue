@@ -1,60 +1,12 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+import { drag, openNewDeck, type Slide } from './support/slide';
 
 // Sprint 2: elements you can move (EL-3, EL-5, ZO-1, TR-1) and one tab per deck (SV-7). These drive a
 // real mouse over a slide at a fixed window size, so slide pixels map to screen pixels the same way
 // in every browser.
 
 test.use({ viewport: { width: 1440, height: 900 } });
-
-const SLIDE_WIDTH = 1920;
-const SLIDE_HEIGHT = 1080;
-
-interface Slide {
-  readonly frame: Locator;
-  /** Slide pixels to page coordinates. */
-  readonly at: (x: number, y: number) => Promise<{ x: number; y: number }>;
-  /** How many screen pixels one slide pixel is. */
-  readonly scale: () => Promise<number>;
-}
-
-async function openNewDeck(page: Page): Promise<Slide> {
-  await page.goto('/');
-  await page.getByRole('button', { name: 'New deck' }).first().click();
-  await expect(page.getByRole('option', { name: 'Slide 1' })).toBeVisible();
-  const frame = page.getByRole('group', { name: /^Slide 1 of/ });
-  const box = async () => {
-    const b = await frame.boundingBox();
-    if (!b) throw new Error('the slide has no box');
-    return b;
-  };
-  return {
-    frame,
-    at: async (x, y) => {
-      const b = await box();
-      return { x: b.x + (x / SLIDE_WIDTH) * b.width, y: b.y + (y / SLIDE_HEIGHT) * b.height };
-    },
-    scale: async () => (await box()).width / SLIDE_WIDTH,
-  };
-}
-
-async function drag(
-  page: Page,
-  slide: Slide,
-  from: readonly [number, number],
-  to: readonly [number, number],
-  options: { shift?: boolean; release?: boolean } = {},
-) {
-  const a = await slide.at(...from);
-  const b = await slide.at(...to);
-  if (options.shift) await page.keyboard.down('Shift');
-  await page.mouse.move(a.x, a.y);
-  await page.mouse.down();
-  await page.mouse.move((a.x + b.x) / 2, (a.y + b.y) / 2, { steps: 5 });
-  await page.mouse.move(b.x, b.y, { steps: 5 });
-  if (options.release !== false) await page.mouse.up();
-  if (options.shift) await page.keyboard.up('Shift');
-}
 
 /** Choose a shape from the toolbar and draw it by dragging between two slide points. */
 async function draw(
@@ -351,16 +303,21 @@ test.describe('Given shapes that overlap, When they are arranged (ZO-1)', () => 
     expect(await order(page)).toEqual(['ellipse', 'rectangle', 'triangle']);
   });
 
-  test('Then the right-click menu has the same four commands, with their shortcuts, and disables the ones that do nothing', async ({
+  test('Then the right-click menu has the four arrange commands, with their shortcuts, and disables the ones that do nothing', async ({
     page,
   }) => {
     const slide = await threeStacked(page);
     const ellipse = await slide.at(350, 450); // only the ellipse's box is topmost here
     await page.mouse.click(ellipse.x, ellipse.y, { button: 'right' });
 
-    const menu = page.getByRole('menu', { name: 'Arrange' });
+    const menu = page.getByRole('menu', { name: 'Element actions' });
     await expect(menu).toBeVisible();
     await expect(menu.getByRole('menuitem')).toHaveText([
+      'CutCtrl+X',
+      'CopyCtrl+C',
+      'PasteCtrl+V',
+      'DuplicateCtrl+D',
+      'DeleteDel',
       'Bring to frontCtrl+Shift+]',
       'Bring forwardCtrl+]',
       'Send backwardCtrl+[',
@@ -493,11 +450,19 @@ test.describe('Given a shape, When it is styled (EL-3)', () => {
     const slide = await openNewDeck(page);
     await draw(page, slide, 'Rounded rectangle', [300, 300], [900, 700]);
 
-    await page.getByRole('group', { name: 'Fill' }).getByRole('button', { name: 'Yellow' }).click();
+    await page.getByRole('button', { name: 'Choose fill' }).click();
     await page
-      .getByRole('group', { name: 'Border colour' })
+      .getByRole('dialog', { name: 'Fill picker' })
+      .getByRole('button', { name: 'Yellow' })
+      .click();
+    // The open picker covers the next colour; Escape closes it, as a person would.
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Choose border colour' }).click();
+    await page
+      .getByRole('dialog', { name: 'Border colour picker' })
       .getByRole('button', { name: 'Forest' })
       .click();
+    await page.keyboard.press('Escape');
     await field(page, 'Border width').fill('14');
     await page.keyboard.press('Enter');
     await page
@@ -579,7 +544,7 @@ test.describe('Given the editor with shapes (accessibility)', () => {
 
     const p = await slide.at(600, 500);
     await page.mouse.click(p.x, p.y, { button: 'right' });
-    await expect(page.getByRole('menu', { name: 'Arrange' })).toBeVisible();
+    await expect(page.getByRole('menu', { name: 'Element actions' })).toBeVisible();
     await check();
   });
 

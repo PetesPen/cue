@@ -248,11 +248,33 @@
   border-top: 1px solid var(--color-hairline);
 }
 
+.notes {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .notes-header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   margin-bottom: 6px; /* board: Main */
+}
+
+.notes-field {
+  flex: 1;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: var(--type-body);
+  resize: none;
+  outline: none;
+}
+
+.notes-field:focus-visible {
+  box-shadow: var(--focus-ring);
 }
 
 .inspector {
@@ -574,12 +596,6 @@
   background: var(--color-accent-tint);
   color: var(--color-accent-tint-text);
   font-weight: 700;
-}
-
-.colour-field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
 }
 
 .swatches {
