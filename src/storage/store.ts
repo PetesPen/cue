@@ -1,5 +1,5 @@
 import { duplicateDeck, imageHashes, parseDeck, type Deck, type Env } from '@/model';
-import { CueDatabase, type StoredImage } from './database';
+import { CueDatabase, type StoredImage, type StoredOriginal } from './database';
 
 /** What the library needs to draw a card: no need to hold every deck's slides in the list. */
 export interface DeckSummary {
@@ -20,11 +20,17 @@ export interface DeckStore {
    * Save a deck and any new photos in ONE transaction. A save that does not fit (or fails for any
    * other reason) leaves nothing behind: not the deck, not half the photos (docs/spikes/SP-5.md).
    */
-  save(deck: Deck, newImages?: readonly StoredImage[]): Promise<void>;
+  save(
+    deck: Deck,
+    newImages?: readonly StoredImage[],
+    newOriginals?: readonly StoredOriginal[],
+  ): Promise<void>;
   remove(id: string): Promise<void>;
   /** Stores and returns a copy under new ids, or `undefined` when no such deck is stored. */
   duplicate(id: string, env: Env): Promise<Deck | undefined>;
   loadImage(hash: string): Promise<StoredImage | undefined>;
+  /** The picture as it came in, if it was kept (for the export), or `undefined`. */
+  loadOriginal(hash: string): Promise<StoredOriginal | undefined>;
   /** Deletes photos no deck refers to, as insurance against a half-finished save. Returns how many. */
   sweepOrphanImages(referencedHashes: ReadonlySet<string>): Promise<number>;
   /**
@@ -88,10 +94,11 @@ export function createDeckStore(databaseName = 'cue'): DeckStore {
       return raw === undefined ? undefined : parseDeck(raw);
     },
 
-    async save(deck, newImages = []) {
+    async save(deck, newImages = [], newOriginals = []) {
       await write(() =>
-        db.transaction('rw', db.decks, db.images, async () => {
+        db.transaction('rw', db.decks, db.images, db.originals, async () => {
           await db.images.bulkPut([...newImages]);
+          await db.originals.bulkPut([...newOriginals]);
           await db.decks.put(deck);
         }),
       );
@@ -114,12 +121,18 @@ export function createDeckStore(databaseName = 'cue'): DeckStore {
       return db.images.get(hash);
     },
 
+    async loadOriginal(hash) {
+      await writesSettled();
+      return db.originals.get(hash);
+    },
+
     sweepOrphanImages(referencedHashes) {
       return write(() =>
-        db.transaction('rw', db.images, async () => {
+        db.transaction('rw', db.images, db.originals, async () => {
           const stored = await db.images.toCollection().primaryKeys();
           const orphans = stored.filter((hash) => !referencedHashes.has(hash));
           await db.images.bulkDelete(orphans);
+          await db.originals.bulkDelete(orphans);
           return orphans.length;
         }),
       );
@@ -127,7 +140,7 @@ export function createDeckStore(databaseName = 'cue'): DeckStore {
 
     sweepUnusedImages() {
       return write(() =>
-        db.transaction('rw', db.decks, db.images, async () => {
+        db.transaction('rw', db.decks, db.images, db.originals, async () => {
           const used = new Set<string>();
           for (const raw of await db.decks.toArray()) {
             try {
@@ -139,6 +152,9 @@ export function createDeckStore(databaseName = 'cue'): DeckStore {
           const stored = await db.images.toCollection().primaryKeys();
           const orphans = stored.filter((hash) => !used.has(hash));
           await db.images.bulkDelete(orphans);
+          // An original whose picture is gone, or that no deck shows, goes with it.
+          const kept = await db.originals.toCollection().primaryKeys();
+          await db.originals.bulkDelete(kept.filter((hash) => !used.has(hash)));
           return orphans.length;
         }),
       );

@@ -1,3 +1,4 @@
+import Dexie from 'dexie';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { applyCommand, createDeck, createImage, type Deck, type Env } from '@/model';
 import { Autosaver } from './autosave';
@@ -315,6 +316,83 @@ describe('sweeping photos no deck shows (EL-4)', () => {
 
     expect(await store.loadImage('fresh')).toBeDefined();
     expect(await store.loadImage('old')).toBeDefined();
+  });
+});
+
+describe('originals of scaled pictures (EL-4)', () => {
+  const original = (hash: string, bytes: number[]) => ({
+    hash,
+    type: 'image/png',
+    bytes: new Uint8Array(bytes),
+  });
+  const showing = (hash: string): Deck => {
+    const deck = deckAt(1000, 'D');
+    return {
+      ...deck,
+      slides: deck.slides.map((slide) => ({
+        ...slide,
+        elements: [createImage('p', hash, { x: 0, y: 0, width: 10, height: 10 })],
+      })),
+    };
+  };
+
+  test('Given a picture saved with its original, When both are loaded, Then each is as saved, and loading the picture does not need the original', async () => {
+    const store = openStore();
+
+    await store.save(showing('h'), [image('h', [1, 2])], [original('h', [9, 9, 9, 9])]);
+
+    expect((await store.loadImage('h'))?.bytes).toEqual(new Uint8Array([1, 2]));
+    expect((await store.loadOriginal('h'))?.bytes).toEqual(new Uint8Array([9, 9, 9, 9]));
+  });
+
+  test('Given a picture saved without an original, When the original is asked for, Then there is none', async () => {
+    const store = openStore();
+    await store.save(showing('h'), [image('h', [1])]);
+
+    expect(await store.loadOriginal('h')).toBeUndefined();
+  });
+
+  test('Given a save where the original cannot be stored, When it fails, Then neither the picture nor the deck change is left behind', async () => {
+    const store = openStore();
+    // A function cannot be copied into the database, so storing this original fails midway.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    const unstorable = { hash: 'h', type: 'image/png', bytes: () => undefined } as never;
+
+    await expect(store.save(showing('h'), [image('h', [1])], [unstorable])).rejects.toThrow();
+
+    expect(await store.loadImage('h')).toBeUndefined();
+    expect(await store.list()).toEqual([]);
+  });
+
+  test('Given an unused picture with its original, When the store sweeps, Then both go; a used picture keeps its original', async () => {
+    const store = openStore();
+    await store.save(
+      showing('used'),
+      [image('used', [1]), image('unused', [2])],
+      [original('used', [3]), original('unused', [4])],
+    );
+
+    expect(await store.sweepUnusedImages()).toBe(1);
+
+    expect(await store.loadImage('unused')).toBeUndefined();
+    expect(await store.loadOriginal('unused')).toBeUndefined();
+    expect(await store.loadOriginal('used')).toBeDefined();
+  });
+
+  test('Given the older kind of database with no originals table, When the app opens it, Then it upgrades and keeps decks and pictures', async () => {
+    const name = `old-${crypto.randomUUID()}`;
+    const old = new Dexie(name);
+    old.version(1).stores({ decks: 'id, updatedAt', images: 'hash' });
+    const deck = showing('h');
+    await old.table('decks').put(deck);
+    await old.table('images').put(image('h', [7]));
+    old.close();
+
+    const store = openStore(name);
+
+    expect(await store.load(deck.id)).toEqual(deck);
+    expect((await store.loadImage('h'))?.bytes).toEqual(new Uint8Array([7]));
+    expect(await store.loadOriginal('h')).toBeUndefined();
   });
 });
 

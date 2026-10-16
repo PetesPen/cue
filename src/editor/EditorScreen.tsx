@@ -17,7 +17,7 @@ import {
   type SlideElement,
 } from '@/model';
 import { measureTextHeight } from '@/render';
-import { isNearlyFull, readStorageUsage, type StoredImage } from '@/storage';
+import { isNearlyFull, readStorageUsage, type StoredImage, type StoredOriginal } from '@/storage';
 import { Canvas } from './Canvas';
 import { DesignPanel } from './DesignPanel';
 import { applyDraft, type Tool } from './gestures';
@@ -315,6 +315,7 @@ function Editor({
         : undefined;
     const pictures: {
       image: StoredImage;
+      original?: StoredOriginal;
       element: ReturnType<typeof createImage>;
       scaledFrom?: { width: number; height: number };
     }[] = [];
@@ -336,6 +337,12 @@ function Editor({
         const place = placeCentred(size, centre, pictures.length * CASCADE);
         pictures.push({
           image: imported.image,
+          // The original is kept for the export only where there is plenty of room.
+          ...(imported.original &&
+          usage &&
+          usage.quota - usage.usage > imported.original.bytes.length * 6
+            ? { original: imported.original }
+            : {}),
           element: createImage(systemEnv.newId(), imported.image.hash, { ...place, ...size }),
           ...(imported.scaledFrom ? { scaledFrom: imported.scaledFrom } : {}),
         });
@@ -360,7 +367,13 @@ function Editor({
     }
 
     if (pictures.length > 0) {
-      session.addImages(pictures.map(({ image, element }) => ({ image, element })));
+      session.addImages(
+        pictures.map(({ image, original, element }) => ({
+          image,
+          ...(original ? { original } : {}),
+          element,
+        })),
+      );
       select(pictures.map(({ element }) => element.id));
       focusCanvas();
       for (const { scaledFrom, element } of pictures) {

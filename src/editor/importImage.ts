@@ -1,5 +1,5 @@
 import { SLIDE_HEIGHT, SLIDE_WIDTH, type Point } from '@/model';
-import type { StoredImage } from '@/storage';
+import type { StoredImage, StoredOriginal } from '@/storage';
 
 /**
  * Taking a file and making it a picture for a deck (EL-4): what it really is, how big it is, scaled
@@ -21,6 +21,8 @@ export const IMAGE_ACCEPT = IMAGE_TYPES.join(',');
 
 /** A picture whose longer side is more than this many pixels is scaled down on import. */
 export const MAX_LONG_EDGE = 2560;
+/** A scaled-down picture keeps its original for the export only if the original is smaller than this. */
+export const MAX_KEPT_ORIGINAL = 8 * 1024 * 1024;
 /** Files bigger than this are not even tried. */
 export const MAX_FILE_BYTES = 40 * 1024 * 1024;
 /** A new picture is at most this share of the slide, so it lands whole with room round it. */
@@ -118,6 +120,8 @@ export interface Imported {
   readonly height: number;
   /** Set when the picture was scaled down: the size it came in at. */
   readonly scaledFrom?: { readonly width: number; readonly height: number };
+  /** The picture as it came in, when it was scaled down and is small enough to be worth keeping. */
+  readonly original?: StoredOriginal;
 }
 
 async function sha256Hex(bytes: Uint8Array<ArrayBuffer>): Promise<string> {
@@ -179,11 +183,13 @@ export async function importImage(file: Blob): Promise<Imported> {
       const blob = await encode(canvas, type);
       if (blob) {
         const smaller = new Uint8Array(await blob.arrayBuffer());
+        const hash = await sha256Hex(smaller);
         return {
-          image: { hash: await sha256Hex(smaller), type: blob.type || type, bytes: smaller },
+          image: { hash, type: blob.type || type, bytes: smaller },
           width: target.width,
           height: target.height,
           scaledFrom: { width, height },
+          ...(bytes.length < MAX_KEPT_ORIGINAL ? { original: { hash, type, bytes } } : {}),
         };
       }
     }

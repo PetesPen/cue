@@ -252,6 +252,23 @@ test('Given a picture of 5000 x 3000, When it is added, Then it is scaled down, 
   await expect.element(screen.getByText('Image scaled to fit')).not.toBeInTheDocument();
 });
 
+test('Given a picture that was scaled down, When it is saved, Then its original is kept apart for the export; a picture that was not scaled has none', async () => {
+  const store = createTestStore();
+  await openWith(store);
+  const big = await png(5000, 3000);
+  const small = await png(300, 200);
+
+  choose(big, small);
+
+  await expect.poll(async () => (await stored(store)).length, { timeout: 6000 }).toBe(2);
+  const [scaled, plain] = await stored(store);
+  const hashOf = (e: typeof scaled) => (e && isImage(e) ? e.hash : '');
+  const original = await store.loadOriginal(hashOf(scaled));
+  expect(original?.bytes.length).toBe(big.size);
+  expect(original?.type).toBe('image/png');
+  expect(await store.loadOriginal(hashOf(plain))).toBeUndefined();
+});
+
 test('Given a picture inside the size limit, When it is added, Then there is no scaling toast and the bytes are kept as they came', async () => {
   const store = createTestStore();
   const screen = await openWith(store);

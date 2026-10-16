@@ -23,7 +23,13 @@ import {
   type Slide,
   type SlideElement,
 } from '@/model';
-import { Autosaver, type DeckStore, type SaveState, type StoredImage } from '@/storage';
+import {
+  Autosaver,
+  type DeckStore,
+  type SaveState,
+  type StoredImage,
+  type StoredOriginal,
+} from '@/storage';
 import { useImageCache } from './imageCache';
 import { idsOf, labelFor } from './historyLabels';
 
@@ -70,7 +76,11 @@ export interface DeckSession {
    * the same transaction, the next time it is saved; until then they are only in memory.
    */
   readonly addImages: (
-    pictures: readonly { readonly image: StoredImage; readonly element: ImageElement }[],
+    pictures: readonly {
+      readonly image: StoredImage;
+      readonly original?: StoredOriginal;
+      readonly element: ImageElement;
+    }[],
     meta?: EditMeta,
   ) => void;
   /** Take elements off the current slide (delete, cut). */
@@ -119,6 +129,7 @@ export function useDeckSession(
   const flushers = useRef(new Set<() => void>());
   // Pictures added in this session that are not in the store yet, saved with the deck that shows them.
   const pendingImages = useRef(new Map<string, StoredImage>());
+  const pendingOriginals = useRef(new Map<string, StoredOriginal>());
   const images = useImageCache();
   // The history lives as long as the deck is open and is empty when it is opened (EL-8).
   const historyRef = useRef<History>(emptyHistory);
@@ -135,7 +146,15 @@ export function useDeckSession(
         const waiting = [...pendingImages.current.values()].filter((image) =>
           shown.has(image.hash),
         );
-        await store.save(deck, waiting);
+        const originals = waiting.flatMap(
+          (image) => pendingOriginals.current.get(image.hash) ?? [],
+        );
+        await store.save(deck, waiting, originals);
+        for (const original of originals) {
+          if (pendingOriginals.current.get(original.hash) === original) {
+            pendingOriginals.current.delete(original.hash);
+          }
+        }
         for (const image of waiting) {
           if (pendingImages.current.get(image.hash) === image)
             pendingImages.current.delete(image.hash);
@@ -287,13 +306,18 @@ export function useDeckSession(
 
   const addImages = useCallback(
     (
-      pictures: readonly { readonly image: StoredImage; readonly element: ImageElement }[],
+      pictures: readonly {
+        readonly image: StoredImage;
+        readonly original?: StoredOriginal;
+        readonly element: ImageElement;
+      }[],
       meta?: EditMeta,
     ) => {
       const slideId = currentRef.current;
       if (slideId === undefined || pictures.length === 0) return;
-      for (const { image } of pictures) {
+      for (const { image, original } of pictures) {
         pendingImages.current.set(image.hash, image);
+        if (original) pendingOriginals.current.set(image.hash, original);
         images?.add(image);
       }
       dispatch(
