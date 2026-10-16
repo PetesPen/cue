@@ -1,5 +1,4 @@
 import { useState, type KeyboardEvent } from 'react';
-import { PALETTE, parseHex } from './palette';
 
 /** A value that is the same for everything selected, or `mixed`. */
 export const MIXED = 'mixed';
@@ -100,82 +99,6 @@ export function NumberField({
         </span>
       )}
     </label>
-  );
-}
-
-interface ColourFieldProps {
-  readonly label: string;
-  /** A hex colour, `none`, or mixed. */
-  readonly value: Mixed<string>;
-  readonly onChange: (value: string) => void;
-  /** Offer "None" (an unfilled shape). */
-  readonly allowNone?: boolean;
-}
-
-/** The design's colours as swatches, and a hex field for any other colour. */
-export function ColourField({ label, value, onChange, allowNone = false }: ColourFieldProps) {
-  const [text, setText] = useState<string | undefined>();
-  const shown = text ?? (value === MIXED || value === 'none' ? '' : value);
-
-  function commit() {
-    if (text === undefined) return;
-    setText(undefined);
-    const colour = parseHex(text);
-    if (colour && colour !== value) onChange(colour);
-  }
-
-  return (
-    <div className="colour-field" role="group" aria-label={label}>
-      <div className="swatches">
-        {allowNone && (
-          <button
-            type="button"
-            className="swatch swatch-none"
-            aria-label="No fill"
-            aria-pressed={value === 'none'}
-            title="None"
-            onClick={() => {
-              onChange('none');
-            }}
-          />
-        )}
-        {PALETTE.map((swatch) => (
-          <button
-            key={swatch.value}
-            type="button"
-            className="swatch"
-            style={{ background: swatch.value }}
-            aria-label={swatch.name}
-            aria-pressed={value !== MIXED && value.toUpperCase() === swatch.value}
-            title={swatch.name}
-            onClick={() => {
-              onChange(swatch.value);
-            }}
-          />
-        ))}
-      </div>
-      <label className="field-box field-box-hex">
-        <span className="field-box-label" aria-hidden="true">
-          #
-        </span>
-        <input
-          aria-label={`${label} as hex`}
-          value={shown.replace('#', '')}
-          placeholder={value === MIXED ? 'Mixed' : value === 'none' ? 'None' : '17803F'}
-          maxLength={7}
-          onChange={(event) => {
-            setText(event.target.value);
-          }}
-          onBlur={commit}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              event.preventDefault();
-              commit();
-            } else if (event.key === 'Escape') setText(undefined);
-          }}
-        />
-      </label>
-    </div>
   );
 }
 

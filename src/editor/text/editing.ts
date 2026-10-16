@@ -86,6 +86,10 @@ export function wordsFormat(editor: Editor, summary: TextSummary): TextFormat {
     apply: (change) => {
       applyStyle(editor, change);
     },
+    // The words change as the colour is dragged; the deck gets them in the next burst.
+    preview: (change) => {
+      applyStyle(editor, change);
+    },
     setList: (kind) => {
       setList(editor, summary.list, kind);
     },

@@ -51,6 +51,10 @@
   caret-color: currentcolor;
 }
 
+.text-edit-box .cue-selection {
+  background: rgba(23, 128, 63, 0.28);
+}
+
 .text-edit-box .ProseMirror ::selection {
   background: rgba(23, 128, 63, 0.28);
 }
@@ -293,7 +297,7 @@
   font: var(--type-caption);
 }
 
-/* The colour chooser opened from a button. */
+/* The colour picker opened from a button. */
 .colour-button-anchor {
   position: relative;
   display: inline-flex;
@@ -304,7 +308,7 @@
   top: calc(100% + var(--space-1));
   left: 0;
   z-index: 4;
-  width: 232px;
+  width: 244px;
   padding: var(--space-3);
   border: 1px solid var(--color-hairline);
   border-radius: var(--radius-card);

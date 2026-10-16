@@ -16,7 +16,8 @@ import {
   type SlideElement,
   type TextElement,
 } from '@/model';
-import { ColourField, MIXED, NumberField, Segmented, common } from './fields';
+import { ColourField } from './colour/ColourField';
+import { MIXED, NumberField, Segmented, common } from './fields';
 import { boxOf } from './gestures';
 import { describeSelection, isLineElement } from './shapeLabels';
 import type { TextFormat } from './text/format';
@@ -256,6 +257,13 @@ export function DesignPanel({
               elements.filter((e) => !isLineElement(e)),
               (e) => e.fill,
             )}
+            onPreview={(fill) => {
+              onPreview(
+                elements
+                  .filter((e) => !isLineElement(e))
+                  .map((e) => ({ id: e.id, props: { fill } })),
+              );
+            }}
             onChange={(fill) => {
               onCommit(
                 elements
@@ -288,6 +296,11 @@ export function DesignPanel({
         <ColourField
           label={lines ? 'Line colour' : 'Border colour'}
           value={common(elements, (e) => e.border.color)}
+          onPreview={(color) => {
+            onPreview(
+              elements.map((e) => ({ id: e.id, props: { border: { ...e.border, color } } })),
+            );
+          }}
           onChange={(color) => {
             border({ color });
           }}

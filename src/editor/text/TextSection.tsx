@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { MIXED, type Align } from '@/model';
-import { ColourField, NumberField } from '../fields';
+import { ColourField } from '../colour/ColourField';
+import { NumberField } from '../fields';
 import {
   AlignCenterIcon,
   AlignJustifyIcon,
@@ -84,6 +85,9 @@ export function TextSection({ format, deckFonts }: Props) {
         <ColourField
           label="Text colour"
           value={summary.color}
+          onPreview={(color) => {
+            format.preview({ color });
+          }}
           onChange={(color) => {
             format.apply({ color });
           }}

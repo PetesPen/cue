@@ -1,28 +1,42 @@
 import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { MIXED, type Mixed } from '@/model';
-import { ColourField } from './fields';
+import { ColourPicker } from './colour/ColourPicker';
 
 interface ColourButtonProps {
   /** What the button is called for assistive technology, for example "Text colour". */
   readonly label: string;
-  /** The colour now (hex), or mixed. */
+  /** What the button itself is called, if not the same as the picker it opens. */
+  readonly buttonLabel?: string;
+  /** The colour now (hex), `none`, or mixed. */
   readonly value: Mixed<string>;
-  readonly onChange: (colour: string) => void;
+  readonly allowNone?: boolean;
+  readonly onPreview: (colour: string) => void;
+  readonly onCommit: (colour: string) => void;
   /** What the button shows: usually an "A" or a swatch. */
   readonly children: ReactNode;
+  readonly className?: string;
 }
 
 /**
- * A button that opens a colour chooser beside it. Clicking in the chooser does not take focus from
- * the text being edited, except into its own typing field.
+ * A button that opens the colour picker beside it. Pressing in the picker does not take focus from the
+ * text being edited, except into its own typing field and sliders.
  */
-export function ColourButton({ label, value, onChange, children }: ColourButtonProps) {
+export function ColourButton({
+  label,
+  buttonLabel,
+  value,
+  allowNone,
+  onPreview,
+  onCommit,
+  children,
+  className = 'tool-button',
+}: ColourButtonProps) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
   const panelId = useId();
   const swatch: CSSProperties & Record<'--swatch', string> = {
-    '--swatch': value === MIXED ? 'transparent' : value,
+    '--swatch': value === MIXED || value === 'none' ? 'transparent' : value,
   };
 
   useEffect(() => {
@@ -51,12 +65,12 @@ export function ColourButton({ label, value, onChange, children }: ColourButtonP
       <button
         ref={button}
         type="button"
-        className="tool-button"
-        aria-label={label}
+        className={className}
+        aria-label={buttonLabel ?? label}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
-        title={label}
+        title={buttonLabel ?? label}
         style={swatch}
         onClick={() => {
           setOpen((was) => !was);
@@ -65,13 +79,13 @@ export function ColourButton({ label, value, onChange, children }: ColourButtonP
         {children}
       </button>
       {open && (
-        <div id={panelId} className="colour-popover" role="dialog" aria-label={label}>
-          <ColourField
+        <div id={panelId} className="colour-popover" role="dialog" aria-label={`${label} picker`}>
+          <ColourPicker
             label={label}
             value={value}
-            onChange={(colour) => {
-              onChange(colour);
-            }}
+            {...(allowNone === undefined ? {} : { allowNone })}
+            onPreview={onPreview}
+            onCommit={onCommit}
           />
         </div>
       )}

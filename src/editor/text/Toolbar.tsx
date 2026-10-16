@@ -159,7 +159,10 @@ export function TextColourButton({ format }: { readonly format: TextFormat }) {
     <ColourButton
       label="Text colour"
       value={format.summary.color}
-      onChange={(color) => {
+      onPreview={(color) => {
+        format.preview({ color });
+      }}
+      onCommit={(color) => {
         format.apply({ color });
       }}
     >

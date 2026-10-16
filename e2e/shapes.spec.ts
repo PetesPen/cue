@@ -445,11 +445,19 @@ test.describe('Given a shape, When it is styled (EL-3)', () => {
     const slide = await openNewDeck(page);
     await draw(page, slide, 'Rounded rectangle', [300, 300], [900, 700]);
 
-    await page.getByRole('group', { name: 'Fill' }).getByRole('button', { name: 'Yellow' }).click();
+    await page.getByRole('button', { name: 'Choose fill' }).click();
     await page
-      .getByRole('group', { name: 'Border colour' })
+      .getByRole('dialog', { name: 'Fill picker' })
+      .getByRole('button', { name: 'Yellow' })
+      .click();
+    // The open picker covers the next colour; Escape closes it, as a person would.
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Choose border colour' }).click();
+    await page
+      .getByRole('dialog', { name: 'Border colour picker' })
       .getByRole('button', { name: 'Forest' })
       .click();
+    await page.keyboard.press('Escape');
     await field(page, 'Border width').fill('14');
     await page.keyboard.press('Enter');
     await page

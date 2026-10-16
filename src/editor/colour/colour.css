@@ -1,0 +1,161 @@
+/* The colour picker (EL-10). The boards draw only a swatch and a hex field, so this look is built from
+   the Style Guide's pieces: swatches, fields, the focus ring, the accent for the thumb. */
+
+.colour-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.colour-subtitle {
+  margin: 0 0 6px;
+  color: var(--color-muted);
+  font: var(--type-section-label);
+  letter-spacing: var(--tracking-section-label);
+  text-transform: uppercase;
+}
+
+/* Shade (across) and brightness (up): white fades in from the left, black from the bottom. */
+.cp-area {
+  position: relative;
+  height: 128px;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-field);
+  background-image:
+    linear-gradient(to top, black, rgb(0 0 0 / 0)),
+    linear-gradient(to right, white, rgb(255 255 255 / 0));
+  cursor: crosshair;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.cp-area:focus-within {
+  box-shadow: var(--focus-ring);
+}
+
+.cp-thumb {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--color-white);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(20, 40, 27, 0.5);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* The two keyboard sliders under the area are for the keyboard and screen readers, not for the eye. */
+.cp-range {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cp-hue {
+  width: 100%;
+  height: 12px;
+  margin: 0;
+  border-radius: 6px;
+  background: linear-gradient(
+    to right,
+    hsl(0 100% 50%),
+    hsl(60 100% 50%),
+    hsl(120 100% 50%),
+    hsl(180 100% 50%),
+    hsl(240 100% 50%),
+    hsl(300 100% 50%),
+    hsl(360 100% 50%)
+  );
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.cp-hue::-webkit-slider-thumb {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-white);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(20, 40, 27, 0.5);
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.cp-hue::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--color-white);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(20, 40, 27, 0.5);
+  background: transparent;
+}
+
+.cp-hue:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.cp-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.cp-row .field-box-hex {
+  flex: 1;
+  max-width: none;
+}
+
+/* A colour in the Design panel: its swatch, and its code to type. */
+.colour-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.colour-field .field-box-hex {
+  flex: 1;
+  max-width: none;
+}
+
+.colour-swatch-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-field);
+  background: var(--color-white);
+  cursor: pointer;
+}
+
+.colour-swatch-button:hover {
+  background: var(--color-app-bg);
+}
+
+.colour-chip {
+  width: 18px;
+  height: 18px;
+  border: 1px solid rgba(20, 40, 27, 0.25);
+  border-radius: var(--radius-thumb);
+  background: var(--swatch, transparent);
+}
+
+.colour-chip-none {
+  background: linear-gradient(
+    to top right,
+    var(--color-white) 45%,
+    var(--color-danger) 45%,
+    var(--color-danger) 55%,
+    var(--color-white) 55%
+  );
+}

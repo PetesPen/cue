@@ -25,6 +25,7 @@ import { SaveIndicator } from './SaveIndicator';
 import { SHAPE_LABELS, describeSelection } from './shapeLabels';
 import { SlideRail } from './SlideRail';
 import { NearlyFullBanner, SaveFailedBanner } from './StorageBanner';
+import { ColourContext, deckColours } from './colour/deckColours';
 import { deckFonts } from './text/deckFonts';
 import { boxFormat, textOf } from './text/format';
 import { fitTextBoxes } from './textLayout';
@@ -281,7 +282,28 @@ function Editor({
 
   const fonts = useMemo(() => deckFonts(deck), [deck]);
   // The Text section of the Design panel works on the words being edited, or on whole boxes.
-  const panelFormat = text.editing ? text.format : boxFormat(selected, save);
+  const commitChanges = (changes: readonly ElementChange[]) => {
+    setDraft(undefined);
+    save(changes);
+  };
+  const previewChanges = (changes: readonly ElementChange[] | undefined) => {
+    setDraft(changes && fitTextBoxes(currentSlide, changes));
+  };
+  const panelFormat = text.editing
+    ? text.format
+    : boxFormat(selected, commitChanges, previewChanges);
+
+  // The colours the deck uses, and the ones picked since it was opened, for the colour picker.
+  const [picked, setPicked] = useState<readonly string[]>([]);
+  const colourContext = useMemo(
+    () => ({
+      colours: [...new Set([...picked, ...deckColours(deck)])],
+      remember: (colour: string) => {
+        setPicked((was) => [colour, ...was.filter((c) => c !== colour)].slice(0, 10));
+      },
+    }),
+    [deck, picked],
+  );
   const editingElement = slide.elements.find((e) => e.id === editingId);
   const stored = currentSlide.elements.find((e) => e.id === editingId);
   const editedDoc = stored ? textOf(stored) : undefined;
@@ -326,129 +348,128 @@ function Editor({
   }));
 
   return (
-    <div className="shell">
-      <header className="top-bar">
-        <div className="top-left">
-          <a className="logo-link" href="#/" aria-label="All decks">
-            <Logo />
-          </a>
-          <TitleField title={deck.title} onChange={session.renameDeck} />
-        </div>
-        <div className="top-center">
-          <button
-            type="button"
-            className="toolbar-button"
-            aria-label="Add slide"
-            aria-keyshortcuts="Control+M Meta+M"
-            title={`Add slide (${ADD_SLIDE_SHORTCUT})`}
-            onClick={add}
-          >
-            <PlusIcon />
-            Slide
-          </button>
-          <button
-            type="button"
-            className="toolbar-button"
-            aria-label="Text"
-            aria-keyshortcuts="T"
-            aria-pressed={tool === 'text'}
-            title="Text (T)"
-            onClick={() => {
-              pickTool('text');
-            }}
-          >
-            <TextIcon />
-            Text
-          </button>
-          <MenuButton variant="toolbar" label="Shape" items={shapeItems}>
-            <ShapeIcon />
-            Shape
-          </MenuButton>
-        </div>
-        <div className="top-right">
-          <SaveIndicator state={saveState} />
-        </div>
-      </header>
-
-      <div className="banner-area">
-        {saveState.status === 'failed' ? (
-          <SaveFailedBanner reason={saveState.reason} onRetry={session.retrySave} />
-        ) : (
-          usage && isNearlyFull(usage) && <NearlyFullBanner usage={usage} withManageLink />
-        )}
-      </div>
-
-      <SlideRail
-        slides={deck.slides}
-        currentId={currentSlide.id}
-        onSelect={goToSlide}
-        onAdd={add}
-      />
-
-      <main className="canvas" aria-label="Canvas">
-        <h1 className="visually-hidden">{deck.title}</h1>
-        <Canvas
-          slide={slide}
-          label={`Slide ${String(index + 1)} of ${String(deck.slides.length)}`}
-          selection={selectedIds}
-          onSelect={select}
-          tool={tool}
-          onToolDone={() => {
-            setTool(undefined);
-          }}
-          onAddElement={addElement}
-          onUpdate={save}
-          onDraft={(changes) => {
-            setDraft(changes && fitTextBoxes(currentSlide, changes));
-          }}
-          onDrawing={setDrawing}
-          onContextMenu={setMenuAt}
-          editingId={editingId}
-          onEdit={text.start}
-          onFinishEdit={text.finish}
-          editor={editor}
-          frameRef={frame}
-        />
-        {menuAt && (
-          <ContextMenu
-            label="Arrange"
-            items={arrangeItems}
-            x={menuAt.x}
-            y={menuAt.y}
-            onClose={(restoreFocus) => {
-              setMenuAt(undefined);
-              if (restoreFocus) focusCanvas();
-            }}
-          />
-        )}
-      </main>
-
-      <section className="notes" aria-label="Speaker notes">
-        <div className="notes-header">
-          <span className="section-label">Speaker notes</span>
-          <span className="caption">Shown in presenter view</span>
-        </div>
-      </section>
-
-      <Inspector
-        design={
-          selected.length > 0 ? (
-            <DesignPanel
-              elements={selected}
-              order={order}
-              textFormat={panelFormat}
-              deckFonts={fonts}
-              onPreview={setDraft}
-              onCommit={(changes) => {
-                setDraft(undefined);
-                save(changes);
+    <ColourContext.Provider value={colourContext}>
+      <div className="shell">
+        <header className="top-bar">
+          <div className="top-left">
+            <a className="logo-link" href="#/" aria-label="All decks">
+              <Logo />
+            </a>
+            <TitleField title={deck.title} onChange={session.renameDeck} />
+          </div>
+          <div className="top-center">
+            <button
+              type="button"
+              className="toolbar-button"
+              aria-label="Add slide"
+              aria-keyshortcuts="Control+M Meta+M"
+              title={`Add slide (${ADD_SLIDE_SHORTCUT})`}
+              onClick={add}
+            >
+              <PlusIcon />
+              Slide
+            </button>
+            <button
+              type="button"
+              className="toolbar-button"
+              aria-label="Text"
+              aria-keyshortcuts="T"
+              aria-pressed={tool === 'text'}
+              title="Text (T)"
+              onClick={() => {
+                pickTool('text');
               }}
-              onReorder={arrange}
+            >
+              <TextIcon />
+              Text
+            </button>
+            <MenuButton variant="toolbar" label="Shape" items={shapeItems}>
+              <ShapeIcon />
+              Shape
+            </MenuButton>
+          </div>
+          <div className="top-right">
+            <SaveIndicator state={saveState} />
+          </div>
+        </header>
+
+        <div className="banner-area">
+          {saveState.status === 'failed' ? (
+            <SaveFailedBanner reason={saveState.reason} onRetry={session.retrySave} />
+          ) : (
+            usage && isNearlyFull(usage) && <NearlyFullBanner usage={usage} withManageLink />
+          )}
+        </div>
+
+        <SlideRail
+          slides={deck.slides}
+          currentId={currentSlide.id}
+          onSelect={goToSlide}
+          onAdd={add}
+        />
+
+        <main className="canvas" aria-label="Canvas">
+          <h1 className="visually-hidden">{deck.title}</h1>
+          <Canvas
+            slide={slide}
+            label={`Slide ${String(index + 1)} of ${String(deck.slides.length)}`}
+            selection={selectedIds}
+            onSelect={select}
+            tool={tool}
+            onToolDone={() => {
+              setTool(undefined);
+            }}
+            onAddElement={addElement}
+            onUpdate={save}
+            onDraft={(changes) => {
+              setDraft(changes && fitTextBoxes(currentSlide, changes));
+            }}
+            onDrawing={setDrawing}
+            onContextMenu={setMenuAt}
+            editingId={editingId}
+            onEdit={text.start}
+            onFinishEdit={text.finish}
+            editor={editor}
+            frameRef={frame}
+          />
+          {menuAt && (
+            <ContextMenu
+              label="Arrange"
+              items={arrangeItems}
+              x={menuAt.x}
+              y={menuAt.y}
+              onClose={(restoreFocus) => {
+                setMenuAt(undefined);
+                if (restoreFocus) focusCanvas();
+              }}
             />
-          ) : undefined
-        }
-      />
-    </div>
+          )}
+        </main>
+
+        <section className="notes" aria-label="Speaker notes">
+          <div className="notes-header">
+            <span className="section-label">Speaker notes</span>
+            <span className="caption">Shown in presenter view</span>
+          </div>
+        </section>
+
+        <Inspector
+          design={
+            selected.length > 0 ? (
+              <DesignPanel
+                elements={selected}
+                order={order}
+                textFormat={panelFormat}
+                deckFonts={fonts}
+                onPreview={previewChanges}
+                onCommit={commitChanges}
+                onReorder={arrange}
+              />
+            ) : undefined
+          }
+        />
+      </div>
+    </ColourContext.Provider>
   );
 }
 

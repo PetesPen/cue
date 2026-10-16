@@ -21,6 +21,8 @@ export interface TextFormat {
   readonly scope: 'words' | 'box';
   readonly summary: TextSummary;
   readonly apply: (change: StyleChange) => void;
+  /** Show a change that is still being dragged (a colour), without saving it. */
+  readonly preview: (change: StyleChange) => void;
   readonly setList: (kind: ListKind) => void;
   readonly indent: (delta: number) => void;
 }
@@ -37,6 +39,7 @@ export function textOf(element: SlideElement): RichText | undefined {
 export function boxFormat(
   elements: readonly SlideElement[],
   commit: (changes: readonly ElementChange[]) => void,
+  preview: (changes: readonly ElementChange[] | undefined) => void,
 ): TextFormat | undefined {
   const withText = elements.flatMap((element) => {
     const doc = textOf(element);
@@ -45,13 +48,13 @@ export function boxFormat(
   if (withText.length === 0) return undefined;
 
   const all: RichText = { type: 'doc', content: withText.flatMap(({ doc }) => doc.content) };
+  const changes = (transform: (doc: RichText) => RichText): ElementChange[] =>
+    withText.map(({ element, doc }) => {
+      const next = transform(doc);
+      return { id: element.id, props: isTextBox(element) ? { doc: next } : { text: next } };
+    });
   const change = (transform: (doc: RichText) => RichText) => {
-    commit(
-      withText.map(({ element, doc }) => {
-        const next = transform(doc);
-        return { id: element.id, props: isTextBox(element) ? { doc: next } : { text: next } };
-      }),
-    );
+    commit(changes(transform));
   };
 
   return {
@@ -59,6 +62,9 @@ export function boxFormat(
     summary: summariseText(all),
     apply: (style) => {
       change((doc) => restyleText(doc, style));
+    },
+    preview: (style) => {
+      preview(changes((doc) => restyleText(doc, style)));
     },
     setList: (kind) => {
       change((doc) => setListKind(doc, kind));

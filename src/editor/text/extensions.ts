@@ -1,5 +1,6 @@
 import { Extension, Mark, mergeAttributes, type Extensions } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
+import { Decoration, DecorationSet } from '@tiptap/pm/view';
 import type { Mark as PMMark } from '@tiptap/pm/model';
 import StarterKit from '@tiptap/starter-kit';
 import { ALIGNS, DEFAULT_TEXT_STYLE, MAX_INDENT, fontCapabilities, isBundledFont } from '@/model';
@@ -229,6 +230,50 @@ export const FontGuard = Extension.create({
   },
 });
 
+const BLURRED = new PluginKey<boolean>('cueBlurredSelection');
+
+/**
+ * The words selected stay marked while focus is in the toolbar or the panel (a size being typed, a
+ * colour being picked), so it is always clear what the change will apply to.
+ */
+export const BlurredSelection = Extension.create({
+  name: 'cueBlurredSelection',
+
+  addProseMirrorPlugins() {
+    return [
+      new Plugin<boolean>({
+        key: BLURRED,
+        state: {
+          init: () => false,
+          apply: (tr, blurred) => {
+            const meta: unknown = tr.getMeta(BLURRED);
+            return typeof meta === 'boolean' ? meta : blurred;
+          },
+        },
+        props: {
+          decorations: (state) => {
+            const { from, to, empty } = state.selection;
+            if (empty || BLURRED.getState(state) !== true) return null;
+            return DecorationSet.create(state.doc, [
+              Decoration.inline(from, to, { class: 'cue-selection' }),
+            ]);
+          },
+          handleDOMEvents: {
+            blur: (view) => {
+              if (!view.isDestroyed) view.dispatch(view.state.tr.setMeta(BLURRED, true));
+              return false;
+            },
+            focus: (view) => {
+              if (!view.isDestroyed) view.dispatch(view.state.tr.setMeta(BLURRED, false));
+              return false;
+            },
+          },
+        },
+      }),
+    ];
+  },
+});
+
 /** The extension set for the text editor. */
 export function textExtensions(): Extensions {
   return [
@@ -246,5 +291,6 @@ export function textExtensions(): Extensions {
     TextStyle,
     ParagraphOptions,
     FontGuard,
+    BlurredSelection,
   ];
 }

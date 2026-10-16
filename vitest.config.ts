@@ -41,6 +41,7 @@ export default mergeConfig(
               '@tiptap/starter-kit',
               '@tiptap/pm/state',
               '@tiptap/pm/model',
+              '@tiptap/pm/view',
             ],
           },
           test: {

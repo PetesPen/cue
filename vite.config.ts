@@ -8,7 +8,7 @@ export default defineConfig({
   // The text editor loads on first use; bundling it up front keeps the dev server from reloading the
   // page when it is first found.
   optimizeDeps: {
-    include: ['@tiptap/core', '@tiptap/starter-kit', '@tiptap/pm/state', '@tiptap/pm/model'],
+    include: ['@tiptap/core', '@tiptap/starter-kit', '@tiptap/pm/state', '@tiptap/pm/model', '@tiptap/pm/view'],
   },
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
