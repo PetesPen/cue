@@ -204,3 +204,16 @@ export {
   snapMove,
 } from './snap';
 export type { Alignment, Edges, Guide, Placed, Shift, SnapLine, Snapped } from './snap';
+export {
+  back,
+  clampPlace,
+  forward,
+  jumpTo,
+  movement,
+  startShow,
+  toEnd,
+  toStart,
+  toggleBlank,
+  upcoming,
+} from './show';
+export type { Blank, Movement, ShowPlace, Upcoming } from './show';
