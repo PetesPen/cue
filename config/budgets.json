@@ -4,5 +4,13 @@
   "note": "Set in sprint 0 (F5). The first load is the scripts, preloads and stylesheets that index.html asks for. Baseline on 2026-10-14 (React and the empty shell): 68.6 KB JS and 1.3 KB CSS, gzipped. Rich text, storage and undo will add to this. Presenting, export and anything else not needed to start editing must load lazily to stay inside the budget. Raising a number needs Peter's OK and a line in docs/decisions.md. The text editor (TipTap) is a lazy chunk with its own budget; it is fetched when text is first edited (sprint 3).",
   "lazyChunksGzipKB": {
     "TextEditor": 160
+  },
+  "perf": {
+    "note": "UX-3 (sprint 5), written after spike SP-4: on the nightly runner (no graphics card) Chromium and Firefox are held to these; WebKit is only reported. 60 fps itself is confirmed by hand on a real laptop and a Mac before each milestone. A frame is late when it took more than 25 ms. Raising a number needs Peter's OK and a line in docs/decisions.md.",
+    "lateFrameShare": 0.05,
+    "droppedFrameShare": 0.05,
+    "openDeckMs": 2000,
+    "typingP95Ms": 50,
+    "typingMaxMs": 100
   }
 }

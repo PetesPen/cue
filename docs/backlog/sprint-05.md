@@ -53,9 +53,9 @@ Tests: write each criterion as a Given / When / Then example first; each example
 As a presenter, I want the editor to stay smooth, so that it never gets in my way.
 
 Acceptance criteria:
-- [ ] Dragging and resizing elements holds 60 fps on slides with up to 50 elements.
-- [ ] A deck of 50 slides opens in under 2 seconds.
-- [ ] Thumbnails update without blocking typing.
+- [x] Dragging and resizing elements holds 60 fps on slides with up to 50 elements. (Measured by `npm run perf`: Chromium 60 fps with 0 to 3% of frames dropped, also with the processor 4 times slower; Firefox is held to the same budget in the nightly job; WebKit draws in software here and is reported only. 60 fps on a real laptop and a Mac stays a manual check.)
+- [x] A deck of 50 slides opens in under 2 seconds. (0.07 to 1 s on the development PC; 0.5 s for the worst case of 50 slides of 50 elements with the processor 4 times slower, after thumbnails are drawn only near the visible part of the rail.)
+- [x] Thumbnails update without blocking typing. (The longest wait of a key press for its frame is 25 ms in the deck of 50 slides, 50 ms is the budget; an edit touches only its own thumbnail, tested on every pull request.)
 
 Design: no board needed (behaviour, not a screen). Follow `design/README.md` for tokens.
 

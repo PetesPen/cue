@@ -1,7 +1,8 @@
 name: Nightly
 
-# Slower checks that do not run on every pull request: a dependency audit and the full browser matrix
-# including Edge. The performance suite does not exist yet (UX-3, sprint 5), so that job only says so.
+# Slower checks that do not run on every pull request: a dependency audit, the full browser matrix
+# including Edge, and the performance suite (UX-3: drags and resizes of 50 elements, opening a deck of
+# 50 slides, typing in it; budgets in config/budgets.json).
 # Every action is pinned to a commit; tests/ci.test.ts checks that.
 
 on:
@@ -56,8 +57,22 @@ jobs:
           retention-days: 7
 
   performance:
-    name: Performance budgets (not built yet)
+    name: Performance budgets
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
-      - run: echo "No performance tests yet. They arrive with UX-3 in sprint 5 and spike SP-4."
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium firefox webkit
+      # Chromium and Firefox are held to the budgets; WebKit is measured and reported.
+      - run: npm run perf
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: failure()
+        with:
+          name: nightly-performance
+          path: test-results/
+          retention-days: 7

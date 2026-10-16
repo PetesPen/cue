@@ -23,6 +23,7 @@
     "vitest.config.ts",
     "playwright.config.ts",
     "playwright.visual.config.ts",
+    "playwright.perf.config.ts",
     "playwright.deployed.config.ts",
     "config/headers.ts"
   ]
