@@ -15,7 +15,7 @@ import {
 } from '@/model';
 import { toEditorContent } from './content';
 import { wordsFormat } from './editing';
-import { textExtensions } from './extensions';
+import { plainTextSlice, textExtensions } from './extensions';
 import type { TextFormat } from './format';
 import { selectionFormat } from './selection';
 import { FloatingToolbar } from './Toolbar';
@@ -103,6 +103,8 @@ export default function TextEditor({
       extensions: textExtensions(),
       content: toEditorContent(start.current.doc),
       editorProps: {
+        clipboardTextParser: (text, _context, _plain, view) =>
+          plainTextSlice(text, view.state.schema),
         attributes: {
           class: 'cue-text',
           role: 'textbox',

@@ -37,6 +37,8 @@ interface Params {
   /** Save a change to elements of the slide: one command (heights are fitted by the caller). */
   readonly save: (changes: readonly ElementChange[]) => void;
   readonly remove: (ids: readonly Id[]) => void;
+  /** Have what is typed saved when the tab is closed or the deck is left. */
+  readonly registerFlush: (flush: () => void) => () => void;
 }
 
 /**
@@ -45,7 +47,7 @@ interface Params {
  * works out the height a text box needs as it grows. Decision 18: what is shown while typing is a
  * draft; the deck gets whole steps.
  */
-export function useTextEditing({ slide, save, remove }: Params): TextEditing {
+export function useTextEditing({ slide, save, remove, registerFlush }: Params): TextEditing {
   const [editing, setEditing] = useState<TextEditing['editing']>();
   const [ready, setReady] = useState(false);
   const [height, setHeight] = useState<ElementChange | undefined>();
@@ -135,6 +137,15 @@ export function useTextEditing({ slide, save, remove }: Params): TextEditing {
   const markReady = useCallback(() => {
     setReady(true);
   }, []);
+
+  // The tab closing or the deck being left saves what is typed, without ending the editing.
+  useEffect(
+    () =>
+      registerFlush(() => {
+        flush(false);
+      }),
+    [registerFlush, flush],
+  );
 
   useEffect(
     () => () => {

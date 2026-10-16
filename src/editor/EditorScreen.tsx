@@ -20,6 +20,7 @@ import { applyDraft, type Tool } from './gestures';
 import { PlusIcon, ShapeIcon, TextIcon } from './Icons';
 import { Inspector } from './Inspector';
 import { Logo } from './Logo';
+import { NotesField } from './NotesField';
 import { ContextMenu, MenuButton, type MenuItem } from './Menu';
 import { SaveIndicator } from './SaveIndicator';
 import { SHAPE_LABELS, describeSelection } from './shapeLabels';
@@ -175,7 +176,12 @@ function Editor({
   const save = (changes: readonly ElementChange[]) => {
     session.updateElements(fitTextBoxes(currentSlide, changes));
   };
-  const text = useTextEditing({ slide: currentSlide, save, remove: session.removeElements });
+  const text = useTextEditing({
+    slide: currentSlide,
+    save,
+    remove: session.removeElements,
+    registerFlush: session.registerFlush,
+  });
   const editingId = text.editing?.id;
 
   const slide = useMemo(() => {
@@ -451,6 +457,13 @@ function Editor({
             <span className="section-label">Speaker notes</span>
             <span className="caption">Shown in presenter view</span>
           </div>
+          <NotesField
+            key={currentSlide.id}
+            slideId={currentSlide.id}
+            notes={currentSlide.notes}
+            onSave={session.setNotes}
+            registerFlush={session.registerFlush}
+          />
         </section>
 
         <Inspector

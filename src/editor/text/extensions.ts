@@ -1,7 +1,7 @@
 import { Extension, Mark, mergeAttributes, type Extensions } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
-import type { Mark as PMMark } from '@tiptap/pm/model';
+import { Fragment, Slice, type Mark as PMMark, type Schema } from '@tiptap/pm/model';
 import StarterKit from '@tiptap/starter-kit';
 import { ALIGNS, DEFAULT_TEXT_STYLE, MAX_INDENT, fontCapabilities, isBundledFont } from '@/model';
 import { INDENT_STEP } from '@/render';
@@ -273,6 +273,23 @@ export const BlurredSelection = Extension.create({
     ];
   },
 });
+
+/**
+ * Plain text pasted into the editor: one paragraph per line, blank lines kept, joined onto the
+ * paragraph the cursor is in at both ends (the browser's own parser drops blank lines).
+ */
+export function plainTextSlice(text: string, schema: Schema): Slice {
+  const paragraph = schema.nodes.paragraph;
+  if (!paragraph) return Slice.empty;
+  const lines = text.split(/\r\n|\r|\n/);
+  return new Slice(
+    Fragment.from(
+      lines.map((line) => paragraph.create(null, line === '' ? undefined : schema.text(line))),
+    ),
+    1,
+    1,
+  );
+}
 
 /** The extension set for the text editor. */
 export function textExtensions(): Extensions {

@@ -1,72 +1,22 @@
-import { afterEach, expect, test, vi } from 'vitest';
+import { afterEach, expect, test } from 'vitest';
 import { userEvent } from 'vitest/browser';
-import { render } from 'vitest-browser-react';
+import { createShape, isShape, plainText, textFromString, textRuns } from '@/model';
+import { createTestStore } from './test-helpers';
 import {
-  createShape,
-  createText,
-  isShape,
-  isTextBox,
-  plainText,
-  textFromString,
-  textRuns,
-  type Deck,
-  type RichText,
-  type SlideElement,
-  type TextElement,
-} from '@/model';
-import type { DeckStore } from '@/storage';
-import { EditorApp } from './EditorApp';
-import { closeTestStores, createTestStore, deckWithSlides } from './test-helpers';
+  edit,
+  editor,
+  elementNode,
+  must,
+  openWith,
+  resetEditorTest,
+  selectFirst,
+  stored,
+  storedText,
+  textBox,
+  toolbarButton,
+} from './text-test-helpers';
 
-afterEach(() => {
-  closeTestStores();
-  vi.restoreAllMocks();
-  window.location.hash = '';
-});
-
-/** A text box at x, y, 800 wide, with this text. */
-const textBox = (id: string, text: string | RichText, x = 200, y = 200): TextElement =>
-  createText(id, { x, y, width: 800 }, typeof text === 'string' ? textFromString(text) : text);
-
-async function openWith(store: DeckStore, ...elements: SlideElement[]) {
-  const base = deckWithSlides(1);
-  const deck: Deck = { ...base, slides: base.slides.map((slide) => ({ ...slide, elements })) };
-  await store.save(deck);
-  window.location.hash = '#/deck/deck';
-  const screen = await render(<EditorApp store={store} />);
-  await expect.element(screen.getByRole('option', { name: 'Slide 1' })).toBeVisible();
-  return screen;
-}
-
-const stored = async (store: DeckStore) => (await store.load('deck'))?.slides[0]?.elements;
-const storedText = async (store: DeckStore, index = 0): Promise<RichText | undefined> => {
-  const element = (await stored(store))?.[index];
-  if (!element) return undefined;
-  return isTextBox(element) ? element.doc : element.text;
-};
-const elementNode = (id: string) =>
-  document.querySelector<HTMLElement>(`.slide-frame [data-element-id="${id}"]`);
-/** The drawn element, which a test cannot go on without. */
-function must(id: string): HTMLElement {
-  const node = elementNode(id);
-  if (!node) throw new Error(`no ${id}`);
-  return node;
-}
-const editor = () => document.querySelector<HTMLElement>('.text-edit-box .ProseMirror');
-
-/**
- * Double-click an element to edit its text, and wait for the editor (it loads on first use). Then wait
- * a moment more: for about 50 ms after it puts the cursor in place, ProseMirror puts back any cursor
- * movement it did not make itself, and keys pressed in that moment would seem to do nothing. No one
- * presses a key that fast; a test does.
- */
-async function edit(id: string) {
-  const node = elementNode(id);
-  if (!node) throw new Error(`no ${id}`);
-  await userEvent.dblClick(node);
-  await expect.poll(editor, { timeout: 5000 }).not.toBeNull();
-  await new Promise((resolve) => setTimeout(resolve, 300));
-}
+afterEach(resetEditorTest);
 
 // EL-1: adding and editing text in place
 
@@ -196,18 +146,6 @@ test('Given a shape whose text is emptied, When editing ends, Then the shape kee
 });
 
 // EL-1: formatting parts of the text
-
-/** Select the first `count` characters of the text being edited. */
-async function selectFirst(count: number) {
-  await userEvent.keyboard(
-    `{Control>}{Home}{/Control}{Shift>}${'{ArrowRight}'.repeat(count)}{/Shift}`,
-  );
-}
-
-const toolbarButton = (screen: Awaited<ReturnType<typeof render>>, name: string) =>
-  screen
-    .getByRole('toolbar', { name: 'Text formatting' })
-    .getByRole('button', { name, exact: true });
 
 test('Given words selected in a box, When Bold is pressed, Then only those words are bold and the rest stay as they were', async () => {
   const store = createTestStore();

@@ -1,47 +1,12 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
+import { savedFill } from './support/db';
 import { drag, openNewDeck, type Slide } from './support/slide';
 
 // Sprint 3: the colour picker (EL-10). A colour dragged across the area shows live and is saved once,
 // when the pointer is let go (decision 18).
 
 test.use({ viewport: { width: 1440, height: 900 } });
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null;
-
-/** The fill of the first element of the first slide, as saved in the browser's database. */
-async function savedFill(page: Page): Promise<string | undefined> {
-  const text = await page.evaluate(async () => {
-    const db = await new Promise<IDBDatabase>((resolve, reject) => {
-      const request = indexedDB.open('cue');
-      request.onsuccess = () => {
-        resolve(request.result);
-      };
-      request.onerror = () => {
-        reject(new Error(request.error?.message ?? 'The database did not open'));
-      };
-    });
-    const decks = await new Promise<unknown>((resolve, reject) => {
-      const request = db.transaction('decks').objectStore('decks').getAll();
-      request.onsuccess = () => {
-        resolve(request.result);
-      };
-      request.onerror = () => {
-        reject(new Error(request.error?.message ?? 'The decks were not read'));
-      };
-    });
-    db.close();
-    return JSON.stringify(decks);
-  });
-  const decks: unknown = JSON.parse(text);
-  const deck: unknown = Array.isArray(decks) ? decks[0] : undefined;
-  const slides = isRecord(deck) ? deck.slides : undefined;
-  const slide: unknown = Array.isArray(slides) ? slides[0] : undefined;
-  const elements = isRecord(slide) ? slide.elements : undefined;
-  const element: unknown = Array.isArray(elements) ? elements[0] : undefined;
-  return isRecord(element) && typeof element.fill === 'string' ? element.fill : undefined;
-}
 
 async function drawRectangle(page: Page, slide: Slide) {
   await page.getByRole('button', { name: 'Shape' }).click();
