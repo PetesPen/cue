@@ -217,7 +217,8 @@ export function createSlideRenderer(host: HTMLElement, slide: Slide): SlideRende
       if (entry.node.style.opacity !== shownOpacity) entry.node.style.opacity = shownOpacity;
       // The turn, and where an animation has moved the element to.
       const shownTransform = drawnTransform(element, sets.positions.get(element.id));
-      if (entry.node.style.transform !== shownTransform) entry.node.style.transform = shownTransform;
+      if (entry.node.style.transform !== shownTransform)
+        entry.node.style.transform = shownTransform;
       // Back to front is document order: put each node right after the one before it.
       const wanted: ChildNode | null = previous ? previous.nextSibling : surface.firstChild;
       if (wanted !== entry.node) surface.insertBefore(entry.node, wanted);

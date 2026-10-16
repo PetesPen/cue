@@ -1,11 +1,4 @@
-import {
-  playsFor,
-  resolve,
-  type Id,
-  type Slide,
-  type SlideElement,
-  type Step,
-} from '@/model';
+import { playsFor, resolve, type Id, type Slide, type SlideElement, type Step } from '@/model';
 
 /**
  * The motion engine (AN-1, AN-2, AN-3, TR-3): the pure resolver in `model` says what is shown at a
