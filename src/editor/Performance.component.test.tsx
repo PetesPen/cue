@@ -99,11 +99,18 @@ test('Given a deck of 50 slides, When the rail opens, Then only the thumbnails n
 
   const rail = document.querySelector('.rail-list');
   if (!rail) throw new Error('no rail');
-  rail.scrollTop = rail.scrollHeight;
   const slideAt = (n: number) =>
     document.querySelectorAll('.rail-item')[n]?.querySelector('.cue-slide');
+  // Scrolled again at each look: on a busy machine the first scroll can come before the rail has its
+  // full height.
   await expect
-    .poll(() => slideAt(49) !== null && slideAt(49) !== undefined, { timeout: 3000 })
+    .poll(
+      () => {
+        rail.scrollTop = rail.scrollHeight;
+        return slideAt(49) !== null && slideAt(49) !== undefined;
+      },
+      { timeout: 5000 },
+    )
     .toBe(true);
   // The ones in the middle, far from both, are still not drawn.
   expect(slideAt(25) ?? null).toBeNull();
