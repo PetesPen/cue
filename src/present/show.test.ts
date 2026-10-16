@@ -193,6 +193,73 @@ describe('two windows of a show (PM-3)', () => {
   });
 });
 
+describe('a presenter view that goes away (PM-1)', () => {
+  test('Given a presenter view that unmounts without the show ending, When a moment passes, Then the audience window is told the show is over', () => {
+    vi.useFakeTimers();
+    const { presenter, audience } = line();
+    const here = join('presenter', at(0), presenter);
+    const there = join('audience', at(0), audience);
+    const ended = vi.fn();
+    there.onEnd(ended);
+
+    here.hangUp();
+    expect(ended).not.toHaveBeenCalled();
+    vi.runAllTimers();
+
+    expect(ended).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+
+  test('Given a page tried out twice, When the presenter view hangs up and connects again at once, Then the show goes on', () => {
+    vi.useFakeTimers();
+    const { presenter, audience } = line();
+    const here = join('presenter', at(0), presenter);
+    const there = join('audience', at(0), audience);
+    const ended = vi.fn();
+    there.onEnd(ended);
+
+    here.hangUp();
+    const again = here.connect();
+    vi.runAllTimers();
+
+    expect(ended).not.toHaveBeenCalled();
+    again();
+    vi.useRealTimers();
+  });
+
+  test('Given a show ended from the presenter view, When the view then unmounts, Then no second end is sent', () => {
+    vi.useFakeTimers();
+    const { presenter, audience, sent } = line();
+    const here = join('presenter', at(0), presenter);
+    join('audience', at(0), audience);
+    here.end();
+    const before = sent.filter((message) => message.type === 'end').length;
+
+    here.hangUp();
+    vi.runAllTimers();
+
+    expect(sent.filter((message) => message.type === 'end')).toHaveLength(before);
+    vi.useRealTimers();
+  });
+
+  test('Given an audience window that is closed, When it hangs up, Then the presenter view carries on', () => {
+    vi.useFakeTimers();
+    const { presenter, audience } = line();
+    const here = join('presenter', at(0), presenter);
+    const there = join('audience', at(0), audience);
+    const ended = vi.fn();
+    here.onEnd(ended);
+
+    there.hangUp();
+    vi.runAllTimers();
+    here.forward();
+
+    expect(ended).not.toHaveBeenCalled();
+    expect(here.getPlace().slide).toBe(1);
+    vi.useRealTimers();
+  });
+});
+
 describe('parseMessage: the channel is not trusted', () => {
   test.each<[string, unknown, ShowMessage | undefined]>([
     ['hello', { type: 'hello' }, { type: 'hello' }],

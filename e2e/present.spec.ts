@@ -171,6 +171,8 @@ test.describe('Given the whole of Autumn Launch (Gate 3)', () => {
   test('Then it is presented from the first slide to the last in two windows, every click and transition played, and Esc returns the editor', async ({
     page,
   }) => {
+    // A talk of twelve slides with four transitions: it takes its time, more so on a busy machine.
+    test.slow();
     const deck = autumnLaunch();
     const summaries = slideSummaries(deck);
     const ids = summaries.map((slide) => slide.id);

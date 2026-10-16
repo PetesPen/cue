@@ -32,6 +32,8 @@ export class Show {
   #channel: ShowChannel | undefined;
   #place: ShowPlace;
   #ended = false;
+  /** Lines open now: more than one only while a development build tries a page out twice. */
+  #connections = 0;
 
   /**
    * `openChannel` makes the line to the other window when the show connects (a show in one window has
@@ -53,13 +55,32 @@ export class Show {
       else if (message.type === 'end') this.#finish();
       else if (this.#role === 'presenter') channel.post({ type: 'place', place: this.#place });
     });
-    // A window that opens after the show began asks where it is.
+    // A window that opens after the show began asks where it is; a presenter that opens (or opens again,
+    // after a reload) tells the other window where the show is.
     if (this.#role === 'audience') channel?.post({ type: 'hello' });
+    else if (this.#role === 'presenter') channel?.post({ type: 'place', place: this.#place });
+    this.#connections += 1;
     return () => {
       stop?.();
       channel?.close();
       if (this.#channel === channel) this.#channel = undefined;
+      this.#connections -= 1;
+      // A presenter view that goes away without the show ending (the browser's Back button) must not
+      // leave the audience window up. Wait a moment: a page tried out twice connects again at once.
+      if (this.#role === 'presenter') {
+        setTimeout(() => {
+          this.#abandon();
+        }, 0);
+      }
     };
+  }
+
+  #abandon(): void {
+    if (this.#connections > 0 || this.#ended) return;
+    const line = this.#open?.();
+    line?.post({ type: 'end' });
+    line?.close();
+    this.#ended = true;
   }
 
   /** The current place; a new object whenever it changes (for `useSyncExternalStore`). */
