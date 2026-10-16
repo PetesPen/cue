@@ -375,6 +375,10 @@ test.describe('Given the show windows (PM-2)', () => {
     await openDeck(page);
     const audience = await present(page);
 
+    // The audience window's hint fades after three seconds, and text half way to nothing fails the
+    // contrast rule for as long as that takes: it is scanned once it is gone (white on forest green is
+    // checked with the tokens).
+    await expect(audience.locator('.audience-hint')).toHaveCount(0, { timeout: 15_000 });
     const presenter = await new AxeBuilder({ page }).exclude('.show-stage').analyze();
     const audienceResults = await new AxeBuilder({ page: audience })
       .exclude('.show-stage')
