@@ -44,7 +44,7 @@ export default defineConfig(
   },
   {
     // Tests run in Node and in browsers.
-    files: ['tests/**/*.ts', 'e2e/**/*.ts'],
+    files: ['tests/**/*.ts', 'e2e/**/*.ts', 'perf/**/*.ts'],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
   {

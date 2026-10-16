@@ -6,17 +6,17 @@
 // It is plain data in the stored deck format (schema version 1), so any test can write it straight into
 // the browser's database. `tests/autumn-launch.test.ts` checks that the app reads it.
 
-const FOREST = '#14281B';
-const GREEN = '#17803F';
-const MINT = '#7FC8A0';
-const YELLOW = '#F5C542';
-const SAGE = '#E8F0E4';
-const WHITE = '#FFFFFF';
-const MUTED = '#5B6F61';
+export const FOREST = '#14281B';
+export const GREEN = '#17803F';
+export const MINT = '#7FC8A0';
+export const YELLOW = '#F5C542';
+export const SAGE = '#E8F0E4';
+export const WHITE = '#FFFFFF';
+export const MUTED = '#5B6F61';
 
-type Json = Record<string, unknown>;
+export type Json = Record<string, unknown>;
 
-interface Box {
+export interface Box {
   readonly x: number;
   readonly y: number;
   readonly width: number;
@@ -25,7 +25,12 @@ interface Box {
 
 const border = (width = 0) => ({ color: FOREST, width, dash: 'solid' });
 
-function run(text: string, fontSize: number, color: string, extra: readonly string[] = []): Json {
+export function run(
+  text: string,
+  fontSize: number,
+  color: string,
+  extra: readonly string[] = [],
+): Json {
   return {
     type: 'text',
     text,
@@ -33,7 +38,7 @@ function run(text: string, fontSize: number, color: string, extra: readonly stri
   };
 }
 
-function paragraph(align: string | undefined, ...runs: Json[]): Json {
+export function paragraph(align: string | undefined, ...runs: Json[]): Json {
   return { type: 'paragraph', ...(align ? { attrs: { align } } : {}), content: runs };
 }
 
@@ -42,9 +47,9 @@ function tight(...runs: Json[]): Json {
   return { type: 'paragraph', attrs: { lineHeight: 1 }, content: runs };
 }
 
-const doc = (...content: Json[]): Json => ({ type: 'doc', content });
+export const doc = (...content: Json[]): Json => ({ type: 'doc', content });
 
-function text(id: string, box: Box, content: Json): Json {
+export function text(id: string, box: Box, content: Json): Json {
   return {
     id,
     kind: 'text',
@@ -58,7 +63,7 @@ function text(id: string, box: Box, content: Json): Json {
   };
 }
 
-function shape(id: string, kind: string, box: Box, fill: string, opacity = 1): Json {
+export function shape(id: string, kind: string, box: Box, fill: string, opacity = 1): Json {
   return {
     id,
     kind: 'shape',
@@ -72,7 +77,7 @@ function shape(id: string, kind: string, box: Box, fill: string, opacity = 1): J
   };
 }
 
-function line(id: string, x: number, y: number, width: number, color: string): Json {
+export function line(id: string, x: number, y: number, width: number, color: string): Json {
   return {
     id,
     kind: 'shape',
@@ -212,8 +217,9 @@ function points(n: number, background: string, ink: string, title: string, items
   };
 }
 
-export function autumnLaunch(): Json {
-  const slides: Json[] = [
+/** The 12 slides of the deck, in order. */
+export function autumnLaunchSlides(): Json[] {
+  return [
     simple(
       1,
       FOREST,
@@ -259,6 +265,10 @@ export function autumnLaunch(): Json {
     simple(11, FOREST, YELLOW, 'The ask', 'A yes by Friday', WHITE, ''),
     simple(12, YELLOW, FOREST, 'Thank you', 'Questions?', FOREST, ''),
   ];
+}
+
+export function autumnLaunch(): Json {
+  const slides = autumnLaunchSlides();
   return {
     schemaVersion: 1,
     id: 'autumn-launch',

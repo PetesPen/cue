@@ -8,17 +8,34 @@ export async function seedDeck(page: Page, deck: object, id: string): Promise<vo
   await expect(page.getByRole('heading', { name: /Your decks/ })).toBeVisible();
   await page.evaluate(
     async ({ stored }) => {
-      const db = await new Promise<IDBDatabase>((resolve, reject) => {
-        const request = indexedDB.open('cue');
-        request.onsuccess = () => {
-          resolve(request.result);
-        };
-        request.onerror = () => {
-          reject(new Error(request.error?.message ?? 'The database did not open'));
-        };
-      });
+      // The app creates its database when it starts. A slow engine may not have finished by the time
+      // the heading shows, so wait for the store to exist (and never create the database ourselves:
+      // an aborted upgrade leaves nothing behind).
+      const open = () =>
+        new Promise<IDBDatabase | undefined>((resolve) => {
+          const request = indexedDB.open('cue');
+          request.onupgradeneeded = () => {
+            request.transaction?.abort();
+          };
+          request.onsuccess = () => {
+            resolve(request.result);
+          };
+          request.onerror = () => {
+            resolve(undefined);
+          };
+        });
+      let db: IDBDatabase | undefined;
+      for (let attempt = 0; attempt < 100; attempt++) {
+        db = await open();
+        if (db?.objectStoreNames.contains('decks')) break;
+        db?.close();
+        db = undefined;
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+      if (!db) throw new Error('The deck database did not appear');
+      const ready = db;
       await new Promise<void>((resolve, reject) => {
-        const tx = db.transaction('decks', 'readwrite');
+        const tx = ready.transaction('decks', 'readwrite');
         tx.objectStore('decks').put(stored);
         tx.oncomplete = () => {
           resolve();
@@ -27,7 +44,7 @@ export async function seedDeck(page: Page, deck: object, id: string): Promise<vo
           reject(new Error(tx.error?.message ?? 'The deck was not stored'));
         };
       });
-      db.close();
+      ready.close();
     },
     { stored: deck },
   );

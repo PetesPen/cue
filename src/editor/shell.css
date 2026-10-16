@@ -711,3 +711,9 @@
   width: 100%;
   margin-top: var(--space-3);
 }
+
+/* A thumbnail that is not drawn yet: the slide's colour, at the size the drawing will have. */
+.rail-thumb-blank {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+}

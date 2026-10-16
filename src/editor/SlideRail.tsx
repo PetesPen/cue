@@ -8,7 +8,10 @@ import {
 } from 'react';
 import type { Id, Slide } from '@/model';
 import { ContextMenu, type MenuItem } from './Menu';
-import { SlideView } from './SlideView';
+import { Thumbnail } from './Thumbnail';
+
+/** The rail shows about seven slides when it opens; those thumbnails are drawn without waiting. */
+const EAGER_THUMBNAILS = 8;
 
 interface SlideRailProps {
   readonly slides: readonly Slide[];
@@ -260,7 +263,7 @@ export function SlideRail({
                 {index + 1}
               </span>
               <span className="rail-thumb">
-                <SlideView slide={slide} />
+                <Thumbnail slide={slide} eager={index < EAGER_THUMBNAILS} />
                 {slide.animations.length > 0 && <span className="rail-dot" aria-hidden="true" />}
               </span>
             </div>
