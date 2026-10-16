@@ -45,6 +45,13 @@ export { CommandError, applyCommand } from './commands';
 export type { Applied, Command } from './commands';
 export { InvalidDeckError, UnsupportedVersionError, parseDeck } from './parse';
 export {
+  CLIPBOARD_FORMAT,
+  CLIPBOARD_VERSION,
+  copiesOf,
+  parseElements,
+  serialiseElements,
+} from './clipboard';
+export {
   HANDLES,
   angleOf,
   boundsOf,

@@ -377,11 +377,9 @@ export function Canvas({
     if (inEditor(event.target)) return;
     event.preventDefault();
     const hit = pickElement(slide.elements, toSlide(event), lineSlop());
-    if (!hit) {
-      onSelect([]);
-      return;
-    }
-    if (!selection.includes(hit.id)) onSelect([hit.id]);
+    if (!hit) onSelect([]);
+    else if (!selection.includes(hit.id)) onSelect([hit.id]);
+    // The menu itself decides what it offers: on empty slide it is only Paste.
     onContextMenu({ x: event.clientX, y: event.clientY });
   }
 

@@ -34,6 +34,7 @@ import { useDeckLock } from './useDeckLock';
 import { useDeckStore } from './StoreContext';
 import { useDeckSession, type DeckSession } from './useDeckSession';
 import { useStorageUsage } from './useStorageUsage';
+import { useClipboard } from './useClipboard';
 import { useTextEditing } from './useTextEditing';
 import './shell.css';
 import './text.css';
@@ -243,9 +244,19 @@ function Editor({
 
   // Ctrl+M (or Cmd+M, where the browser lets a page see it) adds a slide from anywhere (SL-1); the
   // bracket keys arrange the selection (ZO-1).
-  const latest = useRef({ add, arrange, pickTool });
+  const clipboard = useClipboard({
+    selected: currentSlide.elements.filter((e) => selectedIds.includes(e.id)),
+    addElements: session.addElements,
+    removeElements: session.removeElements,
+    select,
+    fitted: (element) =>
+      isTextBox(element) ? { ...element, height: measureTextHeight(element) } : element,
+    focusCanvas,
+  });
+
+  const latest = useRef({ add, arrange, pickTool, clipboard });
   useEffect(() => {
-    latest.current = { add, arrange, pickTool };
+    latest.current = { add, arrange, pickTool, clipboard };
   });
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -261,6 +272,28 @@ function Editor({
         event.preventDefault();
         latest.current.pickTool('text');
         return;
+      }
+      // Delete and Ctrl+D act on the selected elements, but not while words are being typed.
+      if (!isTyping(event.target)) {
+        // Delete is the slide's when the slide has focus (or nothing does): not a button's or the rail's.
+        const onSlide =
+          event.target === document.body ||
+          (event.target instanceof Element && event.target.closest('.canvas') !== null);
+        if (onSlide && (event.key === 'Delete' || event.key === 'Backspace')) {
+          event.preventDefault();
+          latest.current.clipboard.remove();
+          return;
+        }
+        if (
+          event.key.toLowerCase() === 'd' &&
+          (event.ctrlKey || event.metaKey) &&
+          !event.shiftKey &&
+          !event.altKey
+        ) {
+          event.preventDefault();
+          if (!event.repeat) latest.current.clipboard.duplicate();
+          return;
+        }
       }
       const mode = arrangeFor(event);
       if (mode) {
@@ -342,7 +375,53 @@ function Editor({
     },
   }));
 
-  const arrangeItems: MenuItem[] = ARRANGE_MODES.map((mode) => ({
+  const none = selectedIds.length === 0;
+  const editItems: MenuItem[] = [
+    {
+      id: 'cut',
+      label: 'Cut',
+      shortcut: 'Ctrl+X',
+      keyShortcuts: 'Control+X Meta+X',
+      disabled: none,
+      onSelect: clipboard.cut,
+    },
+    {
+      id: 'copy',
+      label: 'Copy',
+      shortcut: 'Ctrl+C',
+      keyShortcuts: 'Control+C Meta+C',
+      disabled: none,
+      onSelect: clipboard.copy,
+    },
+    {
+      id: 'paste',
+      label: 'Paste',
+      shortcut: 'Ctrl+V',
+      keyShortcuts: 'Control+V Meta+V',
+      disabled: !clipboard.canPaste(),
+      onSelect: clipboard.paste,
+    },
+    {
+      id: 'duplicate',
+      label: 'Duplicate',
+      shortcut: 'Ctrl+D',
+      keyShortcuts: 'Control+D Meta+D',
+      disabled: none,
+      onSelect: clipboard.duplicate,
+    },
+    {
+      id: 'delete',
+      label: 'Delete',
+      shortcut: 'Del',
+      keyShortcuts: 'Delete',
+      danger: true,
+      disabled: none,
+      onSelect: clipboard.remove,
+    },
+  ];
+
+  const arrangeItems: MenuItem[] = ARRANGE_MODES.map((mode, index) => ({
+    separated: index === 0,
     id: mode,
     label: ARRANGE_SHORTCUTS[mode].label,
     shortcut: ARRANGE_SHORTCUTS[mode].shortcut,
@@ -438,10 +517,14 @@ function Editor({
             editor={editor}
             frameRef={frame}
           />
-          {menuAt && (
+          {menuAt && (none ? clipboard.canPaste() : true) && (
             <ContextMenu
-              label="Arrange"
-              items={arrangeItems}
+              label="Element actions"
+              items={
+                none
+                  ? editItems.filter((item) => item.id === 'paste')
+                  : [...editItems, ...arrangeItems]
+              }
               x={menuAt.x}
               y={menuAt.y}
               onClose={(restoreFocus) => {

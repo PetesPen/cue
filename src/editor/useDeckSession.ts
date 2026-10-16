@@ -36,6 +36,8 @@ export interface DeckSession {
   /** Change properties of elements on the current slide: one command, one step (decision 18). */
   readonly updateElements: (changes: readonly ElementChange[]) => void;
   readonly reorderElements: (ids: readonly Id[], mode: ReorderMode) => void;
+  /** Put new elements on top of the current slide, in order (paste, duplicate). */
+  readonly addElements: (elements: readonly SlideElement[]) => void;
   /** The speaker notes of a slide (SL-6). */
   readonly setNotes: (slideId: Id, notes: string) => void;
   /** Take elements off the current slide (delete, cut). */
@@ -176,6 +178,15 @@ export function useDeckSession(
     [dispatch, env],
   );
 
+  const addElements = useCallback(
+    (elements: readonly SlideElement[]) => {
+      const slideId = currentRef.current;
+      if (slideId === undefined || elements.length === 0) return;
+      dispatch({ type: 'addElements', slideId, elements, at: env.now() });
+    },
+    [dispatch, env],
+  );
+
   const setNotes = useCallback(
     (slideId: Id, notes: string) => {
       dispatch({ type: 'setNotes', slideId, notes, at: env.now() });
@@ -219,6 +230,7 @@ export function useDeckSession(
     updateElements,
     reorderElements,
     removeElements,
+    addElements,
     setNotes,
     registerFlush,
     retrySave,

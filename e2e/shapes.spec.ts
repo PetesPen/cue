@@ -303,16 +303,21 @@ test.describe('Given shapes that overlap, When they are arranged (ZO-1)', () => 
     expect(await order(page)).toEqual(['ellipse', 'rectangle', 'triangle']);
   });
 
-  test('Then the right-click menu has the same four commands, with their shortcuts, and disables the ones that do nothing', async ({
+  test('Then the right-click menu has the four arrange commands, with their shortcuts, and disables the ones that do nothing', async ({
     page,
   }) => {
     const slide = await threeStacked(page);
     const ellipse = await slide.at(350, 450); // only the ellipse's box is topmost here
     await page.mouse.click(ellipse.x, ellipse.y, { button: 'right' });
 
-    const menu = page.getByRole('menu', { name: 'Arrange' });
+    const menu = page.getByRole('menu', { name: 'Element actions' });
     await expect(menu).toBeVisible();
     await expect(menu.getByRole('menuitem')).toHaveText([
+      'CutCtrl+X',
+      'CopyCtrl+C',
+      'PasteCtrl+V',
+      'DuplicateCtrl+D',
+      'DeleteDel',
       'Bring to frontCtrl+Shift+]',
       'Bring forwardCtrl+]',
       'Send backwardCtrl+[',
@@ -539,7 +544,7 @@ test.describe('Given the editor with shapes (accessibility)', () => {
 
     const p = await slide.at(600, 500);
     await page.mouse.click(p.x, p.y, { button: 'right' });
-    await expect(page.getByRole('menu', { name: 'Arrange' })).toBeVisible();
+    await expect(page.getByRole('menu', { name: 'Element actions' })).toBeVisible();
     await check();
   });
 

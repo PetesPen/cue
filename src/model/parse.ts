@@ -47,7 +47,7 @@ function parseText(value: unknown, id: string): RichText {
   }
 }
 
-function parseElement(value: unknown): SlideElement {
+export function parseElement(value: unknown): SlideElement {
   if (!isRecord(value) || typeof value.id !== 'string') {
     throw new InvalidDeckError('A slide element has no id');
   }
