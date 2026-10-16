@@ -36,6 +36,8 @@ export interface DeckSession {
   /** Change properties of elements on the current slide: one command, one step (decision 18). */
   readonly updateElements: (changes: readonly ElementChange[]) => void;
   readonly reorderElements: (ids: readonly Id[], mode: ReorderMode) => void;
+  /** Take elements off the current slide (delete, cut). */
+  readonly removeElements: (ids: readonly Id[]) => void;
   /** Try saving again after a failed save. */
   readonly retrySave: () => void;
 }
@@ -159,6 +161,15 @@ export function useDeckSession(
     [dispatch, env],
   );
 
+  const removeElements = useCallback(
+    (ids: readonly Id[]) => {
+      const slideId = currentRef.current;
+      if (slideId === undefined || ids.length === 0) return;
+      dispatch({ type: 'removeElements', slideId, ids, at: env.now() });
+    },
+    [dispatch, env],
+  );
+
   const retrySave = useCallback(() => {
     void saver.current?.retry();
   }, []);
@@ -178,6 +189,7 @@ export function useDeckSession(
     addElement,
     updateElements,
     reorderElements,
+    removeElements,
     retrySave,
   };
 }

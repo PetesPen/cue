@@ -318,6 +318,9 @@ export interface StyleSummary {
   readonly strike: Mixed<boolean>;
   readonly align: Mixed<Align>;
   readonly lineHeight: Mixed<number>;
+  /** Every font in the text has a bold (italic) design, so the control is offered (decision 20). */
+  readonly canBold: boolean;
+  readonly canItalic: boolean;
 }
 
 function shared<T>(values: readonly T[], whenNone: T): Mixed<T> {
@@ -330,6 +333,7 @@ function shared<T>(values: readonly T[], whenNone: T): Mixed<T> {
 export function summariseStyle(doc: RichText): StyleSummary {
   const runs = textRuns(doc);
   const paragraphAttrs = paragraphs(doc).map((p) => p.attrs ?? {});
+  const families = fontsUsed(doc);
   return {
     fontFamily: shared(
       runs.map((r) => styleOf(r).fontFamily ?? DEFAULT_TEXT_STYLE.fontFamily),
@@ -367,6 +371,8 @@ export function summariseStyle(doc: RichText): StyleSummary {
       paragraphAttrs.map((a) => a.lineHeight ?? DEFAULT_LINE_HEIGHT),
       DEFAULT_LINE_HEIGHT,
     ),
+    canBold: families.every((family) => fontCapabilities(family).bold),
+    canItalic: families.every((family) => fontCapabilities(family).italic),
   };
 }
 
@@ -441,8 +447,10 @@ export function restyleText(doc: RichText, change: StyleChange): RichText {
   });
 }
 
+export type ListKind = 'bulletList' | 'orderedList' | 'none';
+
 /** Make every paragraph a bullet or numbered list item, or take them out of lists. */
-export function setListKind(doc: RichText, kind: 'bulletList' | 'orderedList' | 'none'): RichText {
+export function setListKind(doc: RichText, kind: ListKind): RichText {
   const flat = paragraphs(doc);
   const content: Block[] =
     kind === 'none'
@@ -452,7 +460,44 @@ export function setListKind(doc: RichText, kind: 'bulletList' | 'orderedList' | 
 }
 
 /** The kind of list the text is, or `none`, or `mixed`. */
-export function listKind(doc: RichText): 'bulletList' | 'orderedList' | 'none' | typeof MIXED {
+export function listKind(doc: RichText): Mixed<ListKind> {
   const kinds = doc.content.map((block) => (block.type === 'paragraph' ? 'none' : block.type));
   return shared(kinds, 'none');
+}
+
+/** Everything the toolbar and panel show about text: its style, and its list and indent. */
+export interface TextSummary extends StyleSummary {
+  readonly list: Mixed<ListKind>;
+  /** Levels of indent of the paragraphs that are not in lists. */
+  readonly indent: Mixed<number>;
+}
+
+export function summariseText(doc: RichText): TextSummary {
+  const plain = doc.content.flatMap((block) => (block.type === 'paragraph' ? [block] : []));
+  return {
+    ...summariseStyle(doc),
+    list: listKind(doc),
+    indent: shared(
+      plain.map((p) => p.attrs?.indent ?? 0),
+      0,
+    ),
+  };
+}
+
+/** Indent the paragraphs that are not in lists by `delta` levels (negative to go back), within bounds. */
+export function indentText(doc: RichText, delta: number): RichText {
+  return sanitiseRichText({
+    ...doc,
+    content: doc.content.map((block) =>
+      block.type === 'paragraph'
+        ? {
+            ...block,
+            attrs: {
+              ...block.attrs,
+              indent: Math.min(MAX_INDENT, Math.max(0, (block.attrs?.indent ?? 0) + delta)),
+            },
+          }
+        : block,
+    ),
+  });
 }

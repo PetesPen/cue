@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, describe, expect, test } from 'vitest';
-import { check, firstLoadFiles, measure } from '../scripts/check-bundle-size.mjs';
+import { check, firstLoadFiles, measure, measureChunks } from '../scripts/check-bundle-size.mjs';
 
 const KB = 1024;
 
@@ -24,6 +24,7 @@ writeFileSync(join(dist, 'assets', 'index-aaa.js'), randomBytes(10 * KB));
 writeFileSync(join(dist, 'assets', 'vendor-bbb.js'), randomBytes(20 * KB));
 writeFileSync(join(dist, 'assets', 'index-ccc.css'), randomBytes(2 * KB));
 writeFileSync(join(dist, 'assets', 'present-zzz.js'), randomBytes(500 * KB));
+writeFileSync(join(dist, 'assets', 'TextEditor-yyy.js'), randomBytes(100 * KB));
 afterAll(() => {
   rmSync(dist, { recursive: true, force: true });
 });
@@ -59,6 +60,54 @@ describe('Given the first-load rule for the bundle budget (config/budgets.json)'
     const problems = check(measure(dist), { initialJsGzipKB: 40, initialCssGzipKB: 1 });
     expect(problems).toHaveLength(1);
     expect(problems[0]).toContain('CSS');
+  });
+});
+
+describe('Given a lazy chunk with its own budget (the text editor, loaded on first edit)', () => {
+  test('When the chunk is measured, Then it is found by its name whatever its hash', () => {
+    const [chunk] = measureChunks(dist, ['TextEditor']);
+
+    expect(chunk?.file).toBe('TextEditor-yyy.js');
+    expect(chunk?.gzipBytes).toBeGreaterThan(99 * KB);
+    expect(chunk?.gzipBytes).toBeLessThan(101 * KB);
+  });
+
+  test('When the chunk is inside its budget, Then nothing is reported', () => {
+    const measurement = { ...measure(dist), chunks: measureChunks(dist, ['TextEditor']) };
+
+    expect(
+      check(measurement, {
+        initialJsGzipKB: 40,
+        initialCssGzipKB: 5,
+        lazyChunksGzipKB: { TextEditor: 160 },
+      }),
+    ).toEqual([]);
+  });
+
+  test('When the chunk is over its budget, Then one problem names it', () => {
+    const measurement = { ...measure(dist), chunks: measureChunks(dist, ['TextEditor']) };
+
+    const problems = check(measurement, {
+      initialJsGzipKB: 40,
+      initialCssGzipKB: 5,
+      lazyChunksGzipKB: { TextEditor: 50 },
+    });
+
+    expect(problems).toHaveLength(1);
+    expect(problems[0]).toContain('TextEditor');
+  });
+
+  test('When a chunk with a budget is missing from the build, Then that is a problem, not a pass', () => {
+    const measurement = { ...measure(dist), chunks: measureChunks(dist, ['Gone']) };
+
+    const problems = check(measurement, {
+      initialJsGzipKB: 40,
+      initialCssGzipKB: 5,
+      lazyChunksGzipKB: { Gone: 160 },
+    });
+
+    expect(problems).toHaveLength(1);
+    expect(problems[0]).toContain('not in the build');
   });
 });
 

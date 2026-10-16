@@ -4,8 +4,10 @@ import {
   SLIDE_WIDTH,
   boundsOf,
   groupBounds,
+  isTextBox,
   lineEnds,
   type Box,
+  type Handle,
   type Rect,
   type SlideElement,
 } from '@/model';
@@ -71,7 +73,7 @@ export function SelectionOverlay({ elements, chip, marquee }: Props) {
               className="sel-box"
               style={boxStyle(only ? boxOf(only) : { ...bounds, rotation: 0 })}
             >
-              {HANDLES.map((handle) => (
+              {handlesFor(only).map((handle) => (
                 <span key={handle} className={`handle handle-${handle}`} data-handle={handle} />
               ))}
               <span className="handle handle-rotate" data-handle="rotate" />
@@ -90,6 +92,11 @@ export function SelectionOverlay({ elements, chip, marquee }: Props) {
       )}
     </div>
   );
+}
+
+/** A text box is as tall as its text, so it is resized by its sides only. */
+function handlesFor(only: SlideElement | undefined): readonly Handle[] {
+  return only && isTextBox(only) ? ['w', 'e'] : HANDLES;
 }
 
 /** A line is selected by its two ends, which are also how it is resized and turned. */

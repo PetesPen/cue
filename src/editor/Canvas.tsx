@@ -1,4 +1,11 @@
-import { useRef, useState, type KeyboardEvent, type PointerEvent, type RefObject } from 'react';
+import {
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type PointerEvent,
+  type ReactNode,
+  type RefObject,
+} from 'react';
 import {
   HANDLES,
   SLIDE_HEIGHT,
@@ -9,9 +16,8 @@ import {
   type Id,
   type Point,
   type Rect,
-  type ShapeElement,
-  type ShapeKind,
   type Slide,
+  type SlideElement,
 } from '@/model';
 import {
   DRAG_THRESHOLD,
@@ -20,14 +26,16 @@ import {
   boxesOf,
   changesFor,
   drawnShape,
+  drawnText,
   marqueeRect,
   marqueeSelection,
   pickElement,
   type Gesture,
+  type Tool,
 } from './gestures';
 import { SelectionOverlay } from './SelectionOverlay';
 import { SlideView } from './SlideView';
-import { SHAPE_LABELS, describeSelection } from './shapeLabels';
+import { SHAPE_LABELS, canEditText, describeSelection } from './shapeLabels';
 
 /** "an ellipse", "a rectangle". */
 function withArticle(label: string): string {
@@ -53,16 +61,23 @@ interface CanvasProps {
   readonly label: string;
   readonly selection: readonly Id[];
   readonly onSelect: (ids: readonly Id[]) => void;
-  /** The shape tool that is armed: the next drag draws that shape. */
-  readonly tool: ShapeKind | undefined;
+  /** The tool that is armed: the next drag draws that shape, or a text box. */
+  readonly tool: Tool | undefined;
   readonly onToolDone: () => void;
-  readonly onAddElement: (element: ShapeElement) => void;
+  readonly onAddElement: (element: SlideElement) => void;
   /** One command per finished gesture or key press (decision 18). */
   readonly onUpdate: (changes: readonly ElementChange[]) => void;
   /** A drag in progress, to be shown but not saved. */
   readonly onDraft: (changes: readonly ElementChange[] | undefined) => void;
-  readonly onDrawing: (shape: ShapeElement | undefined) => void;
+  readonly onDrawing: (element: SlideElement | undefined) => void;
   readonly onContextMenu: (at: Point) => void;
+  /** The element whose text is being edited in place, if any (its editor is the `editor` child). */
+  readonly editingId: Id | undefined;
+  /** Start editing the text of an element; `at` is where the pointer was, to put the cursor there. */
+  readonly onEdit: (id: Id, at?: Point) => void;
+  readonly onFinishEdit: () => void;
+  /** The text editor and its toolbar, drawn over the slide. */
+  readonly editor?: ReactNode;
   readonly frameRef: RefObject<HTMLDivElement | null>;
 }
 
@@ -107,6 +122,10 @@ export function Canvas({
   onDraft,
   onDrawing,
   onContextMenu,
+  editingId,
+  onEdit,
+  onFinishEdit,
+  editor,
   frameRef,
 }: CanvasProps) {
   const active = useRef<Active | undefined>(undefined);
@@ -149,8 +168,19 @@ export function Canvas({
     setMarquee(undefined);
   }
 
+  /** Is this event inside the text editor or its toolbar? Those handle their own pointer. */
+  function inEditor(target: EventTarget): boolean {
+    return (
+      target instanceof Element && target.closest('[data-text-surface], .text-toolbar') !== null
+    );
+  }
+
   function onPointerDown(event: PointerEvent<HTMLDivElement>) {
     if (event.button !== 0) return;
+    if (editingId !== undefined) {
+      if (inEditor(event.target)) return;
+      onFinishEdit();
+    }
     const point = toSlide(event);
     const handle =
       event.target instanceof Element ? event.target.closest<HTMLElement>('[data-handle]') : null;
@@ -176,6 +206,10 @@ export function Canvas({
       return;
     }
 
+    if (tool === 'text') {
+      begin(event, { kind: 'drawText', start: point, id: systemEnv.newId() });
+      return;
+    }
     if (tool) {
       begin(event, { kind: 'draw', start: point, shape: tool, id: systemEnv.newId() });
       return;
@@ -231,6 +265,10 @@ export function Canvas({
       setReadout(
         `${SHAPE_LABELS[shape.shape]} · W ${String(Math.round(shape.width))} · H ${String(Math.round(shape.height))}`,
       );
+    } else if (gesture.kind === 'drawText') {
+      const text = drawnText(gesture, point, true);
+      onDrawing(text);
+      setReadout(`Text · W ${String(Math.round(text.width))}`);
     } else {
       const changes = changesFor(gesture, point, event.shiftKey);
       onDraft(changes);
@@ -267,12 +305,30 @@ export function Canvas({
         onToolDone();
         break;
       }
+      case 'drawText': {
+        const text = drawnText(gesture, point, moved);
+        onAddElement(text);
+        onSelect([text.id]);
+        onToolDone();
+        onEdit(text.id);
+        break;
+      }
       case 'marquee':
         break;
     }
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    // While text is edited, the keys are the editor's.
+    if (editingId !== undefined) return;
+
+    const only = selected.length === 1 ? selected[0] : undefined;
+    if (event.key === 'Enter' && only && canEditText(only) && !active.current) {
+      event.preventDefault();
+      onEdit(only.id);
+      return;
+    }
+
     if (event.key === 'Escape') {
       if (active.current) {
         event.preventDefault();
@@ -311,7 +367,14 @@ export function Canvas({
     }
   }
 
+  function onDoubleClick(event: React.MouseEvent<HTMLDivElement>) {
+    if (editingId !== undefined || tool || inEditor(event.target)) return;
+    const hit = pickElement(slide.elements, toSlide(event), lineSlop());
+    if (hit && canEditText(hit)) onEdit(hit.id, { x: event.clientX, y: event.clientY });
+  }
+
   function handleContextMenu(event: React.MouseEvent<HTMLDivElement>) {
+    if (inEditor(event.target)) return;
     event.preventDefault();
     const hit = pickElement(slide.elements, toSlide(event), lineSlop());
     if (!hit) {
@@ -341,15 +404,19 @@ export function Canvas({
       onPointerUp={onPointerUp}
       onPointerCancel={clearGesture}
       onKeyDown={onKeyDown}
+      onDoubleClick={onDoubleClick}
       onContextMenu={handleContextMenu}
     >
       <SlideView slide={slide} />
-      {selected.length > 0 || marquee ? (
+      {editingId === undefined && (selected.length > 0 || marquee) ? (
         <SelectionOverlay elements={selected} chip={chip} marquee={marquee} />
       ) : null}
+      {editor}
       {tool && (
         <p id="drawing-hint" className="drawing-hint">
-          Drag on the slide to draw {withArticle(SHAPE_LABELS[tool])}. Esc cancels.
+          {tool === 'text'
+            ? 'Click or drag on the slide to add text. Esc cancels.'
+            : `Drag on the slide to draw ${withArticle(SHAPE_LABELS[tool])}. Esc cancels.`}
         </p>
       )}
       <span className="visually-hidden" role="status" aria-live="polite">

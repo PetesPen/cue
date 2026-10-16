@@ -33,7 +33,16 @@ export default mergeConfig(
         {
           extends: true,
           // Bundle these up front: finding them mid-run makes Vite reload the page under a test.
-          optimizeDeps: { include: ['dexie', 'immer'] },
+          optimizeDeps: {
+            include: [
+              'dexie',
+              'immer',
+              '@tiptap/core',
+              '@tiptap/starter-kit',
+              '@tiptap/pm/state',
+              '@tiptap/pm/model',
+            ],
+          },
           test: {
             name: 'component',
             include: ['src/**/*.component.test.tsx'],

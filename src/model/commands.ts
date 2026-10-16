@@ -7,6 +7,7 @@ import {
   type Id,
   type SlideElement,
 } from './elements';
+import { isEmptyText } from './richtext';
 import { reorder, type ReorderMode } from './zorder';
 
 enablePatches();
@@ -108,6 +109,10 @@ export function applyCommand(deck: Deck, command: Command): Applied {
           const element = slide.elements.find((e) => e.id === change.id);
           if (!element) throw new CommandError(`Element ${change.id} is not on slide ${slide.id}`);
           Object.assign(element, applicableProps(element, normaliseProps(change.props)));
+          // A shape whose words are all gone holds no text, so empty text has one stored form.
+          if (element.kind === 'shape' && element.text && isEmptyText(element.text)) {
+            delete element.text;
+          }
         }
         break;
       }

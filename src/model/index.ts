@@ -82,6 +82,7 @@ export {
   MIXED,
   emptyText,
   fontsUsed,
+  indentText,
   isEmptyText,
   listKind,
   normaliseColour,
@@ -91,6 +92,7 @@ export {
   sanitiseRichText,
   setListKind,
   summariseStyle,
+  summariseText,
   textFromString,
   textRuns,
 } from './richtext';
@@ -100,6 +102,7 @@ export type {
   Inline,
   ListBlock,
   ListItem,
+  ListKind,
   Mixed,
   Paragraph,
   ParagraphAttrs,
@@ -108,6 +111,7 @@ export type {
   StyleSummary,
   TextMark,
   TextStyleAttrs,
+  TextSummary,
 } from './richtext';
 export { DEFAULT_FONT, FONTS, fontCapabilities, isBundledFont } from './fonts';
 export type { FontInfo, FontKind } from './fonts';

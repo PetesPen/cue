@@ -1,14 +1,23 @@
 import fc from 'fast-check';
 import { describe, expect, test } from 'vitest';
-import { createShape, type Box, type ElementChange, type Id } from '@/model';
+import {
+  DEFAULT_TEXT_WIDTH,
+  createShape,
+  createText,
+  type Box,
+  type ElementChange,
+  type Id,
+} from '@/model';
 import {
   ANGLE_STEP,
   DEFAULT_LINE_LENGTH,
   DEFAULT_SHAPE_SIZE,
+  MIN_TEXT_WIDTH,
   boxOf,
   boxesOf,
   changesFor,
   drawnShape,
+  drawnText,
   groupCentre,
   marqueeRect,
   marqueeSelection,
@@ -16,6 +25,7 @@ import {
   rotationReadout,
   type Gesture,
 } from './gestures';
+import { canEditText } from './shapeLabels';
 
 const rect = (id: string, x: number, y: number, width = 100, height = 100, rotation = 0) =>
   createShape(id, 'rectangle', { x, y, width, height, rotation });
@@ -288,5 +298,50 @@ describe('selecting (EL-5)', () => {
     const box: Box = boxOf(a);
 
     expect(boxesOf([a]).get('a')).toEqual(box);
+  });
+});
+
+describe('drawing a text box (EL-1)', () => {
+  const gesture = { kind: 'drawText', start: { x: 500, y: 400 }, id: 'n' } as const;
+
+  test('Given the text tool, When the slide is clicked, Then a text box of the usual width starts at that point', () => {
+    const text = drawnText(gesture, { x: 500, y: 400 }, false);
+
+    expect(text).toMatchObject({ kind: 'text', x: 500, y: 400, width: DEFAULT_TEXT_WIDTH });
+  });
+
+  test('Given the text tool, When the pointer is dragged, Then the box is as wide as the drag and starts at its top left', () => {
+    const text = drawnText(gesture, { x: 900, y: 460 }, true);
+
+    expect(text).toMatchObject({ x: 500, y: 400, width: 400 });
+  });
+
+  test('Given a drag towards the top left, When it ends, Then the box still starts at its top left', () => {
+    const text = drawnText(gesture, { x: 300, y: 350 }, true);
+
+    expect(text).toMatchObject({ x: 300, y: 350, width: 200 });
+  });
+
+  test('Given a very short drag, When it ends, Then the box is not narrower than the minimum', () => {
+    const text = drawnText(gesture, { x: 510, y: 405 }, true);
+
+    expect(text.width).toBe(MIN_TEXT_WIDTH);
+  });
+});
+
+describe('what can hold text (EL-1, EL-3)', () => {
+  test.each([
+    ['rectangle', true],
+    ['roundedRectangle', true],
+    ['ellipse', true],
+    ['triangle', true],
+    ['line', false],
+    ['arrow', false],
+  ] as const)('Given a %s, When asked if it can be edited as text, Then %s', (shape, can) => {
+    expect(canEditText(createShape('s', shape, { x: 0, y: 0, width: 100, height: 100 }))).toBe(can);
+  });
+
+  test('Given a text box, When asked if it can be edited as text, Then yes', () => {
+    expect(canEditText(createText('t', { x: 0, y: 0 }))).toBe(true);
   });
 });

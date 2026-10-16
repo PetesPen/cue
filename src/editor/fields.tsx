@@ -24,6 +24,8 @@ interface NumberFieldProps {
   readonly onCommit: (value: number) => void;
   readonly min?: number;
   readonly max?: number;
+  /** How far Up and Down move the value (Shift moves ten times as far). */
+  readonly step?: number;
   readonly suffix?: string;
 }
 
@@ -38,6 +40,7 @@ export function NumberField({
   onCommit,
   min = -Infinity,
   max = Infinity,
+  step = 1,
   suffix,
 }: NumberFieldProps) {
   const [text, setText] = useState<string | undefined>();
@@ -55,16 +58,20 @@ export function NumberField({
 
   function onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Enter') {
+      // Enter is only for this field: a change can move focus to the text being edited (Safari does it
+      // at once), and the key would then type a new line there.
+      event.preventDefault();
       commit();
       event.currentTarget.select();
     } else if (event.key === 'Escape') {
       setText(undefined);
     } else if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
       event.preventDefault();
-      const step = (event.shiftKey ? 10 : 1) * (event.key === 'ArrowUp' ? 1 : -1);
+      const move = (event.shiftKey ? 10 : 1) * step * (event.key === 'ArrowUp' ? 1 : -1);
       const base = text !== undefined ? Number(text) : value === MIXED ? 0 : value;
       setText(undefined);
-      if (Number.isFinite(base)) onCommit(clamp(base + step));
+      // Rounded, so 1.2 + 0.1 is 1.3 and not 1.3000000000000003.
+      if (Number.isFinite(base)) onCommit(clamp(Math.round((base + move) * 1000) / 1000));
     }
   }
 
@@ -161,8 +168,10 @@ export function ColourField({ label, value, onChange, allowNone = false }: Colou
           }}
           onBlur={commit}
           onKeyDown={(event) => {
-            if (event.key === 'Enter') commit();
-            else if (event.key === 'Escape') setText(undefined);
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              commit();
+            } else if (event.key === 'Escape') setText(undefined);
           }}
         />
       </label>
