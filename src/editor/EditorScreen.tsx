@@ -1,6 +1,7 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   SHAPE_KINDS,
+  systemEnv,
   canReorder,
   emptyText,
   isShape,
@@ -25,6 +26,7 @@ import { ContextMenu, MenuButton, type MenuItem } from './Menu';
 import { SaveIndicator } from './SaveIndicator';
 import { SHAPE_LABELS, describeSelection } from './shapeLabels';
 import { SlideRail } from './SlideRail';
+import { Toasts, type ToastData } from './Toast';
 import { NearlyFullBanner, SaveFailedBanner } from './StorageBanner';
 import { ColourContext, deckColours } from './colour/deckColours';
 import { deckFonts } from './text/deckFonts';
@@ -190,6 +192,20 @@ function Editor({
   });
   const editingId = text.editing?.id;
 
+  // Toasts last a few seconds, and an Undo in one is only offered while its step is still the last.
+  const [toasts, setToasts] = useState<readonly (ToastData & { readonly expects: number })[]>([]);
+  const dismissToast = (id: string) => {
+    setToasts((was) => was.filter((toast) => toast.id !== id));
+  };
+  function showToast(toast: Omit<ToastData, 'id'>) {
+    const id = systemEnv.newId();
+    // The step this toast is about is the next one the history records.
+    setToasts((was) => [...was, { ...toast, id, expects: session.history.done.length + 1 }]);
+  }
+  const liveToasts = toasts.filter(
+    (toast) => session.history.done.length === toast.expects && !session.canRedo,
+  );
+
   const slide = useMemo(() => {
     const changes = text.height ? [...(draft ?? []), text.height] : draft;
     const shown = applyDraft(currentSlide, changes, drawing);
@@ -233,6 +249,28 @@ function Editor({
     select([]);
     setTool(next);
     focusCanvas();
+  }
+
+  function duplicateSlide(id: Id) {
+    text.finish();
+    session.duplicateSlide(id);
+  }
+
+  /** Delete a slide, and offer to bring it back (the toast from the States board, SL-4). */
+  function deleteSlide(id: Id) {
+    const number = deck.slides.findIndex((slide) => slide.id === id) + 1;
+    if (number === 0) return;
+    text.finish();
+    session.deleteSlide(id);
+    showToast({
+      message: `Slide ${String(number)} deleted`,
+      action: {
+        label: 'Undo',
+        onAction: () => {
+          stepHistory('undo');
+        },
+      },
+    });
   }
 
   function goToSlide(id: Id) {
@@ -552,6 +590,12 @@ function Editor({
           slides={deck.slides}
           currentId={currentSlide.id}
           onSelect={goToSlide}
+          onMove={(id, toIndex) => {
+            text.finish();
+            session.moveSlide(id, toIndex);
+          }}
+          onDuplicate={duplicateSlide}
+          onDelete={deleteSlide}
           onAdd={add}
         />
 
@@ -596,6 +640,8 @@ function Editor({
             />
           )}
         </main>
+
+        <Toasts toasts={liveToasts} onDismiss={dismissToast} />
 
         <section className="notes" aria-label="Speaker notes">
           <div className="notes-header">

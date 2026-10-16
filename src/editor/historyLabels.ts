@@ -24,6 +24,12 @@ export function labelFor(command: Command): string {
       return 'Add slide';
     case 'renameDeck':
       return 'Rename deck';
+    case 'deleteSlide':
+      return 'Delete slide';
+    case 'moveSlide':
+      return 'Move slide';
+    case 'duplicateSlide':
+      return 'Duplicate slide';
     case 'addElement':
       return 'Add';
     case 'updateElements':
@@ -54,6 +60,9 @@ export function idsOf(command: Command): Id[] {
     case 'addSlide':
     case 'renameDeck':
     case 'setNotes':
+    case 'deleteSlide':
+    case 'moveSlide':
+    case 'duplicateSlide':
       return [];
   }
 }

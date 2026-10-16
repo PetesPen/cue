@@ -64,6 +64,12 @@ export interface DeckSession {
   readonly setNotes: (slideId: Id, notes: string) => void;
   /** Take elements off the current slide (delete, cut). */
   readonly removeElements: (ids: readonly Id[], meta?: EditMeta) => void;
+  /** Delete a slide (SL-4); the slide to show afterwards is chosen. A deck always keeps one. */
+  readonly deleteSlide: (slideId: Id) => void;
+  /** Put a slide at another place; `toIndex` is its place afterwards, from 0 (SL-3). */
+  readonly moveSlide: (slideId: Id, toIndex: number) => void;
+  /** Copy a slide right after itself and show the copy (SL-4). */
+  readonly duplicateSlide: (slideId: Id) => void;
   /** Undo and redo the last step (EL-8); each says where to look afterwards, or nothing if there was nothing to do. */
   readonly undo: () => View | undefined;
   readonly redo: () => View | undefined;
@@ -174,7 +180,13 @@ export function useDeckSession(
       label: meta.label ?? labelFor(command),
       patches: applied.patches,
       inverse: applied.inverse,
-      slideId: 'slideId' in command ? command.slideId : undefined,
+      // After a copy, redo shows the copy; for anything else, the slide the edit was on.
+      slideId:
+        command.type === 'duplicateSlide'
+          ? command.newSlideId
+          : 'slideId' in command
+            ? command.slideId
+            : undefined,
       ids: idsOf(command),
       mergeKey,
       at: command.at,
@@ -276,7 +288,7 @@ export function useDeckSession(
     const show =
       slides.find((slide) => slide.id === wanted) ??
       slides.find((slide) => slide.id === currentRef.current) ??
-      slides[Math.min(Math.max(before, 0), slides.length - 1)];
+      slides[Math.min(Math.max(before - 1, 0), slides.length - 1)];
     if (show !== undefined) {
       currentRef.current = show.id;
       setCurrentSlideId(show.id);
@@ -286,6 +298,54 @@ export function useDeckSession(
   }, []);
   const undo = useCallback(() => step('undo'), [step]);
   const redo = useCallback(() => step('redo'), [step]);
+
+  const deleteSlide = useCallback(
+    (slideId: Id) => {
+      const deck = deckRef.current;
+      if (deck === undefined) return;
+      const index = deck.slides.findIndex((slide) => slide.id === slideId);
+      if (index === -1) return;
+      const replacementId = env.newId();
+      dispatch({ type: 'deleteSlide', slideId, replacementId, at: env.now() });
+      // If the slide on show was deleted, show its neighbour (the one after it, or before if it was last).
+      if (currentRef.current === slideId) {
+        const next =
+          deck.slides.length === 1
+            ? replacementId
+            : (deck.slides[index + 1] ?? deck.slides[index - 1])?.id;
+        if (next !== undefined) {
+          currentRef.current = next;
+          setCurrentSlideId(next);
+        }
+      }
+    },
+    [dispatch, env],
+  );
+
+  const moveSlide = useCallback(
+    (slideId: Id, toIndex: number) => {
+      dispatch({ type: 'moveSlide', slideId, toIndex, at: env.now() });
+    },
+    [dispatch, env],
+  );
+
+  const duplicateSlide = useCallback(
+    (slideId: Id) => {
+      const slide = deckRef.current?.slides.find((s) => s.id === slideId);
+      if (!slide) return;
+      const newSlideId = env.newId();
+      dispatch({
+        type: 'duplicateSlide',
+        slideId,
+        newSlideId,
+        elementIds: slide.elements.map(() => env.newId()),
+        at: env.now(),
+      });
+      currentRef.current = newSlideId;
+      setCurrentSlideId(newSlideId);
+    },
+    [dispatch, env],
+  );
 
   const registerFlush = useCallback((flush: () => void) => {
     flushers.current.add(flush);
@@ -314,6 +374,9 @@ export function useDeckSession(
     updateElements,
     reorderElements,
     removeElements,
+    deleteSlide,
+    moveSlide,
+    duplicateSlide,
     addElements,
     setNotes,
     undo,

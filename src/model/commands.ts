@@ -1,4 +1,4 @@
-import { castDraft, enablePatches, produceWithPatches, type Patch } from 'immer';
+import { castDraft, current, enablePatches, produceWithPatches, type Patch } from 'immer';
 import { createSlide, normaliseTitle, type Deck } from './deck';
 import {
   applicableProps,
@@ -25,6 +25,34 @@ export type Command =
       readonly at: number;
     }
   | { readonly type: 'renameDeck'; readonly title: string; readonly at: number }
+  /**
+   * Take a slide out of the deck (SL-4). A deck always has a slide: deleting the only one leaves a
+   * blank slide, whose id is `replacementId`.
+   */
+  | {
+      readonly type: 'deleteSlide';
+      readonly slideId: Id;
+      readonly replacementId: Id;
+      readonly at: number;
+    }
+  /** Put a slide at another place (SL-3): `toIndex` is its place in the order afterwards, from 0. */
+  | {
+      readonly type: 'moveSlide';
+      readonly slideId: Id;
+      readonly toIndex: number;
+      readonly at: number;
+    }
+  /**
+   * A copy of a slide right after it (SL-4): its background, its notes and every element, each with
+   * a new id (`elementIds`, one for each element in order).
+   */
+  | {
+      readonly type: 'duplicateSlide';
+      readonly slideId: Id;
+      readonly newSlideId: Id;
+      readonly elementIds: readonly Id[];
+      readonly at: number;
+    }
   /** Put a new element on top of the slide (ZO-1: new elements are added on top). */
   | {
       readonly type: 'addElement';
@@ -93,6 +121,45 @@ export function applyCommand(deck: Deck, command: Command): Applied {
       case 'renameDeck':
         draft.title = normaliseTitle(command.title);
         break;
+      case 'deleteSlide': {
+        const index = draft.slides.findIndex((slide) => slide.id === command.slideId);
+        if (index === -1)
+          throw new CommandError(`Slide ${command.slideId} is not in deck ${deck.id}`);
+        if (draft.slides.length === 1) {
+          draft.slides[0] = castDraft(createSlide(command.replacementId));
+        } else {
+          draft.slides.splice(index, 1);
+        }
+        break;
+      }
+      case 'moveSlide': {
+        const index = draft.slides.findIndex((slide) => slide.id === command.slideId);
+        if (index === -1)
+          throw new CommandError(`Slide ${command.slideId} is not in deck ${deck.id}`);
+        const to = Math.min(draft.slides.length - 1, Math.max(0, Math.round(command.toIndex)));
+        const [moved] = draft.slides.splice(index, 1);
+        if (moved) draft.slides.splice(to, 0, moved);
+        break;
+      }
+      case 'duplicateSlide': {
+        const index = draft.slides.findIndex((slide) => slide.id === command.slideId);
+        const original = draft.slides[index];
+        if (!original) throw new CommandError(`Slide ${command.slideId} is not in deck ${deck.id}`);
+        if (command.elementIds.length !== original.elements.length) {
+          throw new CommandError('A copied slide needs one new id for each of its elements');
+        }
+        const copy = {
+          id: command.newSlideId,
+          background: original.background,
+          notes: original.notes,
+          elements: original.elements.map((element, i) => ({
+            ...current(element),
+            id: command.elementIds[i] ?? element.id,
+          })),
+        };
+        draft.slides.splice(index + 1, 0, castDraft(copy));
+        break;
+      }
       case 'addElement': {
         const slide = draft.slides.find((s) => s.id === command.slideId);
         if (!slide) throw new CommandError(`Slide ${command.slideId} is not in deck ${deck.id}`);
