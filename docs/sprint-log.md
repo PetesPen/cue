@@ -453,3 +453,13 @@ Use https://cue-presentations.netlify.app/ after pull request 26 is merged (each
 4. **Preview's back arrow** shows the earlier state at once instead of playing the animation in reverse (that is AN-7, sprint 11): fine for now?
 5. **Reduced motion**: should Preview (and later the show) skip animations when the computer asks for it, or play them as set? I left them playing (the presenter chose them for the audience).
 6. **The wording** "+ Appear", "+ Disappear", "+ Move" and "Add a step for ...": the board shows only the effect buttons of a step that already exists, so the way a first step is added is my design.
+
+### Review outcome (2026-10-17)
+
+Peter looked at the live app: "Looks good to me."
+
+1. **The sprint 7 plan** (with the proposed Gate 3 criteria and decisions 29 to 31): approved ("The sprint 7 plan looks good to me"). Whether Esc should ask before ending a show was not answered; the plan keeps the Audience board's behaviour (Esc ends the show).
+2. **Snap lines:** a turned element should also snap when it is resized: yes. Built the same day: the corner (or the middle of the edge) being dragged snaps to the guides; an edge only to a guide it reaches at a clear angle; Shift (proportions) and a picture dragged by a corner still resize freely.
+3. **Preview's back arrow** showing the earlier state at once: fine. **Reduced motion:** keep playing animations as set. **The wording** "+ Appear", "+ Disappear", "+ Move": fine.
+4. **The reference images:** the "Update screenshots" workflow was run on `main` after pull request 26 merged and found nothing to change: it rewrote only pictures that differ by more than the 0.1% the checks allow, and these differ by less. It now makes every picture again (`--update-snapshots=all`); run again after pull request 27, its pull request will wait for Peter to look at the images.
+5. Peter asked whether centring on the slide and lining elements up with each other are in the backlog: yes, both are EL-6 (built in sprint 6): Align to the slide for one element (left, centre, right, top, middle, bottom), Align to each other for several, Distribute for three or more, and snap lines to the slide's edges and middle and to other elements while dragging. He also noticed Move missing from the live Animate tab: the live site was still on sprint 5; Move arrived with pull request 26, merged on 2026-10-17.

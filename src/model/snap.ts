@@ -154,6 +154,69 @@ export function snapEdges(
   };
 }
 
+/** The line a snapped point lands on. */
+export interface SnapLine {
+  readonly axis: 'x' | 'y';
+  readonly at: number;
+}
+
+/** A handle that moves at a slant to a guide cannot snap to it: it would have to travel far to get there. */
+const MIN_SLANT = 0.3;
+
+/**
+ * Where a dragged point lines up (EL-6): the handle of a turned box being resized, whose sides are not
+ * the upright lines the guides are. A corner follows the pointer one to one, so it snaps to a guide on
+ * either axis. An edge's middle can only move along its own direction (`axis`, a unit vector): it
+ * snaps to the guide it reaches soonest, and not to one it meets at a slant. Returns how far to move
+ * the pointer, and the lines snapped to.
+ */
+export function snapHandle(
+  point: Point,
+  axis: Point | undefined,
+  others: readonly Rect[],
+  slide: Rect,
+  threshold: number,
+): { readonly correction: Point; readonly lines: readonly SnapLine[] } {
+  const xs = targets(others, slide, 'x');
+  const ys = targets(others, slide, 'y');
+  const bx = nearest([point.x], xs, threshold);
+  const by = nearest([point.y], ys, threshold);
+  if (!axis) {
+    return {
+      correction: { x: bx?.offset ?? 0, y: by?.offset ?? 0 },
+      lines: [
+        ...(bx ? [{ axis: 'x' as const, at: bx.target.at }] : []),
+        ...(by ? [{ axis: 'y' as const, at: by.target.at }] : []),
+      ],
+    };
+  }
+  const reach = [
+    ...(bx && Math.abs(axis.x) >= MIN_SLANT
+      ? [{ along: bx.offset / axis.x, line: { axis: 'x' as const, at: bx.target.at } }]
+      : []),
+    ...(by && Math.abs(axis.y) >= MIN_SLANT
+      ? [{ along: by.offset / axis.y, line: { axis: 'y' as const, at: by.target.at } }]
+      : []),
+  ].sort((a, b) => Math.abs(a.along) - Math.abs(b.along));
+  const soonest = reach[0];
+  if (!soonest) return { correction: { x: 0, y: 0 }, lines: [] };
+  return {
+    correction: { x: axis.x * soonest.along, y: axis.y * soonest.along },
+    lines: [soonest.line],
+  };
+}
+
+/** The guide for a line that something has snapped to, running along `moved` and what it lines up with. */
+export function guideAt(
+  axis: 'x' | 'y',
+  at: number,
+  moved: Rect,
+  others: readonly Rect[],
+  slide: Rect,
+): Guide {
+  return guideFor(axis, at, moved, targets(others, slide, axis), slide);
+}
+
 // Align and distribute -----------------------------------------------------------------------
 
 export const ALIGNMENTS = ['left', 'centre', 'right', 'top', 'middle', 'bottom'] as const;

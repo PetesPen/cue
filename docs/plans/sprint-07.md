@@ -1,6 +1,6 @@
 # Sprint 7 plan: Transitions and the two windows
 
-Status: **waits for Peter's approval** (sprint 7 is approved alone; its review is Gate 3, "Motion beta"). Stories: TN-4, TN-5, PM-1, PM-2 (all Must). Nominal load 14 days. Built on sprints 5 and 6: the resolver and the motion player play every click, the Transition tab chooses how each slide arrives, and the fixture deck's hero slide has its steps and transitions.
+Status: **approved by Peter on 2026-10-17** ("The sprint 7 plan looks good to me"; sprint 7 is approved alone; its review is Gate 3, "Motion beta"). Stories: TN-4, TN-5, PM-1, PM-2 (all Must). Nominal load 14 days. Built on sprints 5 and 6: the resolver and the motion player play every click, the Transition tab chooses how each slide arrives, and the fixture deck's hero slide has its steps and transitions.
 
 ## Outcome at the review (Gate 3)
 

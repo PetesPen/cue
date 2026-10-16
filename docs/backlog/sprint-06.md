@@ -80,7 +80,7 @@ As a presenter, I want smart guides and alignment tools, so that slides look tid
 Pulled forward from sprint 12 by Peter on 2026-10-16 ("I really value the snap lines"). Built last in this sprint, after the four Must stories.
 
 Acceptance criteria:
-- [x] Elements snap to slide edges, slide centre and other elements, with visible guide lines. (Edges and middles, within 6 screen pixels; also the end of a Move; Alt turns it off for a drag. A turned element snaps by its outer box on a move and is resized freely.)
+- [x] Elements snap to slide edges, slide centre and other elements, with visible guide lines. (Edges and middles, within 6 screen pixels; also the end of a Move; Alt turns it off for a drag. A turned element snaps by its outer box on a move, and the corner or edge middle being dragged when it is resized.)
 - [x] Align left, centre, right, top, middle and bottom for a selection. (One element aligns to the slide, several to the box around them.)
 - [x] Distribute horizontally and vertically for three or more elements.
 

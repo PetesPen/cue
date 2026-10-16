@@ -6,6 +6,7 @@ import {
   createShape,
   createText,
   groupBounds,
+  guideAt,
   handleEdges,
   isLine,
   lineBetween,
@@ -17,8 +18,10 @@ import {
   resizeBox,
   resizeGroup,
   rotateBoxes,
+  rotatePoint,
   rotationAfterDrag,
   snapEdges,
+  snapHandle,
   snapMove,
   unionRect,
   type Box,
@@ -341,8 +344,8 @@ export interface SnapContext {
  * The pointer moved so that the gesture lands on a guide: a move whose edges or middles come near
  * those of the slide or another element, a resize whose dragged edge does. Feeding the result to
  * `changesFor` gives the snapped change, so snapping needs no code of its own in the gestures. A turned
- * element is resized freely (its sides are not the upright lines the guides are), as is a resize that
- * keeps its proportions, and the guides are what a snap shows while it holds.
+ * element snaps the handle being dragged (its sides are not the upright lines the guides are); a resize
+ * that keeps its proportions is free; and the guides are what a snap shows while it holds.
  */
 export function snapPointer(
   gesture: Gesture,
@@ -362,7 +365,9 @@ export function snapPointer(
   if (gesture.kind === 'resize' && !shift && gesture.lockAspect !== true) {
     const entries = [...gesture.boxes.values()];
     const only = entries[0];
-    if (entries.length !== 1 || only?.rotation !== 0) return none;
+    if (entries.length !== 1 || !only) return none;
+    if (only.rotation !== 0)
+      return snapTurnedResize(only, gesture.handle, gesture.start, pointer, context);
     const resized = resizeBox(only, gesture.handle, delta, {});
     const snap = snapEdges(
       resized,
@@ -374,4 +379,46 @@ export function snapPointer(
     return { pointer: { x: pointer.x + snap.dx, y: pointer.y + snap.dy }, guides: snap.guides };
   }
   return none;
+}
+
+/**
+ * A turned box resized by a handle (EL-6): its sides are not upright, so it is the handle itself, the
+ * corner or the middle of the edge being dragged, that snaps to the guides. See `snapHandle`.
+ */
+function snapTurnedResize(
+  box: Box,
+  handle: Handle,
+  start: Point,
+  pointer: Point,
+  context: SnapContext,
+): { readonly pointer: Point; readonly guides: readonly Guide[] } {
+  const edges = handleEdges(handle);
+  const drag = (to: Point) => ({ x: to.x - start.x, y: to.y - start.y });
+  const resized = resizeBox(box, handle, drag(pointer), {});
+  const centre = centerOf(resized);
+  const local = { x: (edges.x * resized.width) / 2, y: (edges.y * resized.height) / 2 };
+  const offset = rotatePoint(local, { x: 0, y: 0 }, resized.rotation);
+  const corner = edges.x !== 0 && edges.y !== 0;
+  // An edge moves along its own direction, turned with the box.
+  const along = rotatePoint(
+    edges.x !== 0 ? { x: 1, y: 0 } : { x: 0, y: 1 },
+    { x: 0, y: 0 },
+    box.rotation,
+  );
+  const snap = snapHandle(
+    { x: centre.x + offset.x, y: centre.y + offset.y },
+    corner ? undefined : along,
+    context.others,
+    context.slide,
+    context.threshold,
+  );
+  if (snap.lines.length === 0) return { pointer, guides: [] };
+  const aimed = { x: pointer.x + snap.correction.x, y: pointer.y + snap.correction.y };
+  const landed = boundsOf(resizeBox(box, handle, drag(aimed), {}));
+  return {
+    pointer: aimed,
+    guides: snap.lines.map((line) =>
+      guideAt(line.axis, line.at, landed, context.others, context.slide),
+    ),
+  };
 }

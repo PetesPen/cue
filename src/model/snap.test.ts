@@ -1,7 +1,7 @@
 import fc from 'fast-check';
 import { describe, expect, test } from 'vitest';
 import type { Rect } from './geometry';
-import { align, distribute, snapEdges, snapMove, type Placed } from './snap';
+import { align, distribute, snapEdges, snapHandle, snapMove, type Placed } from './snap';
 
 const SLIDE: Rect = { x: 0, y: 0, width: 1920, height: 1080 };
 const box = (x: number, y: number, width: number, height: number): Rect => ({
@@ -299,10 +299,13 @@ describe('distribute (EL-6)', () => {
           { minLength: 3, maxLength: 8 },
         ),
         (rects) => {
-          // Boxes that overlap more than the span allows have no even gap to speak of.
-          const left = Math.min(...rects.map((r) => r.x));
-          const right = Math.max(...rects.map((r) => r.x + r.width));
-          fc.pre(right - left - rects.reduce((sum, r) => sum + r.width, 0) >= 0);
+          // The first and the last by position stay: boxes that overlap more than the span they leave
+          // (the last one starts before another ends) have no even gap to speak of.
+          const byStart = [...rects].sort((a, b) => a.x - b.x);
+          const leftmost = byStart[0];
+          const rightmost = byStart[byStart.length - 1];
+          const span = (rightmost?.x ?? 0) + (rightmost?.width ?? 0) - (leftmost?.x ?? 0);
+          fc.pre(span - rects.reduce((sum, r) => sum + r.width, 0) >= 0);
           const placed = rects.map((bounds, i) => ({ id: String(i), bounds }));
           const shifts = distribute(placed, 'horizontal');
           const lands = placed
@@ -322,6 +325,91 @@ describe('distribute (EL-6)', () => {
             6,
           );
           for (const s of shifts) expect(s.dy).toBe(0);
+        },
+      ),
+    );
+  });
+});
+
+describe('snapHandle: a dragged corner or edge middle of a turned box (EL-6)', () => {
+  const none: Rect[] = [];
+
+  test('Given a corner near a line, When it is snapped, Then it moves onto the line on that axis only', () => {
+    const snap = snapHandle({ x: 1917, y: 500 }, undefined, none, SLIDE, 6);
+
+    expect(snap.correction).toEqual({ x: 3, y: 0 });
+    expect(snap.lines).toEqual([{ axis: 'x', at: 1920 }]);
+  });
+
+  test('Given a corner near lines on both axes, When it is snapped, Then both snap', () => {
+    const snap = snapHandle({ x: 4, y: 1076 }, undefined, none, SLIDE, 6);
+
+    expect(snap.correction).toEqual({ x: -4, y: 4 });
+    expect(snap.lines).toHaveLength(2);
+  });
+
+  test('Given an edge that moves along a direction, When it is snapped, Then it is moved along that direction to the line', () => {
+    // Moving at 45 degrees: 3 across needs 3 / cos(45) along.
+    const axis = { x: Math.SQRT1_2, y: Math.SQRT1_2 };
+
+    const snap = snapHandle({ x: 1917, y: 400 }, axis, none, SLIDE, 6);
+
+    expect(snap.correction.x).toBeCloseTo(3, 6);
+    expect(snap.correction.y).toBeCloseTo(3, 6);
+    expect(snap.lines).toEqual([{ axis: 'x', at: 1920 }]);
+  });
+
+  test('Given an edge that could reach two lines, When it is snapped, Then the one it reaches soonest wins', () => {
+    const axis = { x: Math.SQRT1_2, y: Math.SQRT1_2 };
+    // 2 from the vertical line at 1920, 5 from the horizontal line at 1080.
+    const snap = snapHandle({ x: 1918, y: 1075 }, axis, none, SLIDE, 6);
+
+    expect(snap.lines).toEqual([{ axis: 'x', at: 1920 }]);
+  });
+
+  test('Given an edge moving almost along a guide, When it is snapped, Then it does not snap to it', () => {
+    const axis = { x: 0.1, y: 0.995 };
+
+    const snap = snapHandle({ x: 1917, y: 500 }, axis, none, SLIDE, 6);
+
+    expect(snap).toEqual({ correction: { x: 0, y: 0 }, lines: [] });
+  });
+
+  test('Given a point far from every line, When it is snapped, Then nothing moves', () => {
+    expect(snapHandle({ x: 333, y: 222 }, undefined, none, SLIDE, 6)).toEqual({
+      correction: { x: 0, y: 0 },
+      lines: [],
+    });
+  });
+
+  test('Given another element, When a corner comes near its edge, Then it lines up with it', () => {
+    const other = box(500, 100, 300, 200);
+
+    const snap = snapHandle({ x: 803, y: 600 }, undefined, [other], SLIDE, 6);
+
+    expect(snap.correction.x).toBe(-3);
+  });
+
+  test('Given any point and direction, When it is snapped, Then the point moved along the direction lands on a line', () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 0, max: 1920 }),
+        fc.integer({ min: 0, max: 1080 }),
+        fc.integer({ min: 0, max: 359 }),
+        (x, y, degrees) => {
+          const axis = {
+            x: Math.cos((degrees * Math.PI) / 180),
+            y: Math.sin((degrees * Math.PI) / 180),
+          };
+          const snap = snapHandle({ x, y }, axis, none, SLIDE, 8);
+          const landed = { x: x + snap.correction.x, y: y + snap.correction.y };
+
+          for (const line of snap.lines) {
+            expect(line.axis === 'x' ? landed.x : landed.y).toBeCloseTo(line.at, 6);
+          }
+          // It only moved along the direction.
+          const cross = snap.correction.x * axis.y - snap.correction.y * axis.x;
+          expect(Math.abs(cross)).toBeLessThan(1e-6);
         },
       ),
     );
