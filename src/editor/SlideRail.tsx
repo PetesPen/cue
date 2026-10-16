@@ -261,6 +261,7 @@ export function SlideRail({
               </span>
               <span className="rail-thumb">
                 <SlideView slide={slide} />
+                {slide.animations.length > 0 && <span className="rail-dot" aria-hidden="true" />}
               </span>
             </div>
           );

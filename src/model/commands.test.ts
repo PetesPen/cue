@@ -55,6 +55,7 @@ describe('addSlide (SL-1)', () => {
       background: '#FFFFFF',
       elements: [],
       notes: '',
+      animations: [],
     });
     expect(deck.updatedAt).toBe(7000);
     expect(deck.createdAt).toBe(1000);

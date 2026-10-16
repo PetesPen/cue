@@ -1,5 +1,6 @@
 import fc from 'fast-check';
 import { describe, expect, test } from 'vitest';
+import { createStep } from './animation';
 import { applyCommand, type Command } from './commands';
 import { createSlide, type Deck } from './deck';
 import { createShape, createText } from './elements';
@@ -220,7 +221,8 @@ describe('any run of edits (property)', () => {
     const slide = deck.slides[n % deck.slides.length];
     if (!slide) throw new Error('no slide');
     const first = slide.elements[0]?.id;
-    switch (n % 8) {
+    const step = slide.animations[0];
+    switch (n % 10) {
       case 0:
         return { type: 'addElement', slideId: slide.id, element: rect(`e${String(at)}`), at };
       case 1:
@@ -250,6 +252,27 @@ describe('any run of edits (property)', () => {
           all: n % 2 === 0,
           at,
         };
+      case 7:
+        return first === undefined
+          ? { type: 'renameDeck', title: `S${String(n)}`, at }
+          : {
+              type: 'addStep',
+              slideId: slide.id,
+              step: createStep(`st${String(at)}`, first, n % 3 === 0 ? 'disappear' : 'appear'),
+              at,
+            };
+      case 8:
+        return step === undefined
+          ? { type: 'setNotes', slideId: slide.id, notes: 'y', at }
+          : n % 20 === 18
+            ? { type: 'removeStep', slideId: slide.id, stepId: step.id, at }
+            : {
+                type: 'updateStep',
+                slideId: slide.id,
+                stepId: step.id,
+                change: { duration: 1 + (n % 4), trigger: 'with-previous' },
+                at,
+              };
       default:
         return first === undefined || slide.elements.length < 2
           ? { type: 'renameDeck', title: `T${String(n)}`, at }

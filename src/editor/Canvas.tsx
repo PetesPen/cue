@@ -36,7 +36,9 @@ import {
 } from './gestures';
 import { SelectionOverlay } from './SelectionOverlay';
 import type { EditMeta } from './useDeckSession';
-import { SlideView } from './SlideView';
+import { SlideView, type SlideViewHandle } from './SlideView';
+import { StepBadges } from './animation/StepBadges';
+import type { Look } from '@/render';
 import { SHAPE_LABELS, canEditText, describeSelection } from './shapeLabels';
 
 /** "an ellipse", "a rectangle". */
@@ -83,6 +85,13 @@ interface CanvasProps {
   /** The text editor and its toolbar, drawn over the slide. */
   readonly editor?: ReactNode;
   readonly frameRef: RefObject<HTMLDivElement | null>;
+  /** How animations show: faded here in the editor (AN-1), or at a click while previewing (AN-6). */
+  readonly look: Look;
+  readonly viewRef: RefObject<SlideViewHandle | null>;
+  /** Show a numbered badge for each animation step; the active step's is green (Animate tab). */
+  readonly badges: { readonly activeStepId: Id | undefined } | undefined;
+  /** While Preview plays: a click on the slide plays the next click, and nothing can be picked up. */
+  readonly onPreviewAdvance: (() => void) | undefined;
 }
 
 function readoutFor(gesture: Gesture, changes: readonly ElementChange[], slide: Slide): string {
@@ -132,6 +141,10 @@ export function Canvas({
   onFinishEdit,
   editor,
   frameRef,
+  look,
+  viewRef,
+  badges,
+  onPreviewAdvance,
 }: CanvasProps) {
   const active = useRef<Active | undefined>(undefined);
   const [readout, setReadout] = useState<string | undefined>();
@@ -183,6 +196,11 @@ export function Canvas({
 
   function onPointerDown(event: PointerEvent<HTMLDivElement>) {
     if (event.button !== 0) return;
+    if (onPreviewAdvance) {
+      event.preventDefault();
+      onPreviewAdvance();
+      return;
+    }
     if (editingId !== undefined) {
       if (inEditor(event.target)) return;
       onFinishEdit();
@@ -334,8 +352,8 @@ export function Canvas({
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    // While text is edited, the keys are the editor's.
-    if (editingId !== undefined) return;
+    // While text is edited, the keys are the editor's; while Preview plays, they are Preview's.
+    if (editingId !== undefined || onPreviewAdvance) return;
 
     const only = selected.length === 1 ? selected[0] : undefined;
     if (event.key === 'Enter' && only && canEditText(only) && !active.current) {
@@ -387,14 +405,14 @@ export function Canvas({
   }
 
   function onDoubleClick(event: React.MouseEvent<HTMLDivElement>) {
-    if (editingId !== undefined || tool || inEditor(event.target)) return;
+    if (editingId !== undefined || tool || onPreviewAdvance || inEditor(event.target)) return;
     const hit = pickElement(slide.elements, toSlide(event), lineSlop());
     if (hit && canEditText(hit)) onEdit(hit.id, { x: event.clientX, y: event.clientY });
   }
 
   /** Files being dragged over the slide: say they may be dropped here. */
   function onDragOver(event: React.DragEvent<HTMLDivElement>) {
-    if (!event.dataTransfer.types.includes('Files')) return;
+    if (onPreviewAdvance || !event.dataTransfer.types.includes('Files')) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = 'copy';
     setDropping(true);
@@ -402,7 +420,7 @@ export function Canvas({
 
   function onDrop(event: React.DragEvent<HTMLDivElement>) {
     setDropping(false);
-    if (event.dataTransfer.files.length === 0) return;
+    if (onPreviewAdvance || event.dataTransfer.files.length === 0) return;
     event.preventDefault();
     onDropFiles([...event.dataTransfer.files], { x: event.clientX, y: event.clientY });
   }
@@ -410,6 +428,7 @@ export function Canvas({
   function handleContextMenu(event: React.MouseEvent<HTMLDivElement>) {
     if (inEditor(event.target)) return;
     event.preventDefault();
+    if (onPreviewAdvance) return;
     const hit = pickElement(slide.elements, toSlide(event), lineSlop());
     if (!hit) onSelect([]);
     else if (!selection.includes(hit.id)) onSelect([hit.id]);
@@ -427,11 +446,13 @@ export function Canvas({
     <div
       ref={frameRef}
       className={
-        tool
-          ? 'slide-frame slide-frame-drawing'
-          : dropping
-            ? 'slide-frame slide-frame-dropping'
-            : 'slide-frame'
+        onPreviewAdvance
+          ? 'slide-frame slide-frame-previewing'
+          : tool
+            ? 'slide-frame slide-frame-drawing'
+            : dropping
+              ? 'slide-frame slide-frame-dropping'
+              : 'slide-frame'
       }
       role="group"
       aria-label={label}
@@ -450,8 +471,11 @@ export function Canvas({
       onDrop={onDrop}
       onContextMenu={handleContextMenu}
     >
-      <SlideView slide={slide} />
-      {editingId === undefined && (selected.length > 0 || marquee) ? (
+      <SlideView slide={slide} look={look} handle={viewRef} />
+      {badges && !onPreviewAdvance && (
+        <StepBadges slide={slide} activeStepId={badges.activeStepId} />
+      )}
+      {editingId === undefined && !onPreviewAdvance && (selected.length > 0 || marquee) ? (
         <SelectionOverlay elements={selected} chip={chip} marquee={marquee} />
       ) : null}
       {editor}

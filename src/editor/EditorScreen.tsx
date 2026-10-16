@@ -39,12 +39,17 @@ import {
   importImage,
   placeCentred,
 } from './importImage';
-import { Inspector } from './Inspector';
+import { Inspector, type TabId } from './Inspector';
+import { AnimatePanel } from './animation/AnimatePanel';
+import { PreviewBar } from './animation/PreviewBar';
+import { usePreview } from './animation/usePreview';
+import type { SlideViewHandle } from './SlideView';
 import { Logo } from './Logo';
 import { NotesField } from './NotesField';
 import { ContextMenu, MenuButton, type MenuItem } from './Menu';
 import { SaveIndicator } from './SaveIndicator';
 import { SHAPE_LABELS, describeSelection } from './shapeLabels';
+import { EDITING, type Look } from '@/render';
 import { SlideRail } from './SlideRail';
 import { Toasts, type ToastData } from './Toast';
 import { NearlyFullBanner, SaveFailedBanner } from './StorageBanner';
@@ -260,6 +265,60 @@ function Editor({
   const focusCanvas = useCallback(() => {
     frame.current?.focus();
   }, []);
+
+  // Animations: the Animate tab, the step whose settings are open, and Preview (AN-1, AN-5, AN-6).
+  const [tab, setTab] = useState<TabId>('design');
+  const [activeStepId, setActiveStepId] = useState<Id | undefined>();
+  const viewRef = useRef<SlideViewHandle>(null);
+  const preview = usePreview(currentSlide, viewRef);
+  const previewing = preview.click !== undefined;
+  const { stop: stopPreview, forward: previewForward, back: previewBack } = preview;
+  const look = useMemo<Look>(
+    () => (preview.click === undefined ? EDITING : { mode: 'click', click: preview.click }),
+    [preview.click],
+  );
+  // The settings shown are those of the chosen step, or of the selected element's first step.
+  const activeStep = (() => {
+    const chosen = currentSlide.animations.find((step) => step.id === activeStepId);
+    if (selectedIds.length === 0) return chosen;
+    if (selectedIds.length > 1) return undefined;
+    if (chosen && chosen.element === selectedIds[0]) return chosen;
+    return currentSlide.animations.find((step) => step.element === selectedIds[0]);
+  })();
+
+  function startPreview() {
+    text.finish();
+    setMenuAt(undefined);
+    setTool(undefined);
+    setSelection({ slideId: currentSlide.id, ids: [] });
+    preview.start();
+    focusCanvas();
+  }
+
+  // Leaving the Animate tab ends Preview. While it runs, the keys are Preview's.
+  useEffect(() => {
+    if (tab !== 'animate' && previewing) stopPreview();
+  }, [tab, previewing, stopPreview]);
+  useEffect(() => {
+    if (!previewing) return;
+    function onKey(event: KeyboardEvent) {
+      if (isTyping(event.target) || event.ctrlKey || event.metaKey || event.altKey) return;
+      const onButton = event.target instanceof HTMLButtonElement;
+      let handled = true;
+      if (event.key === 'Escape') stopPreview();
+      else if (event.key === 'ArrowRight' || (event.key === ' ' && !onButton)) previewForward();
+      else if (event.key === 'ArrowLeft' || event.key === 'Backspace') previewBack();
+      else handled = false;
+      if (handled) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    }
+    window.addEventListener('keydown', onKey, true);
+    return () => {
+      window.removeEventListener('keydown', onKey, true);
+    };
+  }, [previewing, stopPreview, previewForward, previewBack]);
 
   function add() {
     text.finish();
@@ -784,7 +843,21 @@ function Editor({
             onFinishEdit={text.finish}
             editor={editor}
             frameRef={frame}
+            look={look}
+            viewRef={viewRef}
+            badges={tab === 'animate' ? { activeStepId: activeStep?.id } : undefined}
+            onPreviewAdvance={previewing ? previewForward : undefined}
           />
+          {preview.click !== undefined && (
+            <PreviewBar
+              click={preview.click}
+              total={preview.total}
+              onBack={previewBack}
+              onPlay={previewForward}
+              onForward={previewForward}
+              onStop={stopPreview}
+            />
+          )}
           {menuAt && (none ? clipboard.canPaste() : true) && (
             <ContextMenu
               label="Element actions"
@@ -820,6 +893,32 @@ function Editor({
         </section>
 
         <Inspector
+          onTab={setTab}
+          animate={
+            <AnimatePanel
+              slide={currentSlide}
+              selectedIds={selectedIds}
+              activeStepId={activeStep?.id}
+              previewing={previewing}
+              onPreview={previewing ? stopPreview : startPreview}
+              onSelectStep={(stepId) => {
+                const step = currentSlide.animations.find((s) => s.id === stepId);
+                setActiveStepId(stepId);
+                if (step) select([step.element]);
+              }}
+              onAdd={(element, effect) => {
+                const id = session.addStep(element, effect);
+                if (id !== undefined) setActiveStepId(id);
+              }}
+              onChange={(stepId, change) => {
+                session.updateStep(stepId, change);
+              }}
+              onRemove={(stepId) => {
+                setActiveStepId(undefined);
+                session.removeStep(stepId);
+              }}
+            />
+          }
           design={
             selected.length > 0 ? (
               <DesignPanel

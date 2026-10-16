@@ -1,4 +1,5 @@
 import { freeze } from 'immer';
+import type { Step } from './animation';
 import type { Id, SlideElement } from './elements';
 
 /** Bump when the stored shape changes, and add a migration in `parse.ts` (SV-3, SV-5). */
@@ -16,6 +17,8 @@ export interface Slide {
   readonly background: string;
   readonly elements: readonly SlideElement[];
   readonly notes: string;
+  /** The animation steps, in play order (AN-1, AN-2, AN-5). Clicks are derived from them. */
+  readonly animations: readonly Step[];
 }
 
 /** The one immutable document. Times are milliseconds since the epoch. */
@@ -40,7 +43,7 @@ export const systemEnv: Env = {
 };
 
 export function createSlide(id: Id): Slide {
-  return { id, background: DEFAULT_SLIDE_BACKGROUND, elements: [], notes: '' };
+  return { id, background: DEFAULT_SLIDE_BACKGROUND, elements: [], notes: '', animations: [] };
 }
 
 /** A new deck starts with one blank slide (SL-1). */
@@ -69,11 +72,22 @@ export function duplicateDeck(deck: Deck, env: Env): Deck {
       title: `Copy of ${deck.title}`,
       createdAt: at,
       updatedAt: at,
-      slides: deck.slides.map((slide) => ({
-        ...slide,
-        id: env.newId(),
-        elements: slide.elements.map((element) => ({ ...element, id: env.newId() })),
-      })),
+      slides: deck.slides.map((slide) => {
+        const copied = new Map(slide.elements.map((element) => [element.id, env.newId()]));
+        return {
+          ...slide,
+          id: env.newId(),
+          elements: slide.elements.map((element) => ({
+            ...element,
+            id: copied.get(element.id) ?? element.id,
+          })),
+          animations: slide.animations.map((step) => ({
+            ...step,
+            id: env.newId(),
+            element: copied.get(step.element) ?? step.element,
+          })),
+        };
+      }),
     },
     true,
   );

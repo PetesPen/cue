@@ -56,7 +56,9 @@ test.describe('Given the fixture deck Autumn Launch', () => {
     await page.getByRole('option', { name: 'Slide 3', exact: true }).click();
     await expect(page.locator('[data-fonts="loading"]')).toHaveCount(0);
 
-    const results = await new AxeBuilder({ page }).analyze();
+    // The slide's own words are the author's to colour, and the editor draws elements that start
+    // hidden faded (AN-1): neither is the app's text.
+    const results = await new AxeBuilder({ page }).exclude('.canvas .cue-slide').analyze();
 
     expect(results.violations).toEqual([]);
   });

@@ -12,14 +12,25 @@ import {
   type TextElement,
 } from '@/model';
 import { imageSource } from './images';
+import { PLAIN, drawnOpacity, lookSets, playClick, type Look } from './motion';
 import { drawShape } from './shapes';
 import { createTextBody, ensureFonts, renderText } from './text';
 import './slide.css';
 
 /** A slide drawn into a host element. Call `update` with a changed slide; `destroy` removes it. */
 export interface SlideRenderer {
-  /** `hidden` elements keep their place but are not shown (the one being edited, drawn by the editor). */
-  readonly update: (slide: Slide, hidden?: ReadonlySet<Id>) => void;
+  /**
+   * `hidden` elements keep their place but are not shown (the one being edited, drawn by the editor).
+   * `look` is how animations show: plainly, faded for the editor, or the state at a click (AN-1).
+   */
+  readonly update: (slide: Slide, hidden?: ReadonlySet<Id>, look?: Look) => void;
+  /**
+   * Show click `to` after click `from`, animated when it is the next one (AN-1, AN-2). The slide is
+   * drawn in the state after `to` at once; the animations only show the way there. Resolves when done.
+   */
+  readonly play: (slide: Slide, from: number, to: number) => Promise<void>;
+  /** Stop any animation now: every element is left where the last look put it. */
+  readonly settle: () => void;
   readonly destroy: () => void;
 }
 
@@ -30,14 +41,13 @@ interface Drawn {
 
 const NOBODY: ReadonlySet<Id> = new Set();
 
-/** Place and style an element's box. Opacity is on the whole box: fill, border and text fade together. */
+/** Place and style an element's box. (Opacity is set with the look, on the whole box: fill, border and text fade together.) */
 function styleBox(node: HTMLElement, element: SlideElement): void {
   node.style.left = `${String(element.x)}px`;
   node.style.top = `${String(element.y)}px`;
   node.style.width = `${String(element.width)}px`;
   node.style.height = `${String(element.height)}px`;
   node.style.transform = element.rotation === 0 ? '' : `rotate(${String(element.rotation)}deg)`;
-  node.style.opacity = element.opacity === 1 ? '' : String(element.opacity);
   node.dataset.kind = element.kind;
   if (isShape(element)) node.dataset.shape = element.shape;
 }
@@ -172,9 +182,14 @@ export function createSlideRenderer(host: HTMLElement, slide: Slide): SlideRende
 
   const drawn = new Map<Id, Drawn>();
 
-  const update = (next: Slide, hidden: ReadonlySet<Id> = NOBODY) => {
+  let shownHidden: ReadonlySet<Id> = NOBODY;
+  let running: Animation[] = [];
+
+  const update = (next: Slide, hidden: ReadonlySet<Id> = NOBODY, look: Look = PLAIN) => {
+    shownHidden = hidden;
     surface.dataset.slideId = next.id;
     surface.style.background = next.background;
+    const sets = lookSets(next, look);
 
     const keep = new Set(next.elements.map((element) => element.id));
     for (const [id, entry] of drawn) {
@@ -198,6 +213,9 @@ export function createSlideRenderer(host: HTMLElement, slide: Slide): SlideRende
         drawn.set(element.id, entry);
       }
       entry.node.style.visibility = hidden.has(element.id) ? 'hidden' : '';
+      const opacity = drawnOpacity(element.opacity, element.id, sets);
+      const shownOpacity = opacity === 1 ? '' : String(opacity);
+      if (entry.node.style.opacity !== shownOpacity) entry.node.style.opacity = shownOpacity;
       // Back to front is document order: put each node right after the one before it.
       const wanted: ChildNode | null = previous ? previous.nextSibling : surface.firstChild;
       if (wanted !== entry.node) surface.insertBefore(entry.node, wanted);
@@ -206,9 +224,27 @@ export function createSlideRenderer(host: HTMLElement, slide: Slide): SlideRende
   };
   update(slide);
 
+  const settle = () => {
+    for (const animation of running) animation.cancel();
+    running = [];
+  };
+
+  const play = async (next: Slide, from: number, to: number) => {
+    settle();
+    update(next, shownHidden, { mode: 'click', click: to });
+    if (to !== from + 1) return;
+    const mine = playClick(next, to, (id) => drawn.get(id)?.node);
+    running = mine;
+    await Promise.all(mine.map((animation) => animation.finished.catch(() => undefined)));
+    if (running === mine) running = [];
+  };
+
   return {
     update,
+    play,
+    settle,
     destroy() {
+      settle();
       observer.disconnect();
       viewport.remove();
       drawn.clear();

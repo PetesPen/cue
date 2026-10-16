@@ -135,6 +135,7 @@ describe('duplicateSlide (SL-4)', () => {
       slideId: 'a',
       newSlideId: 'a2',
       elementIds: ['r2', 't2'],
+      stepIds: [],
       at: 5,
     });
 
@@ -155,6 +156,7 @@ describe('duplicateSlide (SL-4)', () => {
       slideId: 'a',
       newSlideId: 'a2',
       elementIds: ['r2', 't2'],
+      stepIds: [],
       at: 5,
     });
 
@@ -176,6 +178,7 @@ describe('duplicateSlide (SL-4)', () => {
         slideId: 'a',
         newSlideId: 'a2',
         elementIds: ['r2'],
+        stepIds: [],
         at: 5,
       }),
     ).toThrow(CommandError);
@@ -187,6 +190,7 @@ describe('duplicateSlide (SL-4)', () => {
       slideId: 'a',
       newSlideId: 'a2',
       elementIds: ['r2', 't2'],
+      stepIds: [],
       at: 5,
     });
 

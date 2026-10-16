@@ -1,4 +1,5 @@
 import { castDraft, current, enablePatches, produceWithPatches, type Patch } from 'immer';
+import { changeStep, type Step, type StepChange } from './animation';
 import { createSlide, normaliseTitle, type Deck } from './deck';
 import {
   applicableProps,
@@ -43,14 +44,16 @@ export type Command =
       readonly at: number;
     }
   /**
-   * A copy of a slide right after it (SL-4): its background, its notes and every element, each with
-   * a new id (`elementIds`, one for each element in order).
+   * A copy of a slide right after it (SL-4): its background, its notes, every element and every
+   * animation step, each with a new id (`elementIds` and `stepIds`, one for each in order); the
+   * copied steps play on the copied elements.
    */
   | {
       readonly type: 'duplicateSlide';
       readonly slideId: Id;
       readonly newSlideId: Id;
       readonly elementIds: readonly Id[];
+      readonly stepIds: readonly Id[];
       readonly at: number;
     }
   /** Put a new element on top of the slide (ZO-1: new elements are added on top). */
@@ -104,6 +107,27 @@ export type Command =
       readonly slideId: Id;
       readonly background: string;
       readonly all: boolean;
+      readonly at: number;
+    }
+  /** Put an animation step at the end of the slide's list (AN-1, AN-2). */
+  | {
+      readonly type: 'addStep';
+      readonly slideId: Id;
+      readonly step: Step;
+      readonly at: number;
+    }
+  /** Change a step: its effect, style, trigger or timing (AN-1, AN-2, AN-4, AN-5). */
+  | {
+      readonly type: 'updateStep';
+      readonly slideId: Id;
+      readonly stepId: Id;
+      readonly change: StepChange;
+      readonly at: number;
+    }
+  | {
+      readonly type: 'removeStep';
+      readonly slideId: Id;
+      readonly stepId: Id;
       readonly at: number;
     };
 
@@ -159,6 +183,10 @@ export function applyCommand(deck: Deck, command: Command): Applied {
         if (command.elementIds.length !== original.elements.length) {
           throw new CommandError('A copied slide needs one new id for each of its elements');
         }
+        if (command.stepIds.length !== original.animations.length) {
+          throw new CommandError('A copied slide needs one new id for each of its animation steps');
+        }
+        const copiedIds = new Map(original.elements.map((e, i) => [e.id, command.elementIds[i]]));
         const copy = {
           id: command.newSlideId,
           background: original.background,
@@ -166,6 +194,11 @@ export function applyCommand(deck: Deck, command: Command): Applied {
           elements: original.elements.map((element, i) => ({
             ...current(element),
             id: command.elementIds[i] ?? element.id,
+          })),
+          animations: original.animations.map((step, i) => ({
+            ...current(step),
+            id: command.stepIds[i] ?? step.id,
+            element: copiedIds.get(step.element) ?? step.element,
           })),
         };
         draft.slides.splice(index + 1, 0, castDraft(copy));
@@ -199,6 +232,8 @@ export function applyCommand(deck: Deck, command: Command): Applied {
         if (!slide) throw new CommandError(`Slide ${command.slideId} is not in deck ${deck.id}`);
         const gone = new Set(command.ids);
         slide.elements = slide.elements.filter((e) => !gone.has(e.id));
+        // An element's steps go with it (AN-5).
+        slide.animations = slide.animations.filter((step) => !gone.has(step.element));
         break;
       }
       case 'addElements': {
@@ -228,6 +263,36 @@ export function applyCommand(deck: Deck, command: Command): Applied {
         );
         const byId = new Map(slide.elements.map((e) => [e.id, e]));
         slide.elements = order.flatMap((id) => byId.get(id) ?? []);
+        break;
+      }
+      case 'addStep': {
+        const slide = draft.slides.find((s) => s.id === command.slideId);
+        if (!slide) throw new CommandError(`Slide ${command.slideId} is not in deck ${deck.id}`);
+        if (!slide.elements.some((e) => e.id === command.step.element)) {
+          throw new CommandError(`Element ${command.step.element} is not on slide ${slide.id}`);
+        }
+        if (slide.animations.some((a) => a.id === command.step.id)) {
+          throw new CommandError(`Step ${command.step.id} is already on slide ${slide.id}`);
+        }
+        slide.animations.push(castDraft(command.step));
+        break;
+      }
+      case 'updateStep': {
+        const slide = draft.slides.find((s) => s.id === command.slideId);
+        if (!slide) throw new CommandError(`Slide ${command.slideId} is not in deck ${deck.id}`);
+        const index = slide.animations.findIndex((a) => a.id === command.stepId);
+        const step = slide.animations[index];
+        if (!step) throw new CommandError(`Step ${command.stepId} is not on slide ${slide.id}`);
+        slide.animations[index] = castDraft(changeStep(current(step), command.change));
+        break;
+      }
+      case 'removeStep': {
+        const slide = draft.slides.find((s) => s.id === command.slideId);
+        if (!slide) throw new CommandError(`Slide ${command.slideId} is not in deck ${deck.id}`);
+        if (!slide.animations.some((a) => a.id === command.stepId)) {
+          throw new CommandError(`Step ${command.stepId} is not on slide ${slide.id}`);
+        }
+        slide.animations = slide.animations.filter((a) => a.id !== command.stepId);
         break;
       }
       case 'setBackground': {

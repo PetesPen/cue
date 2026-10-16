@@ -139,3 +139,39 @@ export type {
 } from './richtext';
 export { DEFAULT_FONT, FONTS, fontCapabilities, isBundledFont } from './fonts';
 export type { FontInfo, FontKind } from './fonts';
+export {
+  APPEAR_STYLES,
+  DEFAULT_APPEAR_STYLE,
+  DEFAULT_DELAY,
+  DEFAULT_DISAPPEAR_STYLE,
+  DEFAULT_DURATION,
+  DEFAULT_EASING,
+  DISAPPEAR_STYLES,
+  EASINGS,
+  MAX_DELAY,
+  MAX_DURATION,
+  MIN_DURATION,
+  TRIGGERS,
+  changeStep,
+  clampDelay,
+  clampDuration,
+  createStep,
+  isAppearStyle,
+  isDisappearStyle,
+  isEasing,
+  isStepEffect,
+  isTrigger,
+} from './animation';
+export type {
+  AppearStep,
+  AppearStyle,
+  DisappearStep,
+  DisappearStyle,
+  Easing,
+  Step,
+  StepChange,
+  StepEffect,
+  Trigger,
+} from './animation';
+export { clickCount, clickOfStep, clicksOf, playsFor, resolve, stepsOf } from './motion';
+export type { SlideState } from './motion';
