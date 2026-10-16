@@ -17,7 +17,7 @@ import { isNearlyFull } from '@/storage';
 import { Canvas } from './Canvas';
 import { DesignPanel } from './DesignPanel';
 import { applyDraft, type Tool } from './gestures';
-import { PlusIcon, ShapeIcon, TextIcon } from './Icons';
+import { PlusIcon, RedoIcon, ShapeIcon, TextIcon, UndoIcon } from './Icons';
 import { Inspector } from './Inspector';
 import { Logo } from './Logo';
 import { NotesField } from './NotesField';
@@ -32,7 +32,7 @@ import { boxFormat, textOf } from './text/format';
 import { fitTextBoxes } from './textLayout';
 import { useDeckLock } from './useDeckLock';
 import { useDeckStore } from './StoreContext';
-import { useDeckSession, type DeckSession } from './useDeckSession';
+import { useDeckSession, type DeckSession, type EditMeta, type View } from './useDeckSession';
 import { useStorageUsage } from './useStorageUsage';
 import { useClipboard } from './useClipboard';
 import { useTextEditing } from './useTextEditing';
@@ -136,6 +136,11 @@ function isTyping(target: EventTarget | null): boolean {
   );
 }
 
+/** A field with its own undo: the browser's, not ours. (A text being edited is not one; its undo is ours.) */
+function isField(target: EventTarget | null): boolean {
+  return target instanceof HTMLElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
+}
+
 /** The slide with one element's text left out: the editor draws it instead while it is being edited. */
 function withoutText(slide: Slide, id: Id): Slide {
   return {
@@ -174,8 +179,8 @@ function Editor({
   const [menuAt, setMenuAt] = useState<Point | undefined>();
 
   // Text is edited in place: the editor holds it, and the deck gets it in whole steps.
-  const save = (changes: readonly ElementChange[]) => {
-    session.updateElements(fitTextBoxes(currentSlide, changes));
+  const save = (changes: readonly ElementChange[], meta?: EditMeta) => {
+    session.updateElements(fitTextBoxes(currentSlide, changes), meta);
   };
   const text = useTextEditing({
     slide: currentSlide,
@@ -254,9 +259,26 @@ function Editor({
     focusCanvas,
   });
 
-  const latest = useRef({ add, arrange, pickTool, clipboard });
+  /**
+   * Undo or redo one step (EL-8). Words being typed are given to the deck first, so they are part of
+   * what is undone; afterwards the slide and the elements the step was about are shown again.
+   */
+  function stepHistory(which: 'undo' | 'redo') {
+    text.saveNow();
+    const view: View | undefined = which === 'undo' ? session.undo() : session.redo();
+    if (!view) return;
+    if (text.editing) {
+      // The deck changed under the editor: it starts again from what the deck holds.
+      text.reload();
+    } else {
+      setSelection({ slideId: view.slideId ?? currentSlide.id, ids: view.ids });
+      focusCanvas();
+    }
+  }
+
+  const latest = useRef({ add, arrange, pickTool, clipboard, stepHistory });
   useEffect(() => {
-    latest.current = { add, arrange, pickTool, clipboard };
+    latest.current = { add, arrange, pickTool, clipboard, stepHistory };
   });
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -272,6 +294,15 @@ function Editor({
         event.preventDefault();
         latest.current.pickTool('text');
         return;
+      }
+      // Undo and redo are the app's, everywhere but in a field that has its own (a title, a number).
+      if ((event.ctrlKey || event.metaKey) && !event.altKey && !isField(event.target)) {
+        const key = event.key.toLowerCase();
+        if (key === 'z' || key === 'y') {
+          event.preventDefault();
+          latest.current.stepHistory(key === 'y' || event.shiftKey ? 'redo' : 'undo');
+          return;
+        }
       }
       // Delete and Ctrl+D act on the selected elements, but not while words are being typed.
       if (!isTyping(event.target)) {
@@ -350,7 +381,7 @@ function Editor({
     text.editing && editingElement ? (
       <Suspense fallback={null}>
         <TextEditor
-          key={text.editing.id}
+          key={`${text.editing.id}:${String(text.version)}`}
           element={editingElement}
           doc={editedDoc ?? emptyText()}
           at={text.editing.at}
@@ -440,7 +471,7 @@ function Editor({
             <a className="logo-link" href="#/" aria-label="All decks">
               <Logo />
             </a>
-            <TitleField title={deck.title} onChange={session.renameDeck} />
+            <TitleField key={session.revision} title={deck.title} onChange={session.renameDeck} />
           </div>
           <div className="top-center">
             <button
@@ -472,6 +503,37 @@ function Editor({
               <ShapeIcon />
               Shape
             </MenuButton>
+            <span className="toolbar-divider" aria-hidden="true" />
+            <button
+              type="button"
+              className="toolbar-button toolbar-icon"
+              aria-label="Undo"
+              aria-keyshortcuts="Control+Z Meta+Z"
+              title={session.undoLabel ? `Undo ${session.undoLabel} (Ctrl+Z)` : 'Undo (Ctrl+Z)'}
+              disabled={!session.canUndo}
+              onClick={() => {
+                stepHistory('undo');
+              }}
+            >
+              <UndoIcon />
+            </button>
+            <button
+              type="button"
+              className="toolbar-button toolbar-icon"
+              aria-label="Redo"
+              aria-keyshortcuts="Control+Shift+Z Control+Y Meta+Shift+Z"
+              title={
+                session.redoLabel
+                  ? `Redo ${session.redoLabel} (Ctrl+Shift+Z)`
+                  : 'Redo (Ctrl+Shift+Z)'
+              }
+              disabled={!session.canRedo}
+              onClick={() => {
+                stepHistory('redo');
+              }}
+            >
+              <RedoIcon />
+            </button>
           </div>
           <div className="top-right">
             <SaveIndicator state={saveState} />
@@ -541,7 +603,7 @@ function Editor({
             <span className="caption">Shown in presenter view</span>
           </div>
           <NotesField
-            key={currentSlide.id}
+            key={`${currentSlide.id}:${String(session.revision)}`}
             slideId={currentSlide.id}
             notes={currentSlide.notes}
             onSave={session.setNotes}

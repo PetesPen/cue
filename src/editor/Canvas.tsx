@@ -34,6 +34,7 @@ import {
   type Tool,
 } from './gestures';
 import { SelectionOverlay } from './SelectionOverlay';
+import type { EditMeta } from './useDeckSession';
 import { SlideView } from './SlideView';
 import { SHAPE_LABELS, canEditText, describeSelection } from './shapeLabels';
 
@@ -66,7 +67,7 @@ interface CanvasProps {
   readonly onToolDone: () => void;
   readonly onAddElement: (element: SlideElement) => void;
   /** One command per finished gesture or key press (decision 18). */
-  readonly onUpdate: (changes: readonly ElementChange[]) => void;
+  readonly onUpdate: (changes: readonly ElementChange[], meta?: EditMeta) => void;
   /** A drag in progress, to be shown but not saved. */
   readonly onDraft: (changes: readonly ElementChange[] | undefined) => void;
   readonly onDrawing: (element: SlideElement | undefined) => void;
@@ -288,15 +289,17 @@ export function Canvas({
 
     switch (gesture.kind) {
       case 'move':
-        if (moved) onUpdate(changesFor(gesture, point, event.shiftKey));
+        if (moved) onUpdate(changesFor(gesture, point, event.shiftKey), { label: 'Move' });
         else if (current.clickedId && selection.length > 1 && !event.shiftKey) {
           onSelect([current.clickedId]);
         }
         break;
       case 'resize':
-      case 'rotate':
       case 'lineEnd':
-        if (moved) onUpdate(changesFor(gesture, point, event.shiftKey));
+        if (moved) onUpdate(changesFor(gesture, point, event.shiftKey), { label: 'Resize' });
+        break;
+      case 'rotate':
+        if (moved) onUpdate(changesFor(gesture, point, event.shiftKey), { label: 'Rotate' });
         break;
       case 'draw': {
         const shape = drawnShape(gesture, point, event.shiftKey, moved);
@@ -348,7 +351,11 @@ export function Canvas({
       const step = event.shiftKey ? 10 : 1;
       const dx = event.key === 'ArrowLeft' ? -step : event.key === 'ArrowRight' ? step : 0;
       const dy = event.key === 'ArrowUp' ? -step : event.key === 'ArrowDown' ? step : 0;
-      onUpdate(selected.map((e) => ({ id: e.id, props: { x: e.x + dx, y: e.y + dy } })));
+      onUpdate(
+        selected.map((e) => ({ id: e.id, props: { x: e.x + dx, y: e.y + dy } })),
+        // Presses of the arrow keys close together are one step to undo.
+        { label: 'Move', mergeKey: `nudge:${selected.map((e) => e.id).join(',')}` },
+      );
       return;
     }
 
