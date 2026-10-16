@@ -256,7 +256,7 @@ Six spikes of one to two days each, all in sprint 0, test the riskiest assumptio
 | Risk | Why it matters | What we do |
 |---|---|---|
 | Safari can remove a site's stored data after seven days without a visit | A deck could vanish between talks | Request persistent storage, keep the backup reminder on the library screen, and make export one click |
-| Velocity is unknown | Dates slip without warning | Re-estimate after sprint 2, track a burn-up chart, and cut Could then Should stories first |
+| Velocity is unknown | Dates slip without warning | Re-estimated after sprint 2 (2026-10-16, see `docs/sprint-log.md`): engineering days cannot be measured, so the unit is stories accepted per sprint (5 and 5 so far); the burn-up is by stories. Cut Could then Should stories first |
 | The long tail of editor behaviour (text, selection, snapping) | One story eats a whole sprint | Use TipTap instead of a custom editor, keep animation to fades and straight-line moves, and route new ideas through the backlog rule |
 | Undo across text and element edits clashes | Undo feels unpredictable | Decide one history stack in sprint 2, with typing bursts grouped into single steps |
 | Visual tests flake between machines | Slow merges and ignored failures | Pin the container, bundle the fonts, compare pixels in one browser only, and set tolerance per fixture |
