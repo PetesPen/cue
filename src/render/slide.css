@@ -103,3 +103,17 @@
 .cue-measure {
   position: static;
 }
+
+/* The stage (TN-4, TN-5): a 16:9 frame holding one slide, or two while a transition plays. A layer is a
+   whole slide; a transition moves layers with transform and opacity and never what is inside them. */
+.cue-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.cue-layer {
+  position: absolute;
+  inset: 0;
+}

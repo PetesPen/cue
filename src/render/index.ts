@@ -11,6 +11,8 @@ export {
   lookSets,
 } from './motion';
 export type { Look } from './motion';
+export { ZOOM_FROM, createSlideStage, layerMotion } from './stage';
+export type { SlideStage } from './stage';
 export { arrowHead } from './shapes';
 export { imageSource, setImageSource } from './images';
 export type { ImageSource } from './images';
