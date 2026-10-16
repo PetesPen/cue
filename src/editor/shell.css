@@ -90,8 +90,20 @@
   cursor: pointer;
 }
 
-.toolbar-button:hover {
+.toolbar-button:hover:not(:disabled) {
   background: var(--color-sage);
+}
+
+.toolbar-button:disabled {
+  color: var(--color-disabled-text);
+  cursor: default;
+}
+
+/* A toolbar button that is only an icon (undo, redo). */
+.toolbar-icon {
+  justify-content: center;
+  width: var(--control-toolbar-height);
+  padding: 0;
 }
 
 .banner-area:empty {

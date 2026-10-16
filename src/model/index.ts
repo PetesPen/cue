@@ -45,6 +45,19 @@ export { CommandError, applyCommand } from './commands';
 export type { Applied, Command } from './commands';
 export { InvalidDeckError, UnsupportedVersionError, parseDeck } from './parse';
 export {
+  HISTORY_LIMIT,
+  MERGE_WINDOW_MS,
+  canRedo,
+  canUndo,
+  emptyHistory,
+  record,
+  redo,
+  redoLabel,
+  undo,
+  undoLabel,
+} from './history';
+export type { History, HistoryEntry, Stepped } from './history';
+export {
   CLIPBOARD_FORMAT,
   CLIPBOARD_VERSION,
   copiesOf,

@@ -68,6 +68,18 @@ export function DotsIcon({ size = 16 }: IconProps) {
   );
 }
 
+export const UndoIcon = (props: IconProps) => (
+  <Stroke strokeWidth={2} {...props}>
+    <path d="M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11" />
+  </Stroke>
+);
+
+export const RedoIcon = (props: IconProps) => (
+  <Stroke strokeWidth={2} {...props}>
+    <path d="m15 14 5-5-5-5M20 9H9.5a5.5 5.5 0 0 0 0 11H13" />
+  </Stroke>
+);
+
 export const TextIcon = (props: IconProps) => (
   <Stroke strokeWidth={2} {...props}>
     <path d="M5 6V4h14v2M12 4v16M9 20h6" />

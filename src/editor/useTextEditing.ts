@@ -11,6 +11,7 @@ import {
 } from '@/model';
 import { ensureFonts, measureTextHeight } from '@/render';
 import { textOf, type TextFormat } from './text/format';
+import type { EditMeta } from './useDeckSession';
 
 /** Typing is saved to the deck after this long without a key, and always when editing ends. */
 export const BURST_MS = 600;
@@ -24,6 +25,12 @@ export interface TextEditing {
   /** End editing: saves what was typed (an empty new text box is removed instead). */
   readonly finish: () => void;
   readonly onDraft: (doc: RichText) => void;
+  /** Give what is typed to the deck now, without ending the editing (before an undo). */
+  readonly saveNow: () => void;
+  /** The deck changed under the editor (an undo): start the editor again from what the deck holds. */
+  readonly reload: () => void;
+  /** Changes each time the editor is reloaded, to key the editor by. */
+  readonly version: number;
   readonly markReady: () => void;
   /** The height a text box has with the text typed so far, to show before it is saved. */
   readonly height: ElementChange | undefined;
@@ -35,7 +42,7 @@ interface Params {
   /** The slide as saved. */
   readonly slide: Slide;
   /** Save a change to elements of the slide: one command (heights are fitted by the caller). */
-  readonly save: (changes: readonly ElementChange[]) => void;
+  readonly save: (changes: readonly ElementChange[], meta?: EditMeta) => void;
   readonly remove: (ids: readonly Id[]) => void;
   /** Have what is typed saved when the tab is closed or the deck is left. */
   readonly registerFlush: (flush: () => void) => () => void;
@@ -52,6 +59,7 @@ export function useTextEditing({ slide, save, remove, registerFlush }: Params): 
   const [ready, setReady] = useState(false);
   const [height, setHeight] = useState<ElementChange | undefined>();
   const [format, setFormat] = useState<TextFormat | undefined>();
+  const [version, setVersion] = useState(0);
 
   const pending = useRef<{ id: Id; doc: RichText } | undefined>(undefined);
   const saved = useRef<string | undefined>(undefined);
@@ -84,7 +92,26 @@ export function useTextEditing({ slide, save, remove, registerFlush }: Params): 
     if (json === saved.current || (stored && json === JSON.stringify(stored))) return;
     if (!stored && isEmptyText(typed.doc)) return;
     saved.current = json;
-    saveNow([{ id, props: isTextBox(element) ? { doc: typed.doc } : { text: typed.doc } }]);
+    // Bursts of typing a second apart or less are one step to undo.
+    saveNow([{ id, props: isTextBox(element) ? { doc: typed.doc } : { text: typed.doc } }], {
+      label: 'Edit text',
+      mergeKey: `text:${id}`,
+    });
+  }, []);
+
+  const saveNow = useCallback(() => {
+    flush(false);
+  }, [flush]);
+
+  const reload = useCallback(() => {
+    window.clearTimeout(timer.current);
+    timer.current = undefined;
+    pending.current = undefined;
+    saved.current = undefined;
+    measuring.current += 1;
+    setHeight(undefined);
+    setReady(false);
+    setVersion((was) => was + 1);
   }, []);
 
   const finish = useCallback(() => {
@@ -154,5 +181,18 @@ export function useTextEditing({ slide, save, remove, registerFlush }: Params): 
     [],
   );
 
-  return { editing, ready, start, finish, onDraft, markReady, height, format, setFormat };
+  return {
+    editing,
+    ready,
+    start,
+    finish,
+    onDraft,
+    saveNow,
+    reload,
+    version,
+    markReady,
+    height,
+    format,
+    setFormat,
+  };
 }
