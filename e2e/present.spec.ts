@@ -9,6 +9,19 @@ test.use({ viewport: { width: 1440, height: 900 } });
 
 const DECK = 'autumn-launch';
 
+/** Each slide of a stored deck with the kind of transition into it. */
+function slideSummaries(deck: object): { readonly id: string; readonly kind: string }[] {
+  const slides: unknown = Reflect.get(deck, 'slides');
+  if (!Array.isArray(slides)) throw new Error('A deck has slides');
+  return slides.map((slide: unknown) => {
+    if (typeof slide !== 'object' || slide === null) throw new Error('A slide is an object');
+    const arrives: unknown = Reflect.get(slide, 'transition');
+    const kind: unknown =
+      typeof arrives === 'object' && arrives !== null ? Reflect.get(arrives, 'kind') : undefined;
+    return { id: String(Reflect.get(slide, 'id')), kind: String(kind) };
+  });
+}
+
 /** The slides a window is drawing: two while a transition plays. */
 const shown = (page: Page): Locator => page.locator('.show-stage .cue-layer .cue-slide');
 /** A window that shows slide `id` and nothing else: it has arrived, no transition is playing. */
@@ -154,6 +167,71 @@ test.describe('Given Autumn Launch, When Present is pressed (PM-1, PM-2)', () =>
   });
 });
 
+test.describe('Given the whole of Autumn Launch (Gate 3)', () => {
+  test('Then it is presented from the first slide to the last in two windows, every click and transition played, and Esc returns the editor', async ({
+    page,
+  }) => {
+    const deck = autumnLaunch();
+    const summaries = slideSummaries(deck);
+    const ids = summaries.map((slide) => slide.id);
+    const withTransition = summaries
+      .filter((slide) => slide.kind !== 'none')
+      .map((slide) => slide.id);
+    expect(withTransition.length).toBeGreaterThan(2);
+    await seedDeck(page, deck, DECK);
+
+    const audience = await present(page);
+    // Note the slide arriving every time the audience window has two slides on its stage: a transition.
+    await audience.evaluate(() => {
+      const arriving: string[] = [];
+      new MutationObserver(() => {
+        const layers = [...document.querySelectorAll('.show-stage .cue-layer .cue-slide')];
+        const last = layers[1];
+        if (layers.length === 2 && last instanceof HTMLElement)
+          arriving.push(last.dataset.slideId ?? '');
+      }).observe(document.body, { childList: true, subtree: true });
+      Object.assign(window, { arriving });
+    });
+
+    for (const [at, id] of ids.entries()) {
+      if (at > 0) await page.keyboard.press('ArrowRight');
+      await expect(settled(page, id)).toHaveCount(1);
+      await expect(settled(audience, id)).toHaveCount(1);
+      await expect(page.getByText(`Slide ${String(at + 1)} of 12`)).toBeVisible();
+      if (id === 's03') {
+        // The hero slide: three clicks, the picture and the rows, the circle moving, the block leaving.
+        for (const click of [1, 2, 3]) {
+          await page.keyboard.press('ArrowRight');
+          await expect(page.getByText(`Click ${String(click)} of 3`)).toBeVisible();
+        }
+        // The picture is at its own opacity, 60%, once it has come in.
+        await expect.poll(() => opacityOf(audience, 's03-image')).toBeCloseTo(0.6, 2);
+        await expect.poll(() => opacityOf(audience, 's03-block')).toBe(0);
+      }
+    }
+    // The end: the next preview says so, and another press stays on the last slide.
+    await expect(page.getByText('End of presentation')).toBeVisible();
+    await page.keyboard.press('ArrowRight');
+    await expect(settled(audience, 's12')).toHaveCount(1);
+
+    // Every slide with a transition arrived with it.
+    const arrived = new Set(
+      await audience.evaluate(() => {
+        const list: unknown = Reflect.get(window, 'arriving');
+        return Array.isArray(list) ? list.map(String) : [];
+      }),
+    );
+    for (const id of withTransition)
+      expect(arrived.has(id), `${id} arrived with its transition`).toBe(true);
+
+    const closed = audience.waitForEvent('close');
+    await page.keyboard.press('Escape');
+    await closed;
+    await expect(page.getByRole('button', { name: 'Present', exact: true })).toBeVisible();
+    expect(new URL(page.url()).hash).toBe(`#/deck/${DECK}`);
+  });
+});
+
 test.describe('Given a show under way, When it is ended (PM-1)', () => {
   test('Then Esc closes the audience window and the editor is back as it was left', async ({
     page,
@@ -215,6 +293,8 @@ test.describe('Given a browser that blocks the audience window (PM-1)', () => {
     await openDeck(page);
     await page.evaluate(() => {
       window.open = () => null;
+      // Full screen is a manual check: with it on, the first Esc only leaves full screen.
+      Element.prototype.requestFullscreen = () => Promise.resolve();
     });
 
     await page.getByRole('button', { name: 'Present', exact: true }).click();
