@@ -6,7 +6,7 @@
 
 ## Summary
 
-Slides can reach a v1.0 release in about 14 two-week sprints (about 28 weeks) with two engineers, with a working, tested app at the end of every sprint. This plan turns the 58 user stories and the Studio design canvas into that sequence.
+Slides can reach a v1.0 release in about 14 two-week sprints (about 28 weeks) with two engineers, with a working, tested app at the end of every sprint. This plan turns the 59 user stories and the Studio design canvas into that sequence.
 
 **How we work**
 
@@ -197,7 +197,7 @@ If a gate's criteria are not met, the next sprint closes the gap before any new 
 | 0 | Foundations and risk spikes | None. Spikes SP-1 to SP-6, app shell, CI pipeline, design tokens | 16 | Empty app deployed with previews; spike findings and a go or no-go on the stack | CI green end to end on an empty app; throwaway Playwright checks for each spike |
 | 1 | Decks, shell and saving | UX-1, SL-1, SL-2, SV-1, SV-2 | 16 | Create decks, add slides, close the tab and find everything again | Persistence integration tests; create-and-reload end to end; axe on the shell |
 | 2 | Elements you can move | EL-5, EL-3, ZO-1, TR-1, SV-7 | 18 | Draw shapes, then move, resize, rotate, layer and fade them | Z-order property tests; drag and resize end to end; opacity snapshots |
-| 3 | Rich text and notes | EL-1, EL-2, SL-6, EL-7 | 16 | Format mixed text in several fonts, paste, write notes | Text JSON round trip; typing and font picker end to end; font loading check |
+| 3 | Rich text and notes | EL-1, EL-2, SL-6, EL-7, EL-10 | 22 | Format mixed text in several fonts, paste, write notes | Text JSON round trip; typing and font picker end to end; font loading check |
 | 4 | Images, undo and slide management | EL-4, EL-8, SL-3, SL-4 | 16 | Drop in images, undo anything, reorder and duplicate slides | Undo-redo property test; image drop end to end; storage-full mock |
 | 5 | Keyboard, speed and first animations | UX-2, UX-3, AN-1, AN-2, TR-3 | 14 | Drive the editor by keyboard; elements fade in and out on click in preview | Performance budgets for 50 elements and 50 slides; motion resolver unit tests; opacity match across renderers |
 | 6 | Motion and sequencing | AN-3, AN-5, AN-6, TN-1 | 16 | Move an element along a ghost path, reorder click steps, pick a transition | Step-order table tests; preview returns elements to editing positions |
@@ -213,12 +213,12 @@ Sprints loaded below 16 days keep a few days free for bugs and surprises. Stretc
 
 ## Backlog
 
-The backlog is the 58 stories from [user-stories.md](user-stories.md), grouped into ten epics, and 39 of them are Must. The estimate is in engineering days (small = 2, medium = 4, large = 8) and covers Must and Should stories only.
+The backlog is the 59 stories from [user-stories.md](user-stories.md), grouped into ten epics, and 39 of them are Must. The estimate is in engineering days (small = 2, medium = 4, large = 8) and covers Must and Should stories only.
 
 | Epic | Stories | Must | Should | Could | Estimate (days) | Sprints |
 |---|---|---|---|---|---|---|
 | Slides | SL-1 to SL-6 | 5 | 1 | 0 | 16 | 1, 3, 4, 12 |
-| Elements | EL-1 to EL-9 | 7 | 1 | 1 | 38 | 2, 3, 4, 12 |
+| Elements | EL-1 to EL-10 | 7 | 2 | 1 | 42 | 2, 3, 4, 12 |
 | Z-order | ZO-1 to ZO-3 | 1 | 2 | 0 | 8 | 2, 11 |
 | Transparency | TR-1 to TR-3 | 2 | 1 | 0 | 6 | 2, 5, 11 |
 | Animations | AN-1 to AN-7 | 5 | 2 | 0 | 22 | 5, 6, 11 |
@@ -228,7 +228,7 @@ The backlog is the 58 stories from [user-stories.md](user-stories.md), grouped i
 | Look, feel and quality | UX-1 to UX-7 | 5 | 2 | 0 | 24 | 1, 5, 9, 12 |
 | Themes and templates | TH-1 to TH-3 | 0 | 0 | 3 | 0 | After v1.0 |
 | Foundations and hardening | Not user stories | n/a | n/a | n/a | 32 | 0, 13 |
-| Total | 58 stories | 39 | 13 | 6 | 214 | 14 sprints |
+| Total | 59 stories | 39 | 14 | 6 | 218 | 14 sprints |
 
 **How the backlog is managed**
 
@@ -268,7 +268,7 @@ Progress is judged first by working software at each review, then by seven numbe
 
 | Measure | Target | Source |
 |---|---|---|
-| Burn-up of finished engineering days against 214 | On or above the plan line at each review | Board |
+| Burn-up of finished engineering days against 218 | On or above the plan line at each review | Board |
 | Velocity (days finished per sprint) | About 14 to 16; re-plan if two sprints in a row fall below 12 | Board |
 | Pull request check time | Under 10 minutes | CI |
 | Flaky test rate | Below 2% of runs | CI history |

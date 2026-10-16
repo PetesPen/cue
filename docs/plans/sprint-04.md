@@ -1,6 +1,6 @@
 # Sprint 4 plan: Images, undo and slide management
 
-Status: **waiting for Peter's approval** (written 2026-10-16, together with `sprint-03.md`). Stories: EL-4, EL-8, SL-3, SL-4 (all Must). Nominal load 16 days. **The review after this sprint is Gate 2, "Editor alpha": can you build and save a real deck of text, shapes and images, with undo?**
+Status: **approved by Peter on 2026-10-16**, with Autumn Launch as the Gate 2 deck (written together with `sprint-03.md`). Stories: EL-4, EL-8, SL-3, SL-4 (all Must). Nominal load 16 days. **The review after this sprint is Gate 2, "Editor alpha": can you build and save a real deck of text, shapes and images, with undo?**
 
 ## Outcome at the review (Gate 2)
 

@@ -1,6 +1,6 @@
 # Sprint 3 plan: Rich text and notes
 
-Status: **waiting for Peter's approval** (written 2026-10-16, together with `sprint-04.md`; the review after sprint 4 is Gate 2). Stories: EL-1, EL-2, SL-6, EL-7 (all Must) and the criterion carried from sprint 2 (text inside a shape, EL-3). Nominal load 18 days against 16 (the carried criterion is 2). If Peter adds the colour picker (EL-10, decision 19) it is about 4 more.
+Status: **approved by Peter on 2026-10-16**, with the colour picker (EL-10) in this sprint and the palette switcher left to TH-1 (written together with `sprint-04.md`; the review after sprint 4 is Gate 2). Stories: EL-1, EL-2, SL-6, EL-7 (all Must) and the criterion carried from sprint 2 (text inside a shape, EL-3). Nominal load 18 days against 16 (the carried criterion is 2). If Peter adds the colour picker (EL-10, decision 19) it is about 4 more.
 
 ## Outcome at the next review (after sprint 4)
 

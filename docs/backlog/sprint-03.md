@@ -1,6 +1,6 @@
 # Sprint 3: Rich text and notes
 
-- Capacity: 16 engineering days (2 engineers, about 80% focus, 2 weeks)
+- Capacity: 16 engineering days (2 engineers, about 80% focus, 2 weeks). Planned load is 22: the criterion carried from sprint 2 (2 days) and EL-10 (4 days, added by Peter on 2026-10-16) come on top
 - Next: [sprint-04.md](sprint-04.md) · Previous: [sprint-02.md](sprint-02.md)
 
 Work only on this sprint's goal. New ideas go to the backlog, not into the sprint (see `CLAUDE.md`). Tick the boxes as criteria are shown working on the preview deployment.
@@ -17,9 +17,9 @@ Format mixed text in several fonts, paste, write notes.
 
 Text JSON round trip; typing and font picker end to end; font loading check.
 
-## Stories (4)
+## Stories (5)
 
-4 Must, 0 Should. Story order below is the suggested build order.
+4 Must, 1 Should. Story order below is the suggested build order.
 
 ### EL-1 Add rich text (Must)
 
@@ -77,6 +77,21 @@ Acceptance criteria:
 Design: [`Main`](../../design/screenshots/Main.png) ([source](../../design/boards/Main.dc.html))
 
 Tests: write each criterion as a Given / When / Then example first; each example becomes a test name. At least one end-to-end test is required (Must story).
+
+### EL-10 Pick any colour (Should)
+
+As a presenter, I want a proper colour chooser, so that I can pick any colour by eye without knowing its hex code.
+
+Acceptance criteria:
+- [ ] Every colour control (shape fill and border, text colour, box fill) opens the same picker: the design's colours as swatches, an area to drag across for shade and brightness, a slider for hue, and a hex field.
+- [ ] Colours used in this deck are offered first.
+- [ ] Where the browser has an eyedropper, a button picks a colour from anywhere on screen.
+- [ ] The canvas updates live while a colour is dragged, and the change is one step (decision 18).
+- [ ] It works with the keyboard and tells a screen reader which colour it holds.
+
+Design: not drawn (the boards show a swatch and a hex field only). Claude builds it from the Style Guide's pieces and shows Peter at the review.
+
+Tests: write each criterion as a Given / When / Then example first; each example becomes a test name.
 
 ## Definition of done reminder
 
