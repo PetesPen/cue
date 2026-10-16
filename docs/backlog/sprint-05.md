@@ -28,8 +28,8 @@ As a presenter, I want to set a background colour or image, so that slides can h
 Pulled into this sprint by Peter on 2026-10-16 (the Gate 2 rebuild needed it). Built here: the solid colour and "Apply to all slides". The image and its opacity stay in sprint 12.
 
 Acceptance criteria:
-- [ ] Choose a solid colour or an image, with an optional opacity. (Solid colour here; the image and its opacity are carried to sprint 12.)
-- [ ] "Apply to all slides" is available.
+- [x] Choose a solid colour or an image, with an optional opacity. (Solid colour here, in the Slide section of the Design tab with nothing selected, through the colour picker; the image and its opacity are carried to sprint 12.)
+- [x] "Apply to all slides" is available.
 
 Design: [`Main`](../../design/screenshots/Main.png) ([source](../../design/boards/Main.dc.html))
 

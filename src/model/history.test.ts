@@ -220,7 +220,7 @@ describe('any run of edits (property)', () => {
     const slide = deck.slides[n % deck.slides.length];
     if (!slide) throw new Error('no slide');
     const first = slide.elements[0]?.id;
-    switch (n % 7) {
+    switch (n % 8) {
       case 0:
         return { type: 'addElement', slideId: slide.id, element: rect(`e${String(at)}`), at };
       case 1:
@@ -242,6 +242,14 @@ describe('any run of edits (property)', () => {
               changes: [{ id: first, props: { x: n } }],
               at,
             };
+      case 6:
+        return {
+          type: 'setBackground',
+          slideId: slide.id,
+          background: `#${String(100000 + n)}`,
+          all: n % 2 === 0,
+          at,
+        };
       default:
         return first === undefined || slide.elements.length < 2
           ? { type: 'renameDeck', title: `T${String(n)}`, at }

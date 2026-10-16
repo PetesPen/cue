@@ -705,3 +705,9 @@
 .file-input {
   display: none;
 }
+
+/* A full-width button under a control in the Design tab ("Apply to all slides"). */
+.panel-button {
+  width: 100%;
+  margin-top: var(--space-3);
+}

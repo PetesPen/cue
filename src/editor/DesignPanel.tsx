@@ -353,3 +353,45 @@ export function DesignPanel({
     </div>
   );
 }
+
+interface SlidePanelProps {
+  /** The background colour as it is now, including a colour being dragged in the picker. */
+  readonly background: string;
+  /** Show a colour without saving it (dragging in the picker). */
+  readonly onPreview: (background: string) => void;
+  /** Save it: for this slide, or for every slide. One step. */
+  readonly onCommit: (background: string, all: boolean) => void;
+}
+
+/**
+ * The Design tab when nothing is selected: the slide itself (SL-5). For now that is its background
+ * colour, with "Apply to all slides".
+ */
+export function SlidePanel({ background, onPreview, onCommit }: SlidePanelProps) {
+  return (
+    <div className="design-panel">
+      <div className="panel-section panel-heading">
+        <span className="panel-name">Slide</span>
+      </div>
+      <Section title="Background">
+        <ColourField
+          label="Background"
+          value={background}
+          onPreview={onPreview}
+          onChange={(colour) => {
+            onCommit(colour, false);
+          }}
+        />
+        <button
+          type="button"
+          className="button panel-button"
+          onClick={() => {
+            onCommit(background, true);
+          }}
+        >
+          Apply to all slides
+        </button>
+      </Section>
+    </div>
+  );
+}

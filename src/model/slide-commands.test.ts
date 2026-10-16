@@ -194,3 +194,73 @@ describe('duplicateSlide (SL-4)', () => {
     expect(parseDeck(JSON.parse(JSON.stringify(deck)))).toEqual(deck);
   });
 });
+
+describe('setBackground (SL-5)', () => {
+  const colours = (deck: Deck) => deck.slides.map((s) => s.background);
+
+  test('Given three slides, When one gets a background, Then only that one changes', () => {
+    const { deck } = applyCommand(deckOf('a', 'b', 'c'), {
+      type: 'setBackground',
+      slideId: 'b',
+      background: '#14281B',
+      all: false,
+      at: 5,
+    });
+
+    expect(colours(deck)).toEqual(['#FFFFFF', '#14281B', '#FFFFFF']);
+  });
+
+  test('Given three slides, When "apply to all" is used, Then every slide has the colour', () => {
+    const { deck } = applyCommand(deckOf('a', 'b', 'c'), {
+      type: 'setBackground',
+      slideId: 'b',
+      background: '#F5C542',
+      all: true,
+      at: 5,
+    });
+
+    expect(colours(deck)).toEqual(['#F5C542', '#F5C542', '#F5C542']);
+  });
+
+  test('Given a background set on all slides, When the step is undone, Then each slide has its own earlier colour again', () => {
+    const base = deckOf('a', 'b');
+    const withOwn: Deck = {
+      ...base,
+      slides: base.slides.map((s, i) => ({ ...s, background: i === 0 ? '#111111' : '#EEEEEE' })),
+    };
+
+    const { deck, inverse } = applyCommand(withOwn, {
+      type: 'setBackground',
+      slideId: 'a',
+      background: '#F5C542',
+      all: true,
+      at: 5,
+    });
+
+    expect(applyPatches(deck, inverse)).toEqual(withOwn);
+  });
+
+  test('Given a slide that is not in the deck, When its background is set, Then the command fails', () => {
+    expect(() =>
+      applyCommand(deckOf('a'), {
+        type: 'setBackground',
+        slideId: 'zzz',
+        background: '#000000',
+        all: false,
+        at: 5,
+      }),
+    ).toThrow(CommandError);
+  });
+
+  test('Given a background set and saved as JSON, When it is parsed, Then it is the same', () => {
+    const { deck } = applyCommand(deckOf('a', 'b'), {
+      type: 'setBackground',
+      slideId: 'a',
+      background: '#14281B',
+      all: true,
+      at: 5,
+    });
+
+    expect(parseDeck(JSON.parse(JSON.stringify(deck)))).toEqual(deck);
+  });
+});

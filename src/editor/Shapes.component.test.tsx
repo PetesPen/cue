@@ -71,7 +71,8 @@ test('Given a selected shape, When an empty part of the slide is clicked, Then n
   await userEvent.click(frame, { position: { x: 5, y: 5 } });
 
   expect(document.querySelector('.sel-box')).toBeNull();
-  await expect.element(screen.getByText('Nothing selected.')).toBeVisible();
+  // The Design tab is then the slide's own: its background.
+  await expect.element(screen.getByRole('button', { name: 'Apply to all slides' })).toBeVisible();
 });
 
 test('Given a selected shape, When the arrow keys are pressed, Then it moves 1 px each, and 10 px with Shift', async () => {

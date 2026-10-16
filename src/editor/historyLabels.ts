@@ -42,6 +42,8 @@ export function labelFor(command: Command): string {
       return 'Edit notes';
     case 'reorderElements':
       return 'Arrange';
+    case 'setBackground':
+      return command.all ? 'Change all backgrounds' : 'Change background';
   }
 }
 
@@ -63,6 +65,7 @@ export function idsOf(command: Command): Id[] {
     case 'deleteSlide':
     case 'moveSlide':
     case 'duplicateSlide':
+    case 'setBackground':
       return [];
   }
 }
