@@ -1,6 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { autumnLaunch } from '../tests/fixtures/autumnLaunch';
+import { savedDecksText } from './support/db';
 import { seedDeck } from './support/seed';
 
 // Sprint 7: present in two windows (PM-1, PM-2) with the keys of the show (PM-6's first part).
@@ -285,6 +286,35 @@ test.describe('Given a show under way, When it is ended (PM-1)', () => {
     await closed;
     await expect(page.getByRole('option', { name: 'Slide 1', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: /^Undo/ })).toBeDisabled();
+  });
+});
+
+test.describe('Given a show, When anything happens to it (Gate 3: nothing is lost)', () => {
+  test('Then the stored deck is exactly as it was, whether the show ends, the audience window is closed on its own, or the presenter goes Back', async ({
+    page,
+  }) => {
+    await openDeck(page);
+    await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+    await page.waitForTimeout(800);
+    const before = await savedDecksText(page);
+
+    // The audience window closed by hand: the presenter view carries on.
+    const first = await present(page);
+    await page.keyboard.press('ArrowRight');
+    await first.close();
+    await page.keyboard.press('ArrowRight');
+    await expect(page.getByText('Slide 3 of 12')).toBeVisible();
+    await page.getByRole('button', { name: 'End show' }).click();
+    await expect(page.getByRole('button', { name: 'Present', exact: true })).toBeVisible();
+    expect(await savedDecksText(page)).toBe(before);
+
+    // The browser's Back button leaves the presenter view: the audience window goes with it.
+    const second = await present(page);
+    const closed = second.waitForEvent('close');
+    await page.goBack();
+    await closed;
+    await expect(page.getByRole('button', { name: 'Present', exact: true })).toBeVisible();
+    expect(await savedDecksText(page)).toBe(before);
   });
 });
 

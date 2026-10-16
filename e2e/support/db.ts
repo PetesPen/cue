@@ -55,3 +55,8 @@ export async function savedFill(page: Page): Promise<string | undefined> {
   const element: unknown = Array.isArray(elements) ? (elements as unknown[])[0] : undefined;
   return isRecord(element) && typeof element.fill === 'string' ? element.fill : undefined;
 }
+
+/** Everything stored for every deck, as one piece of text, to tell that nothing in it changed. */
+export async function savedDecksText(page: Page): Promise<string> {
+  return JSON.stringify(await readDecks(page));
+}

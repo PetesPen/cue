@@ -177,7 +177,7 @@ Reviews with the product owner happen every other sprint (agreed 2026-10-16), an
 | 4 | First full show | 10 | Can you deliver a real talk from start to finish, with all 39 Must stories working? |
 | 5 | v1.0 | 13 | Is the release candidate good on all four browsers, with every budget met? |
 
-**Status:** Gate 1 passed on 2026-10-15 and Gate 2 on 2026-10-16 (both accepted by Peter). Gates 3 to 5 are open. Only the criteria for Gates 1 and 2 are written so far. The criteria for each later gate are written at the start of the sprint that ends in it.
+**Status:** Gate 1 passed on 2026-10-15 and Gate 2 on 2026-10-16 (both accepted by Peter). Gates 3 to 5 are open; sprint 7 (built 2026-10-17) ends in Gate 3, which waits for Peter. The criteria for Gates 1 to 3 are written. The criteria for each later gate are written at the start of the sprint that ends in it.
 
 **Gate 1 criteria** (written by Claude on 2026-10-15, because the plan did not define them; the product owner can change them):
 
@@ -198,7 +198,7 @@ Gate 1 is not about the spike code or about every risk being gone. It is the ans
 
 Gate 2 is not about polish (slide backgrounds, snapping and a layers panel are later stories) or about animation and presenting (sprints 5 to 8).
 
-**Gate 3 criteria** (proposed by Claude on 2026-10-16, in `docs/plans/sprint-07.md`; the product owner can change them). The question is "do animations, transitions and the two windows work well enough to try a real talk?":
+**Gate 3 criteria** (written by Claude on 2026-10-16, in `docs/plans/sprint-07.md`, and approved by Peter on 2026-10-17 with the plan; the product owner can change them). The question is "do animations, transitions and the two windows work well enough to try a real talk?":
 
 1. **Every acceptance criterion of sprints 5 to 7 is shown working** on the preview deployment, with its tests green on Chromium, Firefox and WebKit.
 2. **A real deck is presented in two windows.** The fixture deck Autumn Launch is presented from its first slide to its last, in two windows, by an end-to-end test: the hero slide plays its three clicks, slides arrive with their transitions, and Esc returns the editor as it was.

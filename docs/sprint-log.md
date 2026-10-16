@@ -463,3 +463,74 @@ Peter looked at the live app: "Looks good to me."
 3. **Preview's back arrow** showing the earlier state at once: fine. **Reduced motion:** keep playing animations as set. **The wording** "+ Appear", "+ Disappear", "+ Move": fine.
 4. **The reference images:** the "Update screenshots" workflow was run on `main` after pull request 26 merged and found nothing to change: it rewrote only pictures that differ by more than the 0.1% the checks allow, and these differ by less. It now makes every picture again (`--update-snapshots=all`); run again after pull request 27, its pull request will wait for Peter to look at the images.
 5. Peter asked whether centring on the slide and lining elements up with each other are in the backlog: yes, both are EL-6 (built in sprint 6): Align to the slide for one element (left, centre, right, top, middle, bottom), Align to each other for several, Distribute for three or more, and snap lines to the slide's edges and middle and to other elements while dragging. He also noticed Move missing from the live Animate tab: the live site was still on sprint 5; Move arrived with pull request 26, merged on 2026-10-17.
+
+## Sprint 7: Transitions and the two windows (Gate 3, "Motion beta")
+
+**Dates:** plan approved 2026-10-17 (alone: sprint 7 has its own review); built the same day. Review: now, with the Gate 3 decision.
+
+**Goal:** preview a slide's transition in the editor, then press Present: an audience window opens, this tab turns into the presenter view, and you step through the whole deck by keyboard with every animation and transition playing in both windows, until you end the show and the editor is back exactly as you left it. **Met on the evidence below**, with three things only a real machine can confirm (listed under "What stays manual").
+
+### What finished
+
+| Story | Status | How it is shown |
+|---|---|---|
+| TN-4 Preview a transition | done | the bar of the Editor-Transition board on the Transition tab ("Slide 2 → Slide 3", Preview transition) plays the slide before into this one, in place; a click, Esc, another slide or tab lands it at once; it is not an edit (no history step, no save); the first slide has no bar, None cannot be previewed. Component and end-to-end tests |
+| TN-5 Transitions play smoothly | done, except 60 fps on real hardware | Fade, Slide, Push and Zoom are two layers of the shared renderer moved with `transform` and `opacity` only; the end state is drawn first, so an interrupted transition lands exactly; going back plays the same motion undone (Zoom reversed is a plain fade); no step of the new slide plays during the transition (steps start on a click). 21 component tests; `npm run perf` has a test per kind between the fixture's slides and between slides of 50 elements (here, with a graphics card: no late frames in any of the eight) |
+| PM-1 Start a presentation | done, except the second display and full screen on real hardware | Present and "Present from this slide" (the chevron beside it, Ctrl/⌘ Enter, Ctrl/⌘ Shift Enter); the audience window opens from the click and this tab becomes the presenter view; Esc or End show closes it and the editor is back with the same slide, selection and tab; a blocked window shows the card of the States board ("Your browser blocked the audience window", Try again, Present in one window); the audience window scales to fit with black bars at any size. Two-page end-to-end tests, a blocked-window test, component tests of the card |
+| PM-2 Present from the presenter view | done | the Presenter board: the slide on screen now, the next press (the next click's state, the next slide, or "End of presentation") with a badge saying what the click does, the notes, a navigator of every slide with a jump box, elapsed time (with pause and reset) and the time of day; the audience window has only the slide and a hint that fades after 3 seconds, no controls and no cursor. axe finds nothing on either window |
+
+Also built ahead of their stories because they cost almost nothing here: the keys of the show (Right, Down, Page Down, Space and Enter forward; Left, Up, Page Up and Backspace back; Home and End; B and W blank black or white; a number then Enter; Esc ends; F full screen) and the first half of PM-3 (a BroadcastChannel carrying only the place, with "hello" so a window that opens late is told where the show is). Their stories (PM-3 in full, PM-6) are still sprint 8's.
+
+The fixture deck Autumn Launch is presented from slide 1 to slide 12 in two windows by an end-to-end test: the hero slide plays its three clicks, the slides with a transition arrive with it (seen in the audience window), the end says "End of presentation", and Esc closes the audience window and returns the editor.
+
+Tests now: 1,389 Vitest tests (1,243 at the end of sprint 6). End to end: 126 per engine (112 before), 252 passing on Chromium and WebKit here and on all three in CI. Coverage `model` 98.1%, `render` 99.5%. First-load bundle 149.7 KB of 300 KB (145.5 before), CSS 7.8 of 30 KB, the text editor 118.5 of 160 KB; the show windows are a lazy chunk of 5.6 KB (budget 40 KB).
+
+### Not done
+
+- **PM-3 in full (sprint 8):** the 100 ms limit measured, the Web Locks "is that window gone" signal (a presenter tab that is closed or reloaded does not yet close the audience window; going Back in the browser does), the reconnect action when the audience window was closed.
+- **PM-4 resizable notes, PM-5's wording ("Next: step 2 of 3"), PM-7's target duration (sprint 8):** the notes are a fixed panel at 22 px; the next preview already shows the next click's state.
+- **The reference images** of the visual tests need refreshing for the new Present button (see the pull request of the "Update screenshots" workflow).
+- **Heavy-slide budgets** for transitions (50 elements per slide) are provisional (25% late frames, 50% for Zoom): the first nightly runs will say what the runner can do, and I will set them from the numbers.
+
+### What building it showed
+
+- **A stage, not a picture of the old slide.** Two layers of the shared renderer cost nothing extra to build and keep the end state exact; decision 31 held. The slide renderer's own `update` must not cancel a click's animation (the editor draws the new look right after starting it), so the stage's `show` ends a transition but leaves clicks alone.
+- **The editor and the show never import each other.** The app (`App.tsx`) gives the editor one thing, how to open the audience window; the addresses of the show (`#/show/<deck>…`) moved into `model` (pure) so both read them; the picture cache moved into `storage`. The show windows are a lazy chunk.
+- **Ending a show is a route change.** The editor remembers its slide, selection and tab in memory as the show starts and reads them when it comes back (reloading the page is a fresh start, as it should be).
+- **The deck is saved first.** Present waits for the autosave to finish before the window opens, because the show reads the stored deck; a test checks it with a title still being saved.
+- **React tries a page out twice in development**, so a show connects and hangs up its line cleanly and a presenter view that really goes away tells the audience window after a moment (not immediately).
+- **Playwright's browsers do not enforce the pop-up blocker** (SP-1), so the blocked path is tested by making `window.open` return nothing; full screen is stubbed in the one-window test (a real first Esc only leaves full screen).
+- **A test raced TipTap's delayed focus** (the font picker's keyboard test): the editor takes focus back a frame later. Fixed in the test.
+- Two end-to-end tests were made patient on a busy machine: the whole-deck presentation (12 slides, 4 transitions) and the second tab waiting for a closed tab's lock.
+- One run of the coverage suite failed one component test that passes alone and on the next run; I could not find which.
+
+### What stays manual (please check by hand)
+
+1. **A real second display and a projector** (Chrome and Edge move the audience window to the other display after asking; elsewhere drag it and press F): the card, full screen in each browser, the first Esc only leaving full screen.
+2. **Real pop-up blocking** in Chrome, Edge, Firefox and Safari (Safari is stricter about how soon after the click the window must open).
+3. **How each transition feels**, and 60 fps on your laptop and a Mac, with a busy slide.
+4. **A short talk of your own** from start to finish in two windows (Gate 3, criterion 5).
+5. **The presenter view and the audience window against the boards**, at your screen size.
+
+### Demo script (45 minutes)
+
+Use https://cue-presentations.netlify.app/ after this sprint's pull request is merged (each pull request also has its own preview). Open the fixture deck and go to slide 3.
+
+1. (6 min) **Preview transition.** Transition tab: choose Slide; the bar "Slide 2 → Slide 3"; Preview transition; click the canvas during it; try Fade, Push and Zoom; slide 1 has no bar.
+2. (8 min) **Present.** Press Present (or Ctrl/⌘ Enter); the audience window opens; this tab is the presenter view. Drag the audience window to a second display if you have one, press F in it.
+3. (10 min) **Walk the deck.** Right and Left in either window; the hero slide's three clicks; watch the transitions between slides in both windows; Back plays them reversed; B, W; type a number then Enter; click a thumbnail; the Jump to box; the timer.
+4. (5 min) **End.** Esc in the audience window, then again: Present from this slide, End show in the presenter view; the editor is back on the same slide with the same selection and tab.
+5. (6 min) **Blocked window.** Block pop-ups for the site, press Present: the card; Try again; Present in one window (Esc returns).
+6. (5 min) **Notes.** Add notes to a slide; they show in the presenter view.
+7. (5 min) **A short talk of your own.**
+
+### Retrospective questions (most important first)
+
+1. **Gate 3** ("Do animations, transitions and the two windows work well enough to try a real talk?"): does it pass? The criteria are in `docs/development-plan.md`.
+2. **Esc mid-show:** it ends the show at once from either window (the Audience board says so). Should it ask first? (Asked in the plan; not answered.)
+3. **Where a transition plays:** only between neighbours (to the next slide, or back to the one before); jumping with a number or the navigator shows the slide at once. Right?
+4. **A blanked screen:** the first Right, Space or Enter only brings the slide back, it does not also go forward. Right?
+5. **Present in the top bar:** the green Present button and a small chevron menu ("Present from the beginning", "Present from this slide"). Is that how you want it, or should Present from this slide be the main button?
+6. **Going back** to the slide before shows it with all its clicks played (as you left it). Right?
+7. **The audience window opens as a window of 1280 by 720** (the browser decides where); on a second display it is moved there and sized to it. Anything you would change?
+8. **The timer** starts with the first move of the show and has pause and reset (PM-7's target time is sprint 8). OK to have it early?
