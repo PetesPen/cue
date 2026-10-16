@@ -661,6 +661,10 @@ function Editor({
               <TextIcon />
               Text
             </button>
+            <MenuButton variant="toolbar" label="Shape" items={shapeItems}>
+              <ShapeIcon />
+              Shape
+            </MenuButton>
             <button
               type="button"
               className="toolbar-button"
@@ -688,10 +692,6 @@ function Editor({
                 void addImages(files);
               }}
             />
-            <MenuButton variant="toolbar" label="Shape" items={shapeItems}>
-              <ShapeIcon />
-              Shape
-            </MenuButton>
             <span className="toolbar-divider" aria-hidden="true" />
             <button
               type="button"
