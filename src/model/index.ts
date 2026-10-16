@@ -19,8 +19,14 @@ export {
   DEFAULT_FILL,
   DEFAULT_LINE_WIDTH,
   SHAPE_KINDS,
+  DEFAULT_TEXT_HEIGHT,
+  DEFAULT_TEXT_WIDTH,
+  applicableProps,
   createShape,
+  createText,
   isLine,
+  isShape,
+  isTextBox,
   normaliseProps,
 } from './elements';
 export type {
@@ -33,6 +39,7 @@ export type {
   ShapeElement,
   ShapeKind,
   SlideElement,
+  TextElement,
 } from './elements';
 export { CommandError, applyCommand } from './commands';
 export type { Applied, Command } from './commands';
@@ -66,3 +73,41 @@ export {
 export type { Box, Handle, Point, Rect, ResizeOptions } from './geometry';
 export { canReorder, reorder } from './zorder';
 export type { ReorderMode } from './zorder';
+export {
+  ALIGNS,
+  DEFAULT_LINE_HEIGHT,
+  DEFAULT_TEXT_STYLE,
+  InvalidTextError,
+  MAX_INDENT,
+  MIXED,
+  emptyText,
+  fontsUsed,
+  isEmptyText,
+  listKind,
+  normaliseColour,
+  paragraphs,
+  plainText,
+  restyleText,
+  sanitiseRichText,
+  setListKind,
+  summariseStyle,
+  textFromString,
+  textRuns,
+} from './richtext';
+export type {
+  Align,
+  Block,
+  Inline,
+  ListBlock,
+  ListItem,
+  Mixed,
+  Paragraph,
+  ParagraphAttrs,
+  RichText,
+  StyleChange,
+  StyleSummary,
+  TextMark,
+  TextStyleAttrs,
+} from './richtext';
+export { DEFAULT_FONT, FONTS, fontCapabilities, isBundledFont } from './fonts';
+export type { FontInfo, FontKind } from './fonts';

@@ -1,4 +1,4 @@
-import type { ShapeKind } from '@/model';
+import { isLine, isShape, type ShapeKind, type SlideElement } from '@/model';
 
 export const SHAPE_LABELS: Readonly<Record<ShapeKind, string>> = {
   rectangle: 'Rectangle',
@@ -9,9 +9,19 @@ export const SHAPE_LABELS: Readonly<Record<ShapeKind, string>> = {
   arrow: 'Arrow',
 };
 
-/** "Rectangle", or "3 shapes" for several. */
-export function describeSelection(shapes: readonly ShapeKind[]): string {
-  const [first] = shapes;
+/** "Rectangle", "Text", or "3 elements" for several. */
+export function describeSelection(elements: readonly SlideElement[]): string {
+  const [first] = elements;
   if (first === undefined) return '';
-  return shapes.length === 1 ? SHAPE_LABELS[first] : `${String(shapes.length)} shapes`;
+  if (elements.length > 1) {
+    return elements.every(isShape)
+      ? `${String(elements.length)} shapes`
+      : `${String(elements.length)} elements`;
+  }
+  return isShape(first) ? SHAPE_LABELS[first.shape] : 'Text';
+}
+
+/** A line or an arrow: it has two ends, not a box with sides. */
+export function isLineElement(element: SlideElement): boolean {
+  return isShape(element) && isLine(element.shape);
 }

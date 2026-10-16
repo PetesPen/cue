@@ -26,6 +26,7 @@ import {
   type Slide,
   type SlideElement,
 } from '@/model';
+import { isLineElement } from './shapeLabels';
 
 /**
  * What a drag on the canvas does, as pure functions of where the pointer started and is now, both in
@@ -250,7 +251,7 @@ export function pickElement(
 ): SlideElement | undefined {
   for (let i = elements.length - 1; i >= 0; i--) {
     const element = elements[i];
-    if (element && containsPoint(boxOf(element), point, isLine(element.shape) ? lineSlop : 0)) {
+    if (element && containsPoint(boxOf(element), point, isLineElement(element) ? lineSlop : 0)) {
       return element;
     }
   }

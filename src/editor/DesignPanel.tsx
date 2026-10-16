@@ -4,7 +4,7 @@ import {
   canReorder,
   fitBoxesTo,
   groupBounds,
-  isLine,
+  isShape,
   type Border,
   type DashStyle,
   type ElementChange,
@@ -12,14 +12,15 @@ import {
   type Id,
   type ReorderMode,
   type ShapeElement,
+  type SlideElement,
 } from '@/model';
 import { ColourField, MIXED, NumberField, Segmented, common } from './fields';
 import { boxOf } from './gestures';
-import { describeSelection } from './shapeLabels';
+import { describeSelection, isLineElement } from './shapeLabels';
 
 interface DesignPanelProps {
   /** The selected shapes as they are now, including a slider drag in progress. */
-  readonly elements: readonly ShapeElement[];
+  readonly elements: readonly SlideElement[];
   /** Every element on the slide, back to front: which Arrange buttons would do something. */
   readonly order: readonly Id[];
   /** Show a change without saving it (a slider being dragged). */
@@ -64,9 +65,12 @@ function Section({
 export function DesignPanel({ elements, order, onPreview, onCommit, onReorder }: DesignPanelProps) {
   const ids = elements.map((e) => e.id);
   const only = elements.length === 1 ? elements[0] : undefined;
-  const lines = elements.every((e) => isLine(e.shape));
-  const anyRounded = elements.some((e) => e.shape === 'roundedRectangle');
-  const hasFill = elements.some((e) => !isLine(e.shape));
+  const lines = elements.every(isLineElement);
+  const rounded = elements.filter(
+    (e): e is ShapeElement => isShape(e) && e.shape === 'roundedRectangle',
+  );
+  const anyRounded = rounded.length > 0;
+  const hasFill = elements.some((e) => !isLineElement(e));
   const pending = useRef<readonly ElementChange[] | undefined>(undefined);
 
   const apply = (props: ElementProps) => {
@@ -114,7 +118,7 @@ export function DesignPanel({ elements, order, onPreview, onCommit, onReorder }:
   return (
     <div className="design-panel">
       <div className="panel-section panel-heading">
-        <span className="panel-name">{describeSelection(elements.map((e) => e.shape))}</span>
+        <span className="panel-name">{describeSelection(elements)}</span>
       </div>
 
       <Section title="Position and size">
@@ -224,13 +228,13 @@ export function DesignPanel({ elements, order, onPreview, onCommit, onReorder }:
             label="Fill"
             allowNone
             value={common(
-              elements.filter((e) => !isLine(e.shape)),
+              elements.filter((e) => !isLineElement(e)),
               (e) => e.fill,
             )}
             onChange={(fill) => {
               onCommit(
                 elements
-                  .filter((e) => !isLine(e.shape))
+                  .filter((e) => !isLineElement(e))
                   .map((e) => ({ id: e.id, props: { fill } })),
               );
             }}
@@ -274,18 +278,11 @@ export function DesignPanel({ elements, order, onPreview, onCommit, onReorder }:
             <NumberField
               label="Corner radius"
               shortLabel="R"
-              value={common(
-                elements.filter((e) => e.shape === 'roundedRectangle'),
-                (e) => e.cornerRadius,
-              )}
+              value={common(rounded, (e) => e.cornerRadius)}
               min={0}
               max={1000}
               onCommit={(cornerRadius) => {
-                onCommit(
-                  elements
-                    .filter((e) => e.shape === 'roundedRectangle')
-                    .map((e) => ({ id: e.id, props: { cornerRadius } })),
-                );
+                onCommit(rounded.map((e) => ({ id: e.id, props: { cornerRadius } })));
               }}
             />
           </div>

@@ -322,10 +322,9 @@ export function Canvas({
     onContextMenu({ x: event.clientX, y: event.clientY });
   }
 
-  const kinds = selected.map((e) => e.shape);
   const opacity =
     selected.length === 1 ? ` · ${String(Math.round((selected[0]?.opacity ?? 1) * 100))}%` : '';
-  const chip = readout ?? `${describeSelection(kinds)}${opacity}`;
+  const chip = readout ?? `${describeSelection(selected)}${opacity}`;
 
   return (
     // The slide is one focus stop: Tab enters it, Tab again walks the shapes, arrow keys nudge.
@@ -354,7 +353,7 @@ export function Canvas({
         </p>
       )}
       <span className="visually-hidden" role="status" aria-live="polite">
-        {selected.length > 0 ? `${describeSelection(kinds)} selected` : ''}
+        {selected.length > 0 ? `${describeSelection(selected)} selected` : ''}
       </span>
     </div>
   );
