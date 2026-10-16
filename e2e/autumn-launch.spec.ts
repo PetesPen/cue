@@ -122,6 +122,9 @@ test.describe('Given a blank deck, When the hero slide of Autumn Launch is rebui
   test('Then text in several sizes, shapes, a picture, notes, undo and a duplicate slide all work together', async ({
     page,
   }) => {
+    // About fifty steps with a real mouse and keyboard: slower than a normal test, and slower still when
+    // the suite runs in parallel.
+    test.setTimeout(120_000);
     const slide = await openNewDeck(page);
     const title = page.getByRole('textbox', { name: 'Deck title' });
     await title.fill('Autumn Launch');
