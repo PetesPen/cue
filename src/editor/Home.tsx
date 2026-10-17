@@ -10,8 +10,9 @@ import {
 import { ConfirmDeleteDialog, RenameDialog } from './Dialogs';
 import { describeFileProblem, makeFileFor, openFileInto } from './deckFiles';
 import { ExportDialog } from './ExportDialog';
+import { useInstall } from './InstallContext';
 import { deckMeta } from './format';
-import { AlertIcon, CloseIcon, FileIcon, FolderIcon, PlusIcon } from './Icons';
+import { AlertIcon, CloseIcon, DownloadIcon, FileIcon, FolderIcon, PlusIcon } from './Icons';
 import { createStoredDeck, renameStoredDeck } from './library';
 import { Logo } from './Logo';
 import { MenuButton } from './Menu';
@@ -40,6 +41,7 @@ export function Home() {
   const [fileProblem, setFileProblem] = useState<{ title: string; text: string } | undefined>();
   const [opening, setOpening] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const installer = useInstall();
   const usage = useStorageUsage(version);
 
   useEffect(() => {
@@ -93,6 +95,16 @@ export function Home() {
           <span className="wordmark">Cue</span>
         </div>
         <div className="home-actions">
+          {installer && (
+            <button
+              type="button"
+              className="button button-quiet"
+              onClick={() => void installer.install()}
+            >
+              <DownloadIcon size={15} />
+              Install Cue
+            </button>
+          )}
           <button type="button" className="button" disabled={opening} onClick={chooseFile}>
             <FolderIcon size={15} />
             {opening ? 'Opening…' : 'Open file'}

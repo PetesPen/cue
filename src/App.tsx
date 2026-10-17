@@ -3,6 +3,8 @@ import { EditorApp } from '@/editor';
 import { parseRoute } from '@/model';
 import { openAudienceWindow } from '@/present/open';
 import { createDeckStore } from '@/storage';
+import { installer, updater } from './appPwa';
+import { UpdateBanner } from './UpdateBanner';
 
 // One store for the whole app. The database opens on first use.
 const store = createDeckStore();
@@ -42,5 +44,10 @@ export function App() {
       </Suspense>
     );
   }
-  return <EditorApp store={store} openAudience={openAudienceWindow} />;
+  return (
+    <>
+      <EditorApp store={store} openAudience={openAudienceWindow} install={installer} />
+      <UpdateBanner updater={updater} />
+    </>
+  );
 }
