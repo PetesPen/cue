@@ -1194,6 +1194,9 @@ function Editor({
               number={index + 1}
               transition={currentSlide.transition}
               onChange={session.setTransition}
+              onApplyToAll={() => {
+                session.applyTransitionToAll(currentSlide.transition);
+              }}
             />
           }
           animate={

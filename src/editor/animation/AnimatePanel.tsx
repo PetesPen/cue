@@ -1,4 +1,4 @@
-import { useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
+import { useRef, type KeyboardEvent, type PointerEvent } from 'react';
 import {
   APPEAR_STYLES,
   DISAPPEAR_STYLES,
@@ -27,6 +27,7 @@ import {
   elementName,
   swatchOf,
 } from './labels';
+import { TimingSlider } from './TimingSlider';
 import './animation.css';
 
 interface AnimatePanelProps {
@@ -377,51 +378,5 @@ function StepSettings({
         </button>
       </div>
     </section>
-  );
-}
-
-/** A slider in tenths of a second. It saves one step when you let go, not one for every tenth. */
-function TimingSlider({
-  label,
-  value,
-  min,
-  max,
-  onCommit,
-}: {
-  readonly label: string;
-  readonly value: number;
-  readonly min: number;
-  readonly max: number;
-  readonly onCommit: (value: number) => void;
-}) {
-  const [dragging, setDragging] = useState<number | undefined>();
-  const shown = dragging ?? value;
-  const done = () => {
-    if (dragging === undefined) return;
-    setDragging(undefined);
-    if (dragging !== value) onCommit(dragging);
-  };
-  return (
-    <div className="timing-row">
-      <label className="timing-label">
-        <span>{label}</span>
-        <span className="timing-value">{`${shown.toFixed(1)} s`}</span>
-        <input
-          type="range"
-          className="slider"
-          aria-label={label}
-          min={min}
-          max={max}
-          step={0.1}
-          value={shown}
-          onChange={(event) => {
-            setDragging(Number(event.target.value));
-          }}
-          onPointerUp={done}
-          onKeyUp={done}
-          onBlur={done}
-        />
-      </label>
-    </div>
   );
 }

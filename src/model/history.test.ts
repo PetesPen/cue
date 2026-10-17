@@ -282,6 +282,13 @@ describe('any run of edits (property)', () => {
             at,
           };
         }
+        if (n % 20 === 14) {
+          return {
+            type: 'setAllTransitions',
+            transition: { kind: 'push', from: 'top', duration: 1 + (n % 3) },
+            at,
+          };
+        }
         if (n % 20 === 19 && slide.animations.length > 1 && step !== undefined) {
           return { type: 'moveStep', slideId: slide.id, stepId: step.id, toIndex: n % 3, at };
         }

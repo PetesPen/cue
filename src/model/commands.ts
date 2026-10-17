@@ -1,7 +1,7 @@
 import { castDraft, current, enablePatches, produceWithPatches, type Patch } from 'immer';
 import { changeStep, type Step, type StepChange } from './animation';
 import { createSlide, normaliseTitle, type Deck } from './deck';
-import { changeTransition, type Transition } from './transition';
+import { DEFAULT_TRANSITION, changeTransition, type Transition } from './transition';
 import {
   applicableProps,
   normaliseProps,
@@ -121,6 +121,16 @@ export type Command =
       readonly type: 'setTransition';
       readonly slideId: Id;
       readonly change: Partial<Transition>;
+      readonly at: number;
+    }
+  /**
+   * Give every slide but the first the same transition: kind, side and duration (TN-3). The first slide
+   * has nothing before it, so it has no incoming transition and is left as it is. One command, so one
+   * undo step.
+   */
+  | {
+      readonly type: 'setAllTransitions';
+      readonly transition: Transition;
       readonly at: number;
     }
   /** Put an animation step at the end of the slide's list (AN-1, AN-2). */
@@ -296,6 +306,11 @@ export function applyCommand(deck: Deck, command: Command): Applied {
         const slide = draft.slides.find((s) => s.id === command.slideId);
         if (!slide) throw new CommandError(`Slide ${command.slideId} is not in deck ${deck.id}`);
         slide.transition = changeTransition(current(slide.transition), command.change);
+        break;
+      }
+      case 'setAllTransitions': {
+        const wanted = changeTransition(DEFAULT_TRANSITION, command.transition);
+        for (const slide of draft.slides.slice(1)) slide.transition = castDraft(wanted);
         break;
       }
       case 'addStep': {

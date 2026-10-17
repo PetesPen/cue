@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { SHOW_KEYS } from '@/model';
 import {
   GROUPS,
   SHORTCUTS,
@@ -65,5 +66,25 @@ describe('the table of shortcuts (UX-2)', () => {
 
   test('Given a Mac, When the search is ⌘, Then shortcuts with Mod match', () => {
     expect(matches(shortcutById('general.undo'), '⌘', true)).toBe(true);
+  });
+});
+
+describe('the keys of a show on the sheet (PM-6)', () => {
+  test('Given the table of show keys, Then the sheet lists every one of them in the Presenting group with the same key caps', () => {
+    const presenting = listed().filter((shortcut) => shortcut.group === 'Presenting');
+
+    for (const entry of SHOW_KEYS) {
+      const row = presenting.find((shortcut) => shortcut.id === `show.${entry.action}`);
+      expect(row?.label, entry.action).toBe(entry.label);
+      expect(row?.keys, entry.action).toEqual(entry.caps);
+    }
+  });
+
+  test('Given the editor keys to start a show, Then they are on the sheet too, and nothing is listed that does nothing', () => {
+    const ids = listed().map((shortcut) => shortcut.id);
+
+    expect(ids).toContain('present.start');
+    expect(ids).toContain('present.here');
+    expect(listed().every((shortcut) => shortcut.planned !== true)).toBe(true);
   });
 });

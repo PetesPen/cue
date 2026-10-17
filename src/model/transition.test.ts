@@ -145,6 +145,68 @@ describe('setTransition', () => {
   });
 });
 
+describe('setAllTransitions (TN-3)', () => {
+  const slide = { kind: 'slide', from: 'left', duration: 1.2 } as const;
+
+  test('Given four slides, When a transition is applied to all, Then every slide but the first has it, and the first is left alone', () => {
+    const { deck } = applyCommand(deckOf('a', 'b', 'c', 'd'), {
+      type: 'setAllTransitions',
+      transition: slide,
+      at: 5,
+    });
+
+    expect(deck.slides.map((s) => s.transition)).toEqual([DEFAULT_TRANSITION, slide, slide, slide]);
+  });
+
+  test('Given slides with their own transitions, When one is applied to all, Then each is replaced, direction and duration included', () => {
+    let deck = deckOf('a', 'b', 'c');
+    deck = applyCommand(deck, {
+      type: 'setTransition',
+      slideId: 'b',
+      change: { kind: 'zoom', duration: 3 },
+      at: 5,
+    }).deck;
+
+    deck = applyCommand(deck, { type: 'setAllTransitions', transition: slide, at: 6 }).deck;
+
+    expect(deck.slides.slice(1).map((s) => s.transition)).toEqual([slide, slide]);
+  });
+
+  test('Given a transition applied to all, When the step is undone, Then every slide is as it was, in one step', () => {
+    const before = applyCommand(deckOf('a', 'b', 'c'), {
+      type: 'setTransition',
+      slideId: 'c',
+      change: { kind: 'fade' },
+      at: 5,
+    }).deck;
+    const { deck, inverse } = applyCommand(before, {
+      type: 'setAllTransitions',
+      transition: slide,
+      at: 6,
+    });
+
+    expect(applyPatches(deck, inverse)).toEqual(before);
+  });
+
+  test('Given a stray value, When it is applied to all, Then it is brought to what a transition can be', () => {
+    const { deck } = applyCommand(deckOf('a', 'b'), {
+      type: 'setAllTransitions',
+      transition: { kind: 'slide', from: 'left', duration: 99 },
+      at: 5,
+    });
+
+    expect(deck.slides[1]?.transition.duration).toBe(3);
+  });
+
+  test('Given a deck of one slide, When a transition is applied to all, Then nothing changes', () => {
+    const before = deckOf('a');
+
+    const { deck } = applyCommand(before, { type: 'setAllTransitions', transition: slide, at: 5 });
+
+    expect(deck.slides).toEqual(before.slides);
+  });
+});
+
 describe('opening a deck with transitions (SV-1)', () => {
   test('Given a deck with transitions, When it is saved as JSON and parsed, Then it is the same', () => {
     const deck = applyCommand(deckOf('a', 'b'), {

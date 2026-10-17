@@ -1,7 +1,7 @@
 import { afterEach, expect, test } from 'vitest';
 import { userEvent } from 'vitest/browser';
 import { render } from 'vitest-browser-react';
-import type { Deck, Transition } from '@/model';
+import type { Deck, Transition, TransitionKind } from '@/model';
 import type { DeckStore } from '@/storage';
 import { EditorApp } from '../EditorApp';
 import { closeTestStores, createTestStore, deckWithSlides } from '../test-helpers';
@@ -236,3 +236,140 @@ function must(selector: string): HTMLElement {
   if (!node) throw new Error(`nothing matches ${selector}`);
   return node;
 }
+
+// TN-2: direction and duration. TN-3: apply to all slides.
+
+const storedTransitions = async (store: DeckStore) =>
+  (await store.load('deck'))?.slides.map((slide) => slide.transition);
+const group = (screen: Awaited<ReturnType<typeof openWith>>, name: string) =>
+  screen.getByRole('group', { name });
+
+test('Given Slide, When the Transition tab is open, Then Direction offers four arrows with From the right chosen, and the caption says so', async () => {
+  const screen = await openWith(createTestStore(), [{}, { kind: 'slide' }]);
+
+  await openTransition(screen, 2);
+
+  const direction = group(screen, 'Direction');
+  for (const name of ['From the left', 'From the right', 'From the top', 'From the bottom']) {
+    await expect.element(direction.getByRole('button', { name })).toBeVisible();
+  }
+  await expect
+    .element(direction.getByRole('button', { name: 'From the right' }))
+    .toHaveAttribute('aria-pressed', 'true');
+  await expect.element(screen.getByText('New slide comes in from the right.')).toBeVisible();
+  await expect.element(screen.getByRole('slider', { name: 'Duration' })).toBeVisible();
+});
+
+test('Given Slide, When a direction is chosen, Then it is saved, the caption follows, and one Undo puts it back', async () => {
+  const store = createTestStore();
+  const screen = await openWith(store, [{}, { kind: 'push' }]);
+  await openTransition(screen, 2);
+
+  await group(screen, 'Direction').getByRole('button', { name: 'From the top' }).click();
+
+  await expect.element(screen.getByText('New slide comes in from the top.')).toBeVisible();
+  await expect
+    .poll(async () => (await storedTransitions(store))?.[1]?.from, { timeout: 3000 })
+    .toBe('top');
+  await userEvent.keyboard('{Control>}z{/Control}');
+  await expect.element(screen.getByText('New slide comes in from the right.')).toBeVisible();
+});
+
+test.each<[TransitionKind, boolean]>([
+  ['fade', true],
+  ['zoom', true],
+  ['none', false],
+])(
+  'Given %s, Then the Duration slider is %s and there is no Direction',
+  async (kind, hasDuration) => {
+    const screen = await openWith(createTestStore(), [{}, { kind }]);
+
+    await openTransition(screen, 2);
+
+    expect(document.querySelector('[aria-label="Direction"]')).toBeNull();
+    expect(screen.getByRole('slider', { name: 'Duration' }).elements()).toHaveLength(
+      hasDuration ? 1 : 0,
+    );
+  },
+);
+
+test('Given the Duration slider, When it is moved with the keyboard, Then it runs from 0.2 to 3 s in tenths and saves one step when let go', async () => {
+  const store = createTestStore();
+  const screen = await openWith(store, [{}, { kind: 'fade' }]);
+  await openTransition(screen, 2);
+  const slider = screen.getByRole('slider', { name: 'Duration' });
+  await expect.element(slider).toHaveAttribute('min', '0.2');
+  await expect.element(slider).toHaveAttribute('max', '3');
+  await expect.element(screen.getByText('0.6 s').first()).toBeVisible();
+
+  slider.element().focus();
+  await userEvent.keyboard('{ArrowRight}{ArrowRight}');
+  await userEvent.tab();
+
+  await expect
+    .poll(async () => (await storedTransitions(store))?.[1]?.duration, { timeout: 3000 })
+    .toBe(0.8);
+  await expect.element(screen.getByText('0.8 s').first()).toBeVisible();
+});
+
+test('Given a transition on slide 2, When Apply to all slides is pressed, Then every slide but the first has it, and one Undo takes it back', async () => {
+  const store = createTestStore();
+  const screen = await openWith(store, [{}, { kind: 'push', from: 'left', duration: 1.4 }, {}, {}]);
+  await openTransition(screen, 2);
+
+  await screen.getByRole('button', { name: 'Apply to all slides' }).click();
+
+  await expect
+    .poll(
+      async () =>
+        (await storedTransitions(store))?.map((t) => `${t.kind}/${t.from}/${String(t.duration)}`),
+      { timeout: 3000 },
+    )
+    .toEqual(['none/right/0.6', 'push/left/1.4', 'push/left/1.4', 'push/left/1.4']);
+  expect(badges()).toEqual([false, true, true, true]);
+  await userEvent.keyboard('{Control>}z{/Control}');
+  await expect
+    .poll(async () => (await storedTransitions(store))?.map((t) => t.kind), { timeout: 3000 })
+    .toEqual(['none', 'push', 'none', 'none']);
+});
+
+test('Given a slide with a transition, When Reset to none is pressed, Then the slide has none, and the button is off for a slide that has none', async () => {
+  const store = createTestStore();
+  const screen = await openWith(store, [{}, { kind: 'zoom' }, {}]);
+  await openTransition(screen, 2);
+
+  await screen.getByRole('button', { name: 'Reset to none' }).click();
+
+  await expect
+    .poll(async () => (await storedTransitions(store))?.map((t) => t.kind), { timeout: 3000 })
+    .toEqual(['none', 'none', 'none']);
+  await expect.element(screen.getByRole('button', { name: 'Reset to none' })).toBeDisabled();
+});
+
+test('Given the first slide, When the Transition tab is open, Then there is nothing to apply or reset', async () => {
+  const screen = await openWith(createTestStore(), [{}, {}]);
+
+  await openTransition(screen, 1);
+
+  expect(screen.getByRole('button', { name: 'Apply to all slides' }).elements()).toHaveLength(0);
+  expect(screen.getByRole('button', { name: 'Reset to none' }).elements()).toHaveLength(0);
+});
+
+test('Given Slide from the top and 3 s, When Preview transition plays, Then the new slide comes in from the top for that long', async () => {
+  const screen = await openWith(createTestStore(), [
+    {},
+    { kind: 'slide', from: 'top', duration: 3 },
+  ]);
+  await openTransition(screen, 2);
+
+  await screen.getByRole('button', { name: 'Preview transition' }).click();
+
+  await expect.poll(layerIds).toHaveLength(2);
+  const [animation] =
+    document.querySelectorAll<HTMLElement>('.canvas .cue-layer')[1]?.getAnimations() ?? [];
+  expect(animation?.effect?.getTiming().duration).toBe(3000);
+  const effect = animation?.effect;
+  expect(effect instanceof KeyframeEffect ? effect.getKeyframes()[0]?.transform : undefined).toBe(
+    'translate(0px, -100%)',
+  );
+});
