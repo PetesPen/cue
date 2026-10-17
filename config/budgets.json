@@ -11,6 +11,10 @@
     "note": "PM-3 (sprint 8): a change made in one show window is drawn in the other within this many milliseconds (the 90th percentile of twenty key presses on the same clock). Chromium and Firefox are held to it; WebKit is measured and reported. SP-1 measured about 17 ms.",
     "syncLatencyMs": 100
   },
+  "show": {
+    "note": "PM-3 (sprint 8): a change made in one show window is drawn in the other within this many milliseconds (the 90th percentile of twenty key presses on the same clock). Chromium and Firefox are held to it; WebKit is measured and reported. SP-1 measured about 17 ms.",
+    "syncLatencyMs": 100
+  },
   "perf": {
     "note": "UX-3 (sprint 5), written after spike SP-4 (the heavy-slide transition shares, sprint 7, are provisional: TN-5 asks for a budget of their own for slides of 50 elements, and the first nightly runs set it): on the nightly runner (no graphics card) Chromium and Firefox are held to these; WebKit is only reported. 60 fps itself is confirmed by hand on a real laptop and a Mac before each milestone. A frame is late when it took more than 25 ms. Raising a number needs Peter's OK and a line in docs/decisions.md.",
     "lateFrameShare": 0.05,
