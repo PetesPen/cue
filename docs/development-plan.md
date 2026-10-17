@@ -6,7 +6,7 @@
 
 ## Summary
 
-Slides can reach a v1.0 release in about 14 two-week sprints (about 28 weeks) with two engineers, with a working, tested app at the end of every sprint. This plan turns the 59 user stories and the Studio design canvas into that sequence.
+Slides can reach a v1.0 release in about 14 two-week sprints (about 28 weeks) with two engineers, with a working, tested app at the end of every sprint. This plan turns the 60 user stories and the Studio design canvas into that sequence.
 
 **How we work**
 
@@ -231,7 +231,7 @@ Sprints loaded below 16 days keep a few days free for bugs and surprises. Stretc
 
 ## Backlog
 
-The backlog is the 59 stories from [user-stories.md](user-stories.md), grouped into ten epics, and 39 of them are Must. The estimate is in engineering days (small = 2, medium = 4, large = 8) and covers Must and Should stories only.
+The backlog is the 60 stories from [user-stories.md](user-stories.md), grouped into ten epics, and 39 of them are Must. The estimate is in engineering days (small = 2, medium = 4, large = 8) and covers Must and Should stories only.
 
 | Epic | Stories | Must | Should | Could | Estimate (days) | Sprints |
 |---|---|---|---|---|---|---|
@@ -242,11 +242,11 @@ The backlog is the 59 stories from [user-stories.md](user-stories.md), grouped i
 | Animations | AN-1 to AN-7 | 5 | 2 | 0 | 22 | 5, 6, 11 |
 | Transitions | TN-1 to TN-5 | 3 | 2 | 0 | 14 | 6, 7, 11 |
 | Presenting | PM-1 to PM-8 | 6 | 1 | 1 | 24 | 7, 8, 12 |
-| Saving and export | SV-1 to SV-7 | 5 | 1 | 1 | 30 | 1, 2, 9, 10 |
+| Saving and export | SV-1 to SV-8 | 5 | 2 | 1 | 32 | 1, 2, 9, 10 |
 | Look, feel and quality | UX-1 to UX-7 | 5 | 2 | 0 | 24 | 1, 5, 9, 12 |
 | Themes and templates | TH-1 to TH-3 | 0 | 0 | 3 | 0 | After v1.0 |
 | Foundations and hardening | Not user stories | n/a | n/a | n/a | 32 | 0, 13 |
-| Total | 59 stories | 39 | 14 | 6 | 218 | 14 sprints |
+| Total | 60 stories | 39 | 15 | 6 | 220 | 14 sprints |
 
 **How the backlog is managed**
 

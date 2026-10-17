@@ -654,3 +654,18 @@ Use https://cue-presentations.netlify.app/ after this sprint's pull request is m
 4. **A few seconds' grace** (4) before an audience window closes after its presenter tab is gone: right length? (From sprint 8.)
 5. **The notes' size and the divider** are remembered for the browser, not per deck. Right? (From sprint 8.)
 6. **A phone** is anything under 700 px wide. Right?
+
+### Review outcome (2026-10-17)
+
+Peter answered the six questions. There is no gate here. Every answer agrees with what was built, so the build choices of sprints 8 and 9 stand.
+
+1. **The backup reminder is wanted in v1:** "Yes please". It becomes a new story, **SV-8 "Back up all decks"** (Should, about 2 days): every deck in one file, and the Home board's reminder ("It has been 14 days since your last backup…", Back up all decks). It is proposed for sprint 10, after SV-4 and SV-5, and is the first thing cut if sprint 10 runs over; Peter decides with the sprint 10 plan.
+2. **Final icons:** "soon ish". The interim icons (drawn from the logo mark) stay until Peter gives the art and its maskable version; they are needed before v1.0 (sprint 13).
+3. **"Install Cue" in the library's top bar, and the update banner's wording:** fine, as built.
+4. **The 4-second grace:** fine, as built.
+5. **The notes' size and divider, remembered per browser:** right, as built.
+6. **A phone is anything under 700 px wide:** right, as built.
+
+Still manual, and carried to the rehearsal before Gate 4: the real install and update, a real phone, real Safari, a second display and a projector.
+
+After the review, pull request 33's WebKit job failed on two tests that passed here: on Linux, WebKit turns the space in a downloaded file's name into an underscore (the test now accepts either), and the colour picker test read the colour before WebKit had drawn the last pointer move (it now waits two frames). Neither was a fault in the app; Firefox passed every test.
