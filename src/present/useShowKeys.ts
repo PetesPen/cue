@@ -4,11 +4,16 @@ import type { Show } from './show';
 /** How long typed digits wait for Enter before they are forgotten. */
 const NUMBER_WAIT_MS = 2500;
 
-/** Typing in a field is not a shortcut: the number box of the navigator takes its own keys. */
+/**
+ * Typing in a field is not a shortcut: the number box of the navigator takes its own keys, and so does the
+ * divider (its arrows move it) and the notes when they have focus (their arrows scroll them).
+ */
 function isTyping(target: EventTarget | null): boolean {
   return (
     target instanceof HTMLElement &&
-    (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
+    (target.isContentEditable ||
+      ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) ||
+      target.closest('[role="separator"], .pv-notes-scroll') !== null)
   );
 }
 
