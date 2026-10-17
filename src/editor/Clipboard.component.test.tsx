@@ -247,9 +247,25 @@ test('Given text being edited, When Delete is pressed, Then it deletes a letter 
   await expect
     .poll(() => document.querySelector('.text-edit-box .ProseMirror') === document.activeElement)
     .toBe(true);
-  await new Promise((resolve) => setTimeout(resolve, 300));
+  // ProseMirror may ignore a cursor move for a moment after it opens, more so on a busy machine: press
+  // Ctrl+Home until the cursor really is at the start, and only then Delete.
+  await expect
+    .poll(
+      async () => {
+        await userEvent.keyboard('{Control>}{Home}{/Control}');
+        const selection = window.getSelection();
+        const inside = selection?.anchorNode
+          ? (document
+              .querySelector('.text-edit-box .ProseMirror')
+              ?.contains(selection.anchorNode) ?? false)
+          : false;
+        return inside && selection?.isCollapsed === true && selection.anchorOffset === 0;
+      },
+      { timeout: 10_000 },
+    )
+    .toBe(true);
 
-  await userEvent.keyboard('{Control>}{Home}{/Control}{Delete}');
+  await userEvent.keyboard('{Delete}');
 
   // The editor takes the key a moment later on a busy machine.
   await expect

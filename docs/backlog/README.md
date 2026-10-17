@@ -73,6 +73,7 @@ One file per sprint, with the stories (full acceptance criteria), demo, key test
 | SV-5 | Import and export fidelity | Should | [10](sprint-10.md) |
 | SV-6 | Export as PDF or images | Could | [after v1.0](after-v1.md) |
 | SV-7 | One tab per deck | Must | [2](sprint-02.md) |
+| SV-8 | Back up all decks | Should | [10](sprint-10.md) (proposed; Peter decides with the sprint 10 plan) |
 | TH-1 | Pick a theme | Could | [after v1.0](after-v1.md) |
 | TH-2 | Start from a template | Could | [after v1.0](after-v1.md) |
 | TH-3 | Reuse my own slide layouts | Could | [after v1.0](after-v1.md) |

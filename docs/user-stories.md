@@ -350,6 +350,15 @@ Decks are stored in the browser. Files are how a deck is backed up, moved to ano
 - Different decks can be open in different tabs, and the library can be open in as many tabs as you like.
 - Where the browser has no Web Locks, nothing changes and nothing breaks.
 
+**SV-8 Back up all decks (Should).** As a presenter, I want to back up every deck in one step and be reminded when I have not, so that clearing the browser's data never costs me my work. (Added 2026-10-17 at Peter's request, from the Home board's reminder and the assumption that "the app reminds me to export a backup".)
+
+- "Back up all decks" saves one file that holds every deck with its pictures, animations, transitions, notes and fonts, and says how many decks it holds and how large it is. It works while saving is failing, and it never changes a deck.
+- Opening that file in Cue adds every deck in it as a new deck and never replaces one; a deck in it that cannot be read is named, and the others are still added.
+- The Home board shows the reminder ("It has been N days since your last backup…") when a deck has changed since it was last saved to a file and that file is 14 days old or more (a deck never saved to a file counts from the day it was made). A backup or a single-deck export counts as saving. Nothing has changed, nothing to say.
+- The reminder's Back up all decks button makes the backup; its close button hides the reminder for 14 days.
+
+Design: [`Home`](../design/screenshots/Home.png) (the reminder banner). Priority Should is proposed: Peter can change it.
+
 ## Themes and templates (stretch)
 
 These are included only if they stay simple. A theme is a small set of colours and fonts; a template is a starter deck.

@@ -90,7 +90,7 @@ test('Given the library, When New deck is chosen, Then a deck with one slide is 
   expect(window.location.hash).toBe(`#/deck/${stored?.id ?? ''}`);
 });
 
-test('Given a deck card, When its options button is pressed, Then the menu offers Open, Rename, Duplicate and Delete', async () => {
+test('Given a deck card, When its options button is pressed, Then the menu offers Open, Rename, Duplicate, Export and Delete', async () => {
   const store = createTestStore();
   await seed(store, [['a', 'Team offsite', 1]]);
   const screen = await openLibrary(store);
@@ -99,11 +99,12 @@ test('Given a deck card, When its options button is pressed, Then the menu offer
 
   const items = screen.getByRole('menuitem');
   await expect.element(items.first()).toBeVisible();
-  expect(document.querySelectorAll('[role="menuitem"]')).toHaveLength(4);
+  expect(document.querySelectorAll('[role="menuitem"]')).toHaveLength(5);
   expect([...document.querySelectorAll('[role="menuitem"]')].map((el) => el.textContent)).toEqual([
     'Open',
     'Rename',
     'Duplicate',
+    'Export…',
     'Delete',
   ]);
 });

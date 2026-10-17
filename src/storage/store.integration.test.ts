@@ -188,6 +188,56 @@ describe('the deck store (SV-1, SV-2)', () => {
   });
 });
 
+describe('decks that cannot be read are listed so they can be deleted (SV-3, decision 17)', () => {
+  test('Given a damaged record, a deck from a newer Cue and a good deck, When the unreadable ones are listed, Then the first two are, with what is known of them, and the good one is not', async () => {
+    const name = `unreadable-${crypto.randomUUID()}`;
+    const store = openStore(name);
+    await store.save(deckAt(3000, 'Readable'));
+    const Dexie = (await import('dexie')).default;
+    const raw = new Dexie(name);
+    await raw.open();
+    await raw
+      .table('decks')
+      .put({ id: 'broken', title: 'Half a deck', updatedAt: 2000, schemaVersion: 1 });
+    await raw.table('decks').put({ id: 'nameless', updatedAt: 2000, schemaVersion: 1 });
+    await raw
+      .table('decks')
+      .put({ ...deckAt(1000, 'From the future'), id: 'future', schemaVersion: 99 });
+    raw.close();
+
+    const unreadable = (await store.listUnreadable()).sort((a, b) => a.id.localeCompare(b.id));
+
+    expect(unreadable).toEqual([
+      { id: 'broken', title: 'Half a deck', newer: false },
+      { id: 'future', title: 'From the future', newer: true },
+      { id: 'nameless', title: undefined, newer: false },
+    ]);
+  });
+
+  test('Given an unreadable deck, When it is deleted, Then it goes, and the readable decks stay', async () => {
+    const name = `unreadable-${crypto.randomUUID()}`;
+    const store = openStore(name);
+    await store.save(deckAt(3000, 'Readable'));
+    const Dexie = (await import('dexie')).default;
+    const raw = new Dexie(name);
+    await raw.open();
+    await raw.table('decks').put({ id: 'broken', updatedAt: 2000, schemaVersion: 1 });
+    raw.close();
+
+    await store.remove('broken');
+
+    expect(await store.listUnreadable()).toEqual([]);
+    expect((await store.list()).map((d) => d.title)).toEqual(['Readable']);
+  });
+
+  test('Given only readable decks, Then nothing is unreadable', async () => {
+    const store = openStore();
+    await store.save(deckAt(1000, 'One'));
+
+    expect(await store.listUnreadable()).toEqual([]);
+  });
+});
+
 describe('photos live with the deck (SV-1, docs/spikes/SP-5.md)', () => {
   test('Given a deck saved with photos, When a photo is loaded, Then the bytes and type are exactly what was stored', async () => {
     const store = openStore();

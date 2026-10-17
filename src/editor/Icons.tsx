@@ -183,6 +183,24 @@ export const ArrowRightIcon = (props: IconProps) => (
   </Stroke>
 );
 
+export const FolderIcon = (props: IconProps) => (
+  <Stroke {...props}>
+    <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+  </Stroke>
+);
+
+export const FileIcon = (props: IconProps) => (
+  <Stroke {...props}>
+    <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9.5 12.5l5 5M14.5 12.5l-5 5" />
+  </Stroke>
+);
+
+export const DownloadIcon = (props: IconProps) => (
+  <Stroke {...props}>
+    <path d="M12 4v11M7 11l5 5 5-5M5 20h14" />
+  </Stroke>
+);
+
 export const ArrowUpIcon = (props: IconProps) => (
   <Stroke {...props}>
     <path d="M12 19V5M6 11l6-6 6 6" />

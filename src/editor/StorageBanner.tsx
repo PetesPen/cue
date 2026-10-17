@@ -11,15 +11,17 @@ function ManageStorageLink() {
 }
 
 /**
- * "Storage is almost full" (design: States, "Storage banners"). The design's Export deck action
- * arrives with SV-3; until then the way to make room is deleting decks in the library.
+ * "Storage is almost full" (design: States, "Storage banners"): back up the decks, then delete the ones that
+ * are no longer needed. In the editor it offers Export deck for the deck that is open (SV-3).
  */
 export function NearlyFullBanner({
   usage,
   withManageLink,
+  onExport,
 }: {
   readonly usage: StorageUsage;
   readonly withManageLink: boolean;
+  readonly onExport?: () => void;
 }) {
   const percent = Math.min(100, Math.round((usage.usage / usage.quota) * 100));
   return (
@@ -28,12 +30,17 @@ export function NearlyFullBanner({
         <AlertIcon size={15} />
       </span>
       <span className="banner-text">
-        <strong>Storage is almost full.</strong> {formatUsage(usage)} used on this device. Delete
-        the decks you no longer need to make room.
+        <strong>Storage is almost full.</strong> {formatUsage(usage)} used on this device. Back up
+        your decks, then delete the ones you no longer need.
         <span className="meter" aria-hidden="true">
           <span className="meter-fill" style={{ width: `${String(percent)}%` }} />
         </span>
       </span>
+      {onExport && (
+        <button type="button" className="button button-compact button-strong" onClick={onExport}>
+          Export deck
+        </button>
+      )}
       {withManageLink && <ManageStorageLink />}
     </div>
   );
@@ -43,9 +50,12 @@ export function NearlyFullBanner({
 export function SaveFailedBanner({
   reason,
   onRetry,
+  onExport,
 }: {
   readonly reason: 'full' | 'error';
   readonly onRetry: () => void;
+  /** Export the deck as a file, so that nothing is lost whatever happens to this tab (SV-3). */
+  readonly onExport?: () => void;
 }) {
   return (
     <div className="banner banner-danger" role="alert">
@@ -55,11 +65,22 @@ export function SaveFailedBanner({
       <span className="banner-text">
         <strong>Changes can’t be saved.</strong>{' '}
         {reason === 'full'
-          ? 'Storage is full, so your latest edits only exist in this tab. Delete decks you no longer need, then try again.'
+          ? 'Storage is full, so your latest edits only exist in this tab. Export this deck now so nothing is lost, then delete decks you no longer need.'
           : 'Something went wrong storing this deck in your browser, so your latest edits only exist in this tab. Try again.'}
       </span>
+      {onExport && (
+        <button type="button" className="button button-compact button-danger" onClick={onExport}>
+          Export deck
+        </button>
+      )}
       {reason === 'full' && <ManageStorageLink />}
-      <button type="button" className="button button-compact button-danger" onClick={onRetry}>
+      <button
+        type="button"
+        className={
+          onExport ? 'button button-compact button-strong' : 'button button-compact button-danger'
+        }
+        onClick={onRetry}
+      >
         Try again
       </button>
     </div>

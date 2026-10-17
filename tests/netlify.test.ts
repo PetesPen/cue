@@ -32,6 +32,24 @@ describe('Given netlify.toml (decision 3: Netlify hosts the live site and the pr
   });
 });
 
+describe('Given the installable app (UX-7)', () => {
+  /** The headers block that applies to `path`, as text. */
+  function blockFor(path: string): string | undefined {
+    return toml.split('[[headers]]').find((block) => block.includes(`for = "${path}"`));
+  }
+
+  test.each(['/sw.js', '/index.html', '/', '/manifest.webmanifest'])(
+    'When %s is fetched, Then it is never served from a stored copy, so a new version is seen',
+    (path) => {
+      expect(blockFor(path)).toMatch(/Cache-Control\s*=\s*"no-cache"/);
+    },
+  );
+
+  test('When the built assets are served, Then they stay immutable', () => {
+    expect(blockFor('/assets/*')).toMatch(/immutable/);
+  });
+});
+
 describe('Given the content security policy (SV-4: no external requests)', () => {
   const directives = new Map(
     contentSecurityPolicy.split('; ').map((part) => {

@@ -1,5 +1,5 @@
 import { SLIDE_HEIGHT, SLIDE_WIDTH, type Point } from '@/model';
-import type { StoredImage, StoredOriginal } from '@/storage';
+import { sha256Hex, type StoredImage, type StoredOriginal } from '@/storage';
 
 /**
  * Taking a file and making it a picture for a deck (EL-4): what it really is, how big it is, scaled
@@ -122,11 +122,6 @@ export interface Imported {
   readonly scaledFrom?: { readonly width: number; readonly height: number };
   /** The picture as it came in, when it was scaled down and is small enough to be worth keeping. */
   readonly original?: StoredOriginal;
-}
-
-async function sha256Hex(bytes: Uint8Array<ArrayBuffer>): Promise<string> {
-  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
-  return Array.from(digest, (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
 /** Decode the bytes in the page, to learn the size and to be able to draw them again. */

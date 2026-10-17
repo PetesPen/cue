@@ -1,0 +1,11 @@
+/* The banner that offers a waiting version (UX-7): the warning banner of the States board, laid over the
+   bottom of the page so it is seen in the editor, the library and anywhere else. */
+.update-banner {
+  position: fixed;
+  bottom: var(--space-4);
+  left: 50%;
+  z-index: 30;
+  width: min(680px, calc(100vw - 2 * var(--space-4)));
+  box-shadow: var(--shadow-popover);
+  transform: translateX(-50%);
+}

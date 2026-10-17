@@ -26,11 +26,11 @@ File round-trip property test; corrupt-file rejection; four-browser end to end; 
 As a presenter, I want to save a deck to a file and open it again, so that I can back it up and move it between computers.
 
 Acceptance criteria:
-- [ ] "Save as file" downloads a single self-contained file in the app's own format, with images and fonts included.
-- [ ] Opening the file recreates the deck exactly, including animations, transitions and notes.
-- [ ] Files from a newer version of the app open with a clear message if some features are unsupported.
-- [ ] A corrupt or foreign file is rejected with a clear message and nothing is overwritten.
-- [ ] Carried over from sprint 1 (SV-1): the "Storage is almost full" and "Changes can't be saved" banners offer **Export deck** (today they offer Manage storage and Try again), and the delete confirmation says "Export a copy first if you might want it back". Also show a deck Cue cannot read as a card with a Delete action (decision 17).
+- [x] "Save as file" downloads a single self-contained file in the app's own format, with images and fonts included.
+- [x] Opening the file recreates the deck exactly, including animations, transitions and notes.
+- [x] Files from a newer version of the app open with a clear message if some features are unsupported.
+- [x] A corrupt or foreign file is rejected with a clear message and nothing is overwritten.
+- [x] Carried over from sprint 1 (SV-1): the "Storage is almost full" and "Changes can't be saved" banners offer **Export deck** (today they offer Manage storage and Try again), and the delete confirmation says "Export a copy first if you might want it back". Also show a deck Cue cannot read as a card with a Delete action (decision 17).
 
 Design: [`Home`](../../design/screenshots/Home.png) ([source](../../design/boards/Home.dc.html)), [`Export-Dialog`](../../design/screenshots/Export-Dialog.png) ([source](../../design/boards/Export-Dialog.dc.html)), [`States`](../../design/screenshots/States.png) ([source](../../design/boards/States.dc.html))
 
@@ -41,9 +41,9 @@ Tests: write each criterion as a Given / When / Then example first; each example
 As a presenter, I want it to run in my browser, so that I can use it anywhere without installing anything.
 
 Acceptance criteria:
-- [ ] Supported: current versions of Chrome, Edge, Firefox and Safari on desktop.
-- [ ] Presentation mode's two-window behaviour is tested in all four, with any browser-specific limits explained in the app.
-- [ ] Phone-sized screens show a friendly "use a larger screen to edit" message, though HTML exports play on any device.
+- [x] Supported: current versions of Chrome, Edge, Firefox and Safari on desktop.
+- [ ] Presentation mode's two-window behaviour is tested in all four, with any browser-specific limits explained in the app. (Tested on Chromium, Firefox and WebKit in CI and Edge nightly; real Safari is a manual check.)
+- [x] Phone-sized screens show a friendly "use a larger screen to edit" message, though HTML exports play on any device.
 
 Design: [`States`](../../design/screenshots/States.png) ([source](../../design/boards/States.dc.html))
 
@@ -54,11 +54,11 @@ Tests: write each criterion as a Given / When / Then example first; each example
 As a presenter, I want to install Cue and open it with no internet connection, so that I can build and present anywhere, including a venue with no Wi-Fi.
 
 Acceptance criteria:
-- [ ] After one visit, the app opens and my decks load with the network switched off.
-- [ ] Where the browser supports installing, a clear "Install" action adds Cue as an app with its own window and icon. Where it does not, no install prompt shows and the app works in a tab.
-- [ ] A new version waits until I choose to update, never replaces the app while I am editing, and never touches my stored decks.
-- [ ] Starting a show from the installed app opens the audience window and keeps it in sync with the presenter view, or explains any browser-specific limit.
-- [ ] The app makes requests only to its own files.
+- [x] After one visit, the app opens and my decks load with the network switched off.
+- [ ] Where the browser supports installing, a clear "Install" action adds Cue as an app with its own window and icon. Where it does not, no install prompt shows and the app works in a tab. (The action and its absence are tested; the real install in Chrome, Edge and Safari is a manual check.)
+- [x] A new version waits until I choose to update, never replaces the app while I am editing, and never touches my stored decks.
+- [ ] Starting a show from the installed app opens the audience window and keeps it in sync with the presenter view, or explains any browser-specific limit. (Needs a real install: manual.)
+- [x] The app makes requests only to its own files.
 
 Design: none yet. The install action and the update prompt should reuse the toast and banner styles in [`States`](../../design/screenshots/States.png). If a new screen is needed, describe it and ask Peter.
 

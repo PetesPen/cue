@@ -1,4 +1,11 @@
-import { duplicateDeck, imageHashes, parseDeck, type Deck, type Env } from '@/model';
+import {
+  UnsupportedVersionError,
+  duplicateDeck,
+  imageHashes,
+  parseDeck,
+  type Deck,
+  type Env,
+} from '@/model';
 import { CueDatabase, type StoredImage, type StoredOriginal } from './database';
 
 /** What the library needs to draw a card: no need to hold every deck's slides in the list. */
@@ -11,9 +18,20 @@ export interface DeckSummary {
   readonly firstSlide: Deck['slides'][number];
 }
 
+/** A stored deck that cannot be read, so it can be shown and deleted (SV-3, decision 17). */
+export interface UnreadableDeck {
+  readonly id: string;
+  /** Its title, where the stored record still has one. */
+  readonly title: string | undefined;
+  /** It was saved by a newer Cue than this one: it may be fine in a newer one. */
+  readonly newer: boolean;
+}
+
 export interface DeckStore {
   /** Newest first (SV-2). */
   list(): Promise<DeckSummary[]>;
+  /** The decks `list` leaves out because they cannot be read: damaged, or from a newer Cue. */
+  listUnreadable(): Promise<UnreadableDeck[]>;
   /** `undefined` when no such deck is stored. Throws when what is stored is damaged or too new. */
   load(id: string): Promise<Deck | undefined>;
   /**
@@ -86,6 +104,26 @@ export function createDeckStore(databaseName = 'cue'): DeckStore {
         });
       }
       return summaries;
+    },
+
+    async listUnreadable() {
+      await writesSettled();
+      const unreadable: UnreadableDeck[] = [];
+      for (const stored of await db.decks.toArray()) {
+        const raw: unknown = stored;
+        try {
+          parseDeck(raw);
+        } catch (error) {
+          const title: unknown =
+            typeof raw === 'object' && raw !== null ? Reflect.get(raw, 'title') : undefined;
+          unreadable.push({
+            id: stored.id,
+            title: typeof title === 'string' && title !== '' ? title : undefined,
+            newer: error instanceof UnsupportedVersionError,
+          });
+        }
+      }
+      return unreadable;
     },
 
     async load(id) {
