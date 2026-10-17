@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { strToU8, zipSync } from 'fflate';
+import { strToU8, unzipSync, zipSync } from 'fflate';
 import { readFileSync } from 'node:fs';
 import { autumnLaunch } from '../tests/fixtures/autumnLaunch';
 import { pictureFile, png } from './support/pictures';
@@ -39,6 +39,17 @@ test.describe('Given Autumn Launch with a picture added (SV-3)', () => {
     await page.waitForTimeout(800);
 
     const path = await exportDeck(page, info.outputPath('autumn.slides'));
+
+    // The file carries the fonts the deck uses, each with its licence (decision 38), and the picture once.
+    const names = Object.keys(unzipSync(readFileSync(path)));
+    expect(names).toContain('deck.json');
+    expect(names.filter((name) => name.startsWith('images/'))).toHaveLength(1);
+    expect(names).toContain('fonts/instrument-sans/OFL.txt');
+    expect(
+      names.some((name) => name.startsWith('fonts/instrument-sans/') && name.endsWith('.woff2')),
+    ).toBe(true);
+    // A family the deck does not use is not in it.
+    expect(names.some((name) => name.startsWith('fonts/caveat/'))).toBe(false);
 
     // Somewhere else: another browser profile, with nothing in it.
     const elsewhere = await browser.newContext({ viewport: { width: 1440, height: 900 } });
