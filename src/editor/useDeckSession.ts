@@ -36,6 +36,7 @@ import {
   type StoredOriginal,
 } from '@/storage';
 import { useImageCache } from './imageCache';
+import { peekEditor } from './resume';
 import { idsOf, labelFor } from './historyLabels';
 
 type Loaded =
@@ -122,8 +123,8 @@ export interface DeckSession {
    * the deck is left. Returns the way to unregister.
    */
   readonly registerFlush: (flush: () => void) => () => void;
-  /** Give whatever is still being typed to the deck and save it at once (Ctrl+S). */
-  readonly saveNow: () => void;
+  /** Give whatever is still being typed to the deck and save it at once (Ctrl+S). Resolves when it is on disk. */
+  readonly saveNow: () => Promise<void>;
   /** Try saving again after a failed save. */
   readonly retrySave: () => void;
 }
@@ -190,7 +191,10 @@ export function useDeckSession(
           return;
         }
         deckRef.current = deck;
-        currentRef.current = deck.slides[0]?.id;
+        // A deck opens on its first slide; back from a show, on the slide that was open.
+        const resumed = peekEditor(deckId)?.slideId;
+        currentRef.current = (deck.slides.find((slide) => slide.id === resumed) ?? deck.slides[0])
+          ?.id;
         setCurrentSlideId(currentRef.current);
         setLoaded({ phase: 'ready', deck });
       })
@@ -505,9 +509,9 @@ export function useDeckSession(
     [dispatch, env],
   );
 
-  const saveNow = useCallback(() => {
+  const saveNow = useCallback(async () => {
     for (const pending of flushers.current) pending();
-    void saver.current?.flush();
+    await saver.current?.flush();
   }, []);
 
   const registerFlush = useCallback((flush: () => void) => {

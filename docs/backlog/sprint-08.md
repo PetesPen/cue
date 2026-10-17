@@ -11,15 +11,17 @@ A complete presenting experience.
 
 ## Demo at the review
 
-Rehearse a full talk: synced windows, resizable notes, next preview, navigation.
+Rehearse a full talk: synced windows, resizable notes, next preview, navigation; set a transition's direction and length and apply it to every slide.
 
 ## Key automated tests
 
 Sync under 100 ms; divider and text size memory; keyboard navigation table tests.
 
-## Stories (4)
+## Stories (6)
 
-4 Must, 0 Should. Story order below is the suggested build order.
+TN-2 and TN-3 moved here from sprint 11 on 2026-10-17: sprint 7 had built much of PM-3 to PM-6 (see `docs/plans/sprint-08.md`), and Peter approved the move with the plans.
+
+4 Must, 2 Should. Story order below is the suggested build order.
 
 ### PM-3 Keep both windows in sync (Must)
 
@@ -76,6 +78,30 @@ Acceptance criteria:
 Design: [`Presenter`](../../design/screenshots/Presenter.png) ([source](../../design/boards/Presenter.dc.html))
 
 Tests: write each criterion as a Given / When / Then example first; each example becomes a test name. At least one end-to-end test is required (Must story).
+
+### TN-2 Set duration and direction (Should)
+
+As a presenter, I want to adjust how long a transition takes and which way it moves, so that it suits the moment.
+
+Acceptance criteria:
+- [ ] Duration from 0.2 to 3 seconds, defaulting to 0.6 seconds.
+- [ ] Slide and Push can come from the left, right, top or bottom.
+
+Design: [`Editor-Transition`](../../design/screenshots/Editor-Transition.png) ([source](../../design/boards/Editor-Transition.dc.html))
+
+Tests: write each criterion as a Given / When / Then example first; each example becomes a test name. Push tests down the pyramid where possible.
+
+### TN-3 Apply to all slides (Should)
+
+As a presenter, I want to apply one transition to the whole deck, so that I do not have to set it slide by slide.
+
+Acceptance criteria:
+- [ ] An "Apply to all slides" button copies the transition settings to every slide.
+- [ ] It can be undone in one step.
+
+Design: [`Editor-Transition`](../../design/screenshots/Editor-Transition.png) ([source](../../design/boards/Editor-Transition.dc.html))
+
+Tests: write each criterion as a Given / When / Then example first; each example becomes a test name. Push tests down the pyramid where possible.
 
 ## Definition of done reminder
 

@@ -177,7 +177,7 @@ Reviews with the product owner happen every other sprint (agreed 2026-10-16), an
 | 4 | First full show | 10 | Can you deliver a real talk from start to finish, with all 39 Must stories working? |
 | 5 | v1.0 | 13 | Is the release candidate good on all four browsers, with every budget met? |
 
-**Status:** Gate 1 passed on 2026-10-15 and Gate 2 on 2026-10-16 (both accepted by Peter). Gates 3 to 5 are open. Only the criteria for Gates 1 and 2 are written so far. The criteria for each later gate are written at the start of the sprint that ends in it.
+**Status:** Gate 1 passed on 2026-10-15, Gate 2 on 2026-10-16 and Gate 3 ("Motion beta") on 2026-10-17 (all accepted by Peter). Gates 4 and 5 are open. The criteria for Gates 1 to 3 are written. The criteria for each later gate are written at the start of the sprint that ends in it.
 
 **Gate 1 criteria** (written by Claude on 2026-10-15, because the plan did not define them; the product owner can change them):
 
@@ -198,7 +198,7 @@ Gate 1 is not about the spike code or about every risk being gone. It is the ans
 
 Gate 2 is not about polish (slide backgrounds, snapping and a layers panel are later stories) or about animation and presenting (sprints 5 to 8).
 
-**Gate 3 criteria** (proposed by Claude on 2026-10-16, in `docs/plans/sprint-07.md`; the product owner can change them). The question is "do animations, transitions and the two windows work well enough to try a real talk?":
+**Gate 3 criteria** (written by Claude on 2026-10-16, in `docs/plans/sprint-07.md`, and approved by Peter on 2026-10-17 with the plan; the product owner can change them). The question is "do animations, transitions and the two windows work well enough to try a real talk?":
 
 1. **Every acceptance criterion of sprints 5 to 7 is shown working** on the preview deployment, with its tests green on Chromium, Firefox and WebKit.
 2. **A real deck is presented in two windows.** The fixture deck Autumn Launch is presented from its first slide to its last, in two windows, by an end-to-end test: the hero slide plays its three clicks, slides arrive with their transitions, and Esc returns the editor as it was.
@@ -220,10 +220,10 @@ If a gate's criteria are not met, the next sprint closes the gap before any new 
 | 5 | Keyboard, speed and first animations | UX-2, UX-3, AN-1, AN-2, TR-3, SL-5 (colour), AN-4 | 19 | Drive the editor by keyboard; set a slide background; elements fade in and out on click in preview, with timing you choose | Performance budgets for 50 elements and 50 slides; motion resolver unit tests; easing and duration unit tests; opacity match across renderers |
 | 6 | Motion and sequencing | AN-3, AN-5, AN-6, TN-1, EL-6 | 20 | Move an element along a ghost path, reorder click steps, pick a transition; snap to guides and align | Step-order table tests; preview returns elements to editing positions; snap and align unit tests |
 | 7 | Transitions and the two windows | TN-4, TN-5, PM-1, PM-2 | 14 | Preview transitions; start a show in two windows | Two-page end to end; blocked pop-up path; transition frame-time sampling |
-| 8 | A complete presenting experience | PM-3, PM-4, PM-5, PM-6 | 14 | Rehearse a full talk: synced windows, resizable notes, next preview, navigation | Sync under 100 ms; divider and text size memory; keyboard navigation table tests |
+| 8 | A complete presenting experience | PM-3, PM-4, PM-5, PM-6, TN-2, TN-3 | 14 | Rehearse a full talk: synced windows, resizable notes, next preview, navigation; set a transition's direction and length, apply it to every slide | Sync under 100 ms; divider and text size memory; keyboard navigation table tests |
 | 9 | Deck files, browsers and offline use | SV-3, UX-5, UX-7 | 16 | Save a deck file and open it in another browser; install Cue and open it with the network off | File round-trip property test; corrupt-file rejection; four-browser end to end; offline reload with the service worker |
 | 10 | Standalone HTML | SV-4, SV-5 | 12 | Present from one offline HTML file that matches the editor | No-network export test; three-renderer pixel comparison; 30-slide timing |
-| 11 | Polish: layers, motion, transitions | ZO-2, ZO-3, TR-2, AN-7, TN-2, TN-3 | 14 | Layers panel, step back, direction, apply to all | Layer drag tests; step-back resolver tests |
+| 11 | Polish: layers, motion, transparency | ZO-2, ZO-3, TR-2, AN-7 | 14 | Layers panel, step back, fill and text transparency | Layer drag tests; step-back resolver tests |
 | 12 | Polish: layout, timer, access | SL-5 (image), PM-7, UX-4, UX-6 | 8 | Image backgrounds, timer colours, zoom, keyboard-only use | Timer state tests; full axe scan and keyboard end to end |
 | 13 | Release hardening | None. Bugs, performance, documentation, browser matrix | 16 | A v1.0 release candidate on all four browsers | Full matrix; nightly performance green; zero axe violations; long-session soak test |
 

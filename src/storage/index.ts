@@ -11,5 +11,6 @@ export {
   readStorageUsage,
 } from './quota';
 export type { StorageUsage } from './quota';
+export { ImageCache } from './imageCache';
 export { createDeckStore } from './store';
 export type { DeckStore, DeckSummary } from './store';

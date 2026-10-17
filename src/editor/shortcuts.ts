@@ -53,37 +53,32 @@ export const SHORTCUTS: readonly Shortcut[] = [
     label: 'Start from the beginning',
     group: 'Presenting',
     keys: ['Mod', 'Enter'],
-    planned: true,
   },
   {
     id: 'present.here',
     label: 'Start from this slide',
     group: 'Presenting',
     keys: ['Mod', 'Shift', 'Enter'],
-    planned: true,
   },
   {
     id: 'present.next',
     label: 'Next click or slide',
     group: 'Presenting',
     keys: ['→', 'Space'],
-    planned: true,
   },
   {
     id: 'present.previous',
     label: 'Previous click or slide',
     group: 'Presenting',
     keys: ['←'],
-    planned: true,
   },
   {
     id: 'present.blank',
     label: 'Blank the screen',
     group: 'Presenting',
     keys: ['B'],
-    planned: true,
   },
-  { id: 'present.end', label: 'End the show', group: 'Presenting', keys: ['Esc'], planned: true },
+  { id: 'present.end', label: 'End the show', group: 'Presenting', keys: ['Esc'] },
 ];
 
 /** Is this a Mac, where Mod is ⌘? Read when asked, so a test can change it. */

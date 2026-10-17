@@ -1,15 +1,23 @@
 import { useEffect, useMemo } from 'react';
 import { setImageSource } from '@/render';
-import type { DeckStore } from '@/storage';
+import { ImageCache, type DeckStore } from '@/storage';
 import { EditorScreen } from './EditorScreen';
-import { ImageCache, ImageCacheContext } from './imageCache';
+import { ImageCacheContext } from './imageCache';
+import { PresentContext, type OpenAudience } from './PresentContext';
 import { Home } from './Home';
 import { useRoute } from './route';
 import { DeckStoreProvider } from './StoreContext';
 import './controls.css';
 
 /** Cue's two screens, the deck library and the editor, chosen by the address hash. */
-export function EditorApp({ store }: { readonly store: DeckStore }) {
+export function EditorApp({
+  store,
+  openAudience,
+}: {
+  readonly store: DeckStore;
+  /** Opens the audience window of a show (PM-1). Without it the editor has no Present button. */
+  readonly openAudience?: OpenAudience;
+}) {
   const route = useRoute();
   // The pictures are loaded as slides need them; the slide renderer asks this cache for them (EL-4).
   const images = useMemo(() => new ImageCache(store), [store]);
@@ -26,12 +34,14 @@ export function EditorApp({ store }: { readonly store: DeckStore }) {
   return (
     <ImageCacheContext value={images}>
       <DeckStoreProvider store={store}>
-        {route.page === 'deck' ? (
-          // Keyed by deck, so opening another deck starts a fresh session.
-          <EditorScreen key={route.deckId} deckId={route.deckId} />
-        ) : (
-          <Home />
-        )}
+        <PresentContext value={openAudience}>
+          {route.page === 'deck' ? (
+            // Keyed by deck, so opening another deck starts a fresh session.
+            <EditorScreen key={route.deckId} deckId={route.deckId} />
+          ) : (
+            <Home />
+          )}
+        </PresentContext>
       </DeckStoreProvider>
     </ImageCacheContext>
   );

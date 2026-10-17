@@ -12,10 +12,10 @@ One file per sprint, with the stories (full acceptance criteria), demo, key test
 | [5](sprint-05.md) | Keyboard, speed and first animations | 19 | UX-2, UX-3, AN-1, AN-2, TR-3, SL-5 (colour), AN-4 |
 | [6](sprint-06.md) | Motion and sequencing | 20 | AN-3, AN-5, AN-6, TN-1, EL-6 |
 | [7](sprint-07.md) | Transitions and the two windows | 14 | TN-4, TN-5, PM-1, PM-2 |
-| [8](sprint-08.md) | A complete presenting experience | 14 | PM-3, PM-4, PM-5, PM-6 |
+| [8](sprint-08.md) | A complete presenting experience | 14 | PM-3, PM-4, PM-5, PM-6, TN-2, TN-3 |
 | [9](sprint-09.md) | Deck files, browsers and offline use | 16 | SV-3, UX-5, UX-7 |
 | [10](sprint-10.md) | Standalone HTML | 12 | SV-4, SV-5 |
-| [11](sprint-11.md) | Polish: layers, motion, transitions | 14 | ZO-2, ZO-3, TR-2, AN-7, TN-2, TN-3 |
+| [11](sprint-11.md) | Polish: layers, motion, transparency | 14 | ZO-2, ZO-3, TR-2, AN-7 |
 | [12](sprint-12.md) | Polish: layout, timer, access | 8 | SL-5 (image), PM-7, UX-4, UX-6 |
 | [13](sprint-13.md) | Release hardening | 16 | (none) |
 | [After v1.0](after-v1.md) | Stretch | n/a | EL-9, PM-8, SV-6, TH-1, TH-2, TH-3 |
@@ -54,8 +54,8 @@ One file per sprint, with the stories (full acceptance criteria), demo, key test
 | AN-6 | Preview animations | Must | [6](sprint-06.md) |
 | AN-7 | Go back a step | Should | [11](sprint-11.md) |
 | TN-1 | Choose a transition | Must | [6](sprint-06.md) |
-| TN-2 | Set duration and direction | Should | [11](sprint-11.md) |
-| TN-3 | Apply to all slides | Should | [11](sprint-11.md) |
+| TN-2 | Set duration and direction | Should | [8](sprint-08.md) |
+| TN-3 | Apply to all slides | Should | [8](sprint-08.md) |
 | TN-4 | Preview a transition | Must | [7](sprint-07.md) |
 | TN-5 | Transitions play smoothly | Must | [7](sprint-07.md) |
 | PM-1 | Start a presentation | Must | [7](sprint-07.md) |

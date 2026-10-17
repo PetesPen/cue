@@ -18,14 +18,17 @@ export function Inspector({
   animate,
   transition,
   onTab,
+  initialTab = 'design',
 }: {
   readonly design?: ReactNode;
   readonly animate?: ReactNode;
   readonly transition?: ReactNode;
   /** Told when the tab changes, and once at the start. */
   readonly onTab?: (tab: TabId) => void;
+  /** The tab that is open to begin with (the editor coming back from a show). */
+  readonly initialTab?: TabId;
 }) {
-  const [active, setOpen] = useState<TabId>('design');
+  const [active, setOpen] = useState<TabId>(initialTab);
   const setActive = (tab: TabId) => {
     setOpen(tab);
     onTab?.(tab);

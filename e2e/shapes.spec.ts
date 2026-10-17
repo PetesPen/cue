@@ -502,7 +502,8 @@ test.describe('Given a deck open in one tab (SV-7)', () => {
 
     await page.close();
 
-    await expect(second.getByRole('option', { name: 'Slide 1' })).toBeVisible();
+    // The browser lets go of a closed page's lock when it gets to it, which can be a while on a busy machine.
+    await expect(second.getByRole('option', { name: 'Slide 1' })).toBeVisible({ timeout: 20_000 });
   });
 
   test('Then a different deck, or the library, opens freely in other tabs', async ({

@@ -451,3 +451,18 @@
   background: var(--color-white);
   color: var(--color-forest);
 }
+
+/* "Slide 2 -> Slide 3" on the Transition tab's bar (board: Editor-Transition). */
+.transition-between {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
+  font: var(--type-caption);
+  color: var(--color-muted);
+}
+
+.transition-between strong {
+  font-weight: 600;
+  color: var(--color-forest);
+}
