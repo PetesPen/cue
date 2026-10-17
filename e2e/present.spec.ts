@@ -1,14 +1,13 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { autumnLaunch } from '../tests/fixtures/autumnLaunch';
 import { savedDecksText } from './support/db';
 import { seedDeck } from './support/seed';
+import { DECK, openDeck, opacityOf, present, settled } from './support/show';
 
 // Sprint 7: present in two windows (PM-1, PM-2) with the keys of the show (PM-6's first part).
 
 test.use({ viewport: { width: 1440, height: 900 } });
-
-const DECK = 'autumn-launch';
 
 /** Each slide of a stored deck with the kind of transition into it. */
 function slideSummaries(deck: object): { readonly id: string; readonly kind: string }[] {
@@ -21,38 +20,6 @@ function slideSummaries(deck: object): { readonly id: string; readonly kind: str
       typeof arrives === 'object' && arrives !== null ? Reflect.get(arrives, 'kind') : undefined;
     return { id: String(Reflect.get(slide, 'id')), kind: String(kind) };
   });
-}
-
-/** The slides a window is drawing: two while a transition plays. */
-const shown = (page: Page): Locator => page.locator('.show-stage .cue-layer .cue-slide');
-/** A window that shows slide `id` and nothing else: it has arrived, no transition is playing. */
-const settled = (page: Page, id: string): Locator =>
-  page.locator(
-    `.show-stage .cue-stage:not(:has(.cue-layer + .cue-layer)) .cue-slide[data-slide-id="${id}"]`,
-  );
-const opacityOf = (page: Page, element: string) =>
-  page
-    .locator(`.show-stage [data-element-id="${element}"]`)
-    .evaluate((node) => Number(getComputedStyle(node).opacity));
-
-async function openDeck(page: Page) {
-  await seedDeck(page, autumnLaunch(), DECK);
-}
-
-/** Press Present from the beginning and take the audience window it opens. */
-async function present(page: Page, from: 'start' | 'current' = 'start'): Promise<Page> {
-  const opened = page.waitForEvent('popup');
-  if (from === 'start') {
-    await page.getByRole('button', { name: 'Present', exact: true }).click();
-  } else {
-    await page.getByRole('button', { name: 'Ways to present' }).click();
-    await page.getByRole('menuitem', { name: 'Present from this slide' }).click();
-  }
-  const audience = await opened;
-  await audience.waitForLoadState();
-  await expect(shown(audience)).toHaveCount(1);
-  await expect(shown(page)).toHaveCount(1);
-  return audience;
 }
 
 test.describe('Given Autumn Launch, When Present is pressed (PM-1, PM-2)', () => {

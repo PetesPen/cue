@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { clickCount, playsFor, upcoming, type Slide, type Step } from '@/model';
 import { ArrowLeftIcon, ArrowRightIcon, Logo, PauseIcon, PlayIcon, ResetIcon } from './icons';
 import { ShowStage } from './ShowStage';
@@ -81,9 +81,20 @@ function useStopwatch() {
  * tab during a show, and it draws what the audience sees with the same stage, so a transition plays
  * here too.
  */
-export function PresenterView({ show }: { readonly show: Show }) {
+export function PresenterView({
+  show,
+  blocked = false,
+  onReconnect,
+}: {
+  readonly show: Show;
+  /** The browser refused the last try at reopening the audience window. */
+  readonly blocked?: boolean;
+  /** Ask for the audience window again; called from the Reconnect click. */
+  readonly onReconnect?: () => void;
+}) {
   const { deck } = show;
   const place = useShowPlace(show);
+  const audience = useSyncExternalStore(show.subscribe, show.getAudience);
   const slide = deck.slides[place.slide];
   const clock = useStopwatch();
   const { start: startTimer } = clock;
@@ -153,6 +164,21 @@ export function PresenterView({ show }: { readonly show: Show }) {
           </button>
         </div>
       </header>
+
+      <div className="pv-banner-area">
+        {audience === 'gone' && onReconnect && (
+          <div className="pv-banner" role="status">
+            <p>
+              {blocked
+                ? 'Your browser blocked the audience window. Allow pop-ups for this site, then try again.'
+                : 'The audience window was closed. The show goes on here.'}
+            </p>
+            <button type="button" className="pv-button pv-button-small" onClick={onReconnect}>
+              {blocked ? 'Try again' : 'Reconnect'}
+            </button>
+          </div>
+        )}
+      </div>
 
       <main className="pv-main">
         <section className="pv-top" aria-label="On screen and next">

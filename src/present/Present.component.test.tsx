@@ -182,6 +182,41 @@ describe('the presenter view (PM-2)', () => {
   });
 });
 
+describe('the presenter view when the audience window is gone (PM-3)', () => {
+  test('Given an audience window that is gone, Then the view says so and offers Reconnect; given it is not, Then it says nothing', async () => {
+    const show = join();
+    const reconnect = vi.fn();
+    const screen = await render(<PresenterView show={show} onReconnect={reconnect} />);
+    expect(screen.getByRole('status').elements()).toHaveLength(0);
+
+    show.markAudienceGone();
+
+    await expect
+      .element(screen.getByText('The audience window was closed. The show goes on here.'))
+      .toBeVisible();
+    await userEvent.click(screen.getByRole('button', { name: 'Reconnect' }).element());
+    expect(reconnect).toHaveBeenCalledTimes(1);
+    // The show goes on meanwhile.
+    await userEvent.keyboard('{ArrowRight}');
+    await expect.element(screen.getByText('Slide 2 of 3')).toBeVisible();
+  });
+
+  test('Given a new audience window being asked for, Then the notice goes; given the browser blocked it, Then it says how to allow it', async () => {
+    const show = join();
+    const screen = await render(<PresenterView show={show} blocked onReconnect={vi.fn()} />);
+    show.markAudienceGone();
+
+    await expect
+      .element(screen.getByText(/Your browser blocked the audience window/))
+      .toBeVisible();
+    await expect.element(screen.getByRole('button', { name: 'Try again' })).toBeVisible();
+
+    show.expectAudience();
+
+    await expect.poll(() => screen.getByRole('status').elements()).toHaveLength(0);
+  });
+});
+
 describe('the audience window (PM-1, PM-2)', () => {
   test('Given a show, When the window opens, Then it has the slide and only a hint, and no controls', async () => {
     const show = join(startShow(deck, 1));

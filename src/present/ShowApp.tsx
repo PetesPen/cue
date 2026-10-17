@@ -4,7 +4,8 @@ import { setImageSource } from '@/render';
 import { ImageCache, type DeckStore } from '@/storage';
 import { AudienceWindow } from './AudienceWindow';
 import { createShowChannel } from './channel';
-import { closeAudienceWindow } from './open';
+import { audienceWindowClosed, closeAudienceWindow, openAudienceWindow } from './open';
+import { clearPlace, readPlace, wasReloaded, writePlace } from './placeStore';
 import { preloadDeck } from './preload';
 import { PresenterView } from './PresenterView';
 import { Show } from './show';
@@ -102,16 +103,16 @@ function ShowWindow({
   readonly slide: number;
 }) {
   const [ended, setEnded] = useState(false);
-  const show = useMemo(
-    () =>
-      new Show(
-        deck,
-        startShow(deck, slide),
-        view,
-        view === 'single' ? undefined : () => createShowChannel(deck.id),
-      ),
-    [deck, view, slide],
-  );
+  const show = useMemo(() => {
+    // A reload picks the show up where it was; a new show starts where it was asked to.
+    const restored = wasReloaded() ? readPlace(deck.id, view) : undefined;
+    return new Show(deck, restored ?? startShow(deck, slide), view, {
+      ...(view === 'single' ? {} : { openChannel: () => createShowChannel(deck.id) }),
+      onPlace: (place) => {
+        writePlace(deck.id, view, place);
+      },
+    });
+  }, [deck, view, slide]);
 
   useEffect(() => {
     const hangUp = show.connect();
@@ -127,11 +128,33 @@ function ShowWindow({
         returnToEditor(deck.id);
       }
     });
+    // An audience window the person at the show closes by hand is noticed here at once (this tab opened it);
+    // one that died some other way is noticed by its lock (PM-3).
+    const watch =
+      view === 'presenter'
+        ? setInterval(() => {
+            if (audienceWindowClosed()) show.markAudienceGone();
+          }, 1000)
+        : undefined;
     return () => {
+      clearInterval(watch);
       stopHearing();
       hangUp();
+      // The show is over for this window (a reload does not get here): nothing to pick up again.
+      clearPlace(deck.id, view);
     };
   }, [show, view, deck.id]);
+
+  /** Reconnect: ask for the audience window again, from this click. */
+  const [blocked, setBlocked] = useState(false);
+  const reconnect = () => {
+    if (openAudienceWindow(deck.id, show.getPlace().slide)) {
+      setBlocked(false);
+      show.expectAudience();
+    } else {
+      setBlocked(true);
+    }
+  };
 
   if (ended) {
     return (
@@ -141,5 +164,9 @@ function ShowWindow({
       </main>
     );
   }
-  return view === 'presenter' ? <PresenterView show={show} /> : <AudienceWindow show={show} />;
+  return view === 'presenter' ? (
+    <PresenterView show={show} blocked={blocked} onReconnect={reconnect} />
+  ) : (
+    <AudienceWindow show={show} />
+  );
 }
