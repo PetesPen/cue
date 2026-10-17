@@ -137,3 +137,36 @@
 .home-main > .banner {
   margin-bottom: var(--space-2);
 }
+
+/* Open file beside New deck (board: Home). */
+.home-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.empty-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+/* A file that could not be opened: the red banner of the States board, with a way to try another. */
+.banner-file .button-on-danger {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+/* A stored deck Cue cannot read (decision 17): a card that says so, with Delete in its menu. */
+.deck-card-unreadable .deck-thumb-unreadable {
+  display: grid;
+  aspect-ratio: 16 / 9;
+  place-items: center;
+  border-style: dashed;
+  background: var(--color-danger-tint);
+  color: var(--color-danger);
+}
+
+.deck-card-unreadable .deck-open:hover .deck-thumb {
+  border-color: var(--color-hairline);
+}

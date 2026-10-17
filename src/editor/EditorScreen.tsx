@@ -57,6 +57,8 @@ import type { SlideViewHandle } from './SlideView';
 import { Logo } from './Logo';
 import { NotesField } from './NotesField';
 import { BlockedAudienceDialog } from './BlockedAudienceDialog';
+import { makeFileFor } from './deckFiles';
+import { ExportDialog } from './ExportDialog';
 import { ContextMenu, MenuButton, type MenuItem } from './Menu';
 import { useOpenAudience } from './PresentContext';
 import { clearEditor, peekEditor, rememberEditor } from './resume';
@@ -361,6 +363,24 @@ function Editor({
   const [blockedAt, setBlockedAt] = useState<number | undefined>();
   const presentButton = useRef<HTMLButtonElement>(null);
 
+  // Export (SV-3): the deck as a file, made from the deck as it is now, typed text and unsaved pictures
+  // included, so that it works even when a save is failing.
+  const store = useDeckStore();
+  const [exporting, setExporting] = useState(false);
+  const exportButton = useRef<HTMLButtonElement>(null);
+  function openExport() {
+    text.finish();
+    stopPreview();
+    stopTransition();
+    setMenuAt(undefined);
+    setExporting(true);
+  }
+  const makeExport = async () => {
+    const snapshot = session.exportSnapshot();
+    if (!snapshot) throw new Error('This deck is not open.');
+    return makeFileFor(store, snapshot.deck, snapshot);
+  };
+
   function startShow(slideIndex: number) {
     rememberEditor({ deckId: deck.id, slideId: currentSlide.id, selection: selectedIds, tab });
     if (openAudience?.(deck.id, slideIndex)) {
@@ -607,6 +627,7 @@ function Editor({
     present: (from: 'start' | 'current') => {
       void present(from);
     },
+    openExport,
   });
   useEffect(() => {
     latest.current = {
@@ -625,6 +646,7 @@ function Editor({
       present: (from: 'start' | 'current') => {
         void present(from);
       },
+      openExport,
     };
   });
   useEffect(() => {
@@ -635,6 +657,12 @@ function Editor({
       if (mod && !event.altKey && !event.shiftKey && key === 's') {
         event.preventDefault();
         void latest.current.saveNow();
+        return;
+      }
+      // Export the deck.
+      if (mod && !event.altKey && !event.shiftKey && key === 'e') {
+        event.preventDefault();
+        if (!event.repeat) latest.current.openExport();
         return;
       }
       // Present from the beginning, or with Shift from this slide.
@@ -984,6 +1012,17 @@ function Editor({
           </div>
           <div className="top-right">
             <SaveIndicator state={saveState} />
+            <Hint label="Export" shortcut="general.export">
+              <button
+                ref={exportButton}
+                type="button"
+                className="button"
+                aria-keyshortcuts="Control+E Meta+E"
+                onClick={openExport}
+              >
+                Export
+              </button>
+            </Hint>
             {openAudience && (
               <div className="present-split">
                 <Hint label="Present" shortcut="present.start">
@@ -1016,9 +1055,16 @@ function Editor({
 
         <div className="banner-area">
           {saveState.status === 'failed' ? (
-            <SaveFailedBanner reason={saveState.reason} onRetry={session.retrySave} />
+            <SaveFailedBanner
+              reason={saveState.reason}
+              onRetry={session.retrySave}
+              onExport={openExport}
+            />
           ) : (
-            usage && isNearlyFull(usage) && <NearlyFullBanner usage={usage} withManageLink />
+            usage &&
+            isNearlyFull(usage) && (
+              <NearlyFullBanner usage={usage} withManageLink onExport={openExport} />
+            )
           )}
         </div>
 
@@ -1141,6 +1187,18 @@ function Editor({
         </main>
 
         <Toasts toasts={liveToasts} onDismiss={dismissToast} />
+
+        {exporting && (
+          <ExportDialog
+            title={deck.title}
+            slideCount={deck.slides.length}
+            make={makeExport}
+            returnFocusTo={exportButton}
+            onClose={() => {
+              setExporting(false);
+            }}
+          />
+        )}
 
         {blockedAt !== undefined && (
           <BlockedAudienceDialog

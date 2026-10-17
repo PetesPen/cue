@@ -125,6 +125,13 @@ export interface DeckSession {
    * the deck is left. Returns the way to unregister.
    */
   readonly registerFlush: (flush: () => void) => () => void;
+  /**
+   * The deck as it is this moment, typed text included, with the pictures that are not stored yet: what an
+   * export must hold, even when a save is failing (SV-3).
+   */
+  readonly exportSnapshot: () =>
+    | { readonly deck: Deck; readonly images: StoredImage[]; readonly originals: StoredOriginal[] }
+    | undefined;
   /** Give whatever is still being typed to the deck and save it at once (Ctrl+S). Resolves when it is on disk. */
   readonly saveNow: () => Promise<void>;
   /** Try saving again after a failed save. */
@@ -523,6 +530,17 @@ export function useDeckSession(
     await saver.current?.flush();
   }, []);
 
+  const exportSnapshot = useCallback(() => {
+    for (const pending of flushers.current) pending();
+    const deck = deckRef.current;
+    if (deck === undefined) return undefined;
+    return {
+      deck,
+      images: [...pendingImages.current.values()],
+      originals: [...pendingOriginals.current.values()],
+    };
+  }, []);
+
   const registerFlush = useCallback((flush: () => void) => {
     flushers.current.add(flush);
     return () => {
@@ -573,6 +591,7 @@ export function useDeckSession(
     redoLabel: redoLabel(history),
     registerFlush,
     saveNow,
+    exportSnapshot,
     retrySave,
   };
 }

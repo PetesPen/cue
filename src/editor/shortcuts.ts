@@ -40,7 +40,7 @@ export const SHORTCUTS: readonly Shortcut[] = [
   { id: 'general.undo', label: 'Undo', group: 'General', keys: ['Mod', 'Z'] },
   { id: 'general.redo', label: 'Redo', group: 'General', keys: ['Mod', 'Shift', 'Z'] },
   { id: 'general.save', label: 'Save now', group: 'General', keys: ['Mod', 'S'] },
-  { id: 'general.export', label: 'Export', group: 'General', keys: ['Mod', 'E'], planned: true },
+  { id: 'general.export', label: 'Export', group: 'General', keys: ['Mod', 'E'] },
   { id: 'general.help', label: 'Show this list', group: 'General', keys: ['?'] },
 
   { id: 'element.text', label: 'Text box', group: 'Elements', keys: ['T'] },

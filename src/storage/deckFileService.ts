@@ -31,15 +31,26 @@ export function fileNameFor(title: string): string {
   return `${cleaned === '' ? 'Cue deck' : cleaned}${FILE_EXTENSION}`;
 }
 
-/** Everything the deck file of `deck` holds, read from the store and the app's own fonts. */
-async function gather(store: DeckStore, deck: Deck): Promise<DeckFile> {
+/** Pictures that are in the editor but not in the store yet (a save that has not worked, or has not happened). */
+export interface UnsavedPictures {
+  readonly images: readonly StoredImage[];
+  readonly originals: readonly StoredOriginal[];
+}
+
+/** Everything the deck file of `deck` holds, read from the store (and `unsaved`) and the app's own fonts. */
+async function gather(
+  store: DeckStore,
+  deck: Deck,
+  unsaved: UnsavedPictures | undefined,
+): Promise<DeckFile> {
   const images: StoredImage[] = [];
   const originals: StoredOriginal[] = [];
   for (const hash of imageHashes(deck)) {
-    const image = await store.loadImage(hash);
+    const image = unsaved?.images.find((i) => i.hash === hash) ?? (await store.loadImage(hash));
     if (!image) throw new Error('A picture of this deck cannot be read from this browser.');
     images.push(image);
-    const original = await store.loadOriginal(hash);
+    const original =
+      unsaved?.originals.find((o) => o.hash === hash) ?? (await store.loadOriginal(hash));
     if (original) originals.push(original);
   }
   return { deck, images, originals, fonts: await loadBundledFonts(fontsOfDeck(deck)) };
@@ -50,8 +61,9 @@ export async function makeDeckFile(
   store: DeckStore,
   deck: Deck,
   now: number,
+  unsaved?: UnsavedPictures,
 ): Promise<{ readonly file: Blob; readonly name: string; readonly bytes: number }> {
-  const bytes = packDeck(await gather(store, deck), now);
+  const bytes = packDeck(await gather(store, deck, unsaved), now);
   return {
     file: new Blob([new Uint8Array(bytes)], { type: FILE_TYPE }),
     name: fileNameFor(deck.title),

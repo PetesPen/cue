@@ -16,4 +16,4 @@ export type { DeckFileProblem } from './deckFileError';
 export { sha256Hex } from './hash';
 export { ImageCache } from './imageCache';
 export { createDeckStore } from './store';
-export type { DeckStore, DeckSummary } from './store';
+export type { DeckStore, DeckSummary, UnreadableDeck } from './store';

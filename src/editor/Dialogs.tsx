@@ -4,6 +4,8 @@ interface ModalProps {
   readonly titleId: string;
   /** The wide dialog of the shortcut list. */
   readonly wide?: boolean;
+  /** Another class for the dialog's own box (the export dialog sizes itself). */
+  readonly className?: string;
   readonly onClose: () => void;
   /** Focus goes back here when the dialog goes away. */
   readonly returnFocusTo?: RefObject<HTMLElement | null>;
@@ -11,7 +13,14 @@ interface ModalProps {
 }
 
 /** A modal on the browser's own `<dialog>`: focus is trapped, Escape closes it, the page behind is inert. */
-export function Modal({ titleId, wide = false, onClose, returnFocusTo, children }: ModalProps) {
+export function Modal({
+  titleId,
+  wide = false,
+  className,
+  onClose,
+  returnFocusTo,
+  children,
+}: ModalProps) {
   const dialog = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -26,7 +35,7 @@ export function Modal({ titleId, wide = false, onClose, returnFocusTo, children 
   return (
     <dialog
       ref={dialog}
-      className={wide ? 'dialog dialog-wide' : 'dialog'}
+      className={wide ? 'dialog dialog-wide' : className ? `dialog ${className}` : 'dialog'}
       aria-labelledby={titleId}
       onClose={onClose}
     >
@@ -53,7 +62,10 @@ export function ConfirmDeleteDialog({
       <h2 id={titleId} className="dialog-title">
         Delete “{deckTitle}”?
       </h2>
-      <p className="dialog-text">This removes the deck from this device and can’t be undone.</p>
+      <p className="dialog-text">
+        This removes the deck from this device and can’t be undone. Export a copy first if you might
+        want it back.
+      </p>
       <div className="dialog-actions">
         <button type="button" className="button button-compact" onClick={onCancel}>
           Cancel

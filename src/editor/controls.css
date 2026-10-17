@@ -550,3 +550,119 @@
 .shortcuts-search input:focus-visible {
   outline: none;
 }
+
+/* The Export dialog (SV-3; board: Export-Dialog). */
+.dialog-export {
+  width: min(600px, calc(100vw - 2 * var(--space-4)));
+  padding: 0;
+}
+
+.export-dialog {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+}
+
+.export-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.export-sub {
+  margin: 2px 0 0;
+  color: var(--color-muted);
+  font: var(--type-caption);
+}
+
+.export-options {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.export-option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+  background: var(--color-white);
+}
+
+.export-option-on {
+  border: 2px solid var(--color-accent);
+  background: var(--color-app-bg);
+}
+
+.export-option-off {
+  background: var(--color-app-bg);
+  color: var(--color-disabled-text);
+}
+
+.export-option input {
+  margin-top: 3px;
+  accent-color: var(--color-accent);
+}
+
+.export-option-body {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+}
+
+.export-option-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.export-option-text {
+  color: var(--color-muted);
+  font: var(--type-body);
+}
+
+.export-option-off .export-option-text,
+.export-option-off strong {
+  color: var(--color-muted);
+}
+
+.export-size {
+  color: var(--color-muted);
+  font: var(--type-caption);
+}
+
+.export-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--color-yellow);
+  color: var(--color-forest);
+  font: var(--type-caption);
+  font-weight: 600;
+}
+
+.export-error {
+  margin: 0;
+  color: var(--color-danger);
+}
+
+.export-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.export-note {
+  color: var(--color-muted);
+  font: var(--type-caption);
+}
+
+.export-actions {
+  margin-top: 0;
+}

@@ -1,9 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { systemEnv } from '@/model';
-import { formatBytes, isNearlyFull, type DeckStore, type DeckSummary } from '@/storage';
+import {
+  formatBytes,
+  isNearlyFull,
+  type DeckStore,
+  type DeckSummary,
+  type UnreadableDeck,
+} from '@/storage';
 import { ConfirmDeleteDialog, RenameDialog } from './Dialogs';
+import { describeFileProblem, makeFileFor, openFileInto } from './deckFiles';
+import { ExportDialog } from './ExportDialog';
 import { deckMeta } from './format';
-import { AlertIcon, PlusIcon } from './Icons';
+import { AlertIcon, CloseIcon, FileIcon, FolderIcon, PlusIcon } from './Icons';
 import { createStoredDeck, renameStoredDeck } from './library';
 import { Logo } from './Logo';
 import { MenuButton } from './Menu';
@@ -16,6 +24,8 @@ import './home.css';
 
 interface Library {
   readonly decks: readonly DeckSummary[];
+  /** Stored decks Cue cannot read: listed so they can be deleted (decision 17). */
+  readonly unreadable: readonly UnreadableDeck[];
   /** When the list was read, so "2 hours ago" is worked out against one moment. */
   readonly at: number;
 }
@@ -26,14 +36,17 @@ export function Home() {
   const [library, setLibrary] = useState<Library | undefined>();
   const [failed, setFailed] = useState(false);
   const [version, setVersion] = useState(0);
+  // A file that could not be opened, and whether one is being read (SV-3).
+  const [fileProblem, setFileProblem] = useState<{ title: string; text: string } | undefined>();
+  const [opening, setOpening] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
   const usage = useStorageUsage(version);
 
   useEffect(() => {
     let current = true;
-    store
-      .list()
-      .then((decks) => {
-        if (current) setLibrary({ decks, at: Date.now() });
+    Promise.all([store.list(), store.listUnreadable()])
+      .then(([decks, unreadable]) => {
+        if (current) setLibrary({ decks, unreadable, at: Date.now() });
       })
       .catch(() => {
         if (current) setFailed(true);
@@ -52,6 +65,24 @@ export function Home() {
     navigate({ page: 'deck', deckId: deck.id });
   }
 
+  /** Open a deck file as a new deck and go to it; a file that cannot be opened changes nothing (SV-3). */
+  async function openFile(file: File) {
+    setOpening(true);
+    setFileProblem(undefined);
+    try {
+      const deck = await openFileInto(store, file);
+      navigate({ page: 'deck', deckId: deck.id });
+    } catch (error) {
+      setFileProblem(describeFileProblem(error));
+    } finally {
+      setOpening(false);
+    }
+  }
+
+  const chooseFile = () => {
+    fileInput.current?.click();
+  };
+
   const decks = library?.decks;
 
   return (
@@ -61,10 +92,30 @@ export function Home() {
           <Logo />
           <span className="wordmark">Cue</span>
         </div>
-        <button type="button" className="button button-primary" onClick={() => void newDeck()}>
-          <PlusIcon size={15} strokeWidth={2.2} />
-          New deck
-        </button>
+        <div className="home-actions">
+          <button type="button" className="button" disabled={opening} onClick={chooseFile}>
+            <FolderIcon size={15} />
+            {opening ? 'Opening…' : 'Open file'}
+          </button>
+          <button type="button" className="button button-primary" onClick={() => void newDeck()}>
+            <PlusIcon size={15} strokeWidth={2.2} />
+            New deck
+          </button>
+        </div>
+        <input
+          ref={fileInput}
+          type="file"
+          className="file-input"
+          accept=".slides,application/zip"
+          tabIndex={-1}
+          aria-label="Deck file"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            // So the same file can be chosen again straight after.
+            event.target.value = '';
+            if (file) void openFile(file);
+          }}
+        />
       </header>
 
       <main className="home-main">
@@ -87,6 +138,34 @@ export function Home() {
           )}
         </div>
 
+        {fileProblem && (
+          <div className="banner banner-danger banner-file" role="alert">
+            <span className="banner-icon">
+              <FileIcon size={15} strokeWidth={2.2} />
+            </span>
+            <span className="banner-text">
+              <strong>{fileProblem.title}</strong> {fileProblem.text}
+            </span>
+            <button
+              type="button"
+              className="button button-compact button-strong button-on-danger"
+              onClick={chooseFile}
+            >
+              Choose another file
+            </button>
+            <button
+              type="button"
+              className="icon-button"
+              aria-label="Dismiss"
+              onClick={() => {
+                setFileProblem(undefined);
+              }}
+            >
+              <CloseIcon />
+            </button>
+          </div>
+        )}
+
         {failed && (
           <div className="banner banner-danger" role="alert">
             <span className="banner-icon">
@@ -102,18 +181,23 @@ export function Home() {
         {decks?.length === 0 && (
           <div className="empty-state">
             <h2>No decks yet</h2>
-            <p>Start fresh with a new deck.</p>
-            <button
-              type="button"
-              className="button button-compact button-primary"
-              onClick={() => void newDeck()}
-            >
-              New deck
-            </button>
+            <p>Start fresh, or open a file you exported before.</p>
+            <div className="empty-actions">
+              <button
+                type="button"
+                className="button button-compact button-primary"
+                onClick={() => void newDeck()}
+              >
+                New deck
+              </button>
+              <button type="button" className="button button-compact" onClick={chooseFile}>
+                Open file
+              </button>
+            </div>
           </div>
         )}
 
-        {library && library.decks.length > 0 && (
+        {library && (library.decks.length > 0 || library.unreadable.length > 0) && (
           <ul className="deck-grid">
             {library.decks.map((summary) => (
               <DeckCard
@@ -123,6 +207,9 @@ export function Home() {
                 store={store}
                 onChanged={reload}
               />
+            ))}
+            {library.unreadable.map((deck) => (
+              <UnreadableCard key={deck.id} deck={deck} store={store} onChanged={reload} />
             ))}
           </ul>
         )}
@@ -142,7 +229,7 @@ function DeckCard({
   readonly store: DeckStore;
   readonly onChanged: () => void;
 }) {
-  const [dialog, setDialog] = useState<'rename' | 'delete' | undefined>();
+  const [dialog, setDialog] = useState<'rename' | 'delete' | 'export' | undefined>();
   const trigger = useRef<HTMLButtonElement>(null);
   const href = routeHash({ page: 'deck', deckId: summary.id });
 
@@ -182,6 +269,13 @@ function DeckCard({
             },
           },
           {
+            id: 'export',
+            label: 'Export…',
+            onSelect: () => {
+              setDialog('export');
+            },
+          },
+          {
             id: 'delete',
             label: 'Delete',
             danger: true,
@@ -192,6 +286,21 @@ function DeckCard({
           },
         ]}
       />
+      {dialog === 'export' && (
+        <ExportDialog
+          title={summary.title}
+          slideCount={summary.slideCount}
+          returnFocusTo={trigger}
+          make={async () => {
+            const deck = await store.load(summary.id);
+            if (!deck) throw new Error('This deck is not in this browser any more.');
+            return makeFileFor(store, deck);
+          }}
+          onClose={() => {
+            setDialog(undefined);
+          }}
+        />
+      )}
 
       {dialog === 'rename' && (
         <RenameDialog
@@ -216,6 +325,63 @@ function DeckCard({
           onConfirm={() => {
             setDialog(undefined);
             void store.remove(summary.id).then(onChanged);
+          }}
+        />
+      )}
+    </li>
+  );
+}
+
+/** A stored deck Cue cannot read, shown so it can be deleted (decision 17); it is left in storage until then. */
+function UnreadableCard({
+  deck,
+  store,
+  onChanged,
+}: {
+  readonly deck: UnreadableDeck;
+  readonly store: DeckStore;
+  readonly onChanged: () => void;
+}) {
+  const [asking, setAsking] = useState(false);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const name = deck.title ?? 'A deck that can’t be opened';
+  return (
+    <li className="deck-card deck-card-unreadable">
+      <div className="deck-open">
+        <span className="deck-thumb deck-thumb-unreadable">
+          <AlertIcon size={22} strokeWidth={2} />
+        </span>
+        <span className="deck-title">{name}</span>
+        <span className="deck-meta">
+          {deck.newer
+            ? 'Saved by a newer version of Cue. Reload the page to get the latest version.'
+            : 'Can’t be opened: its stored data may be damaged.'}
+        </span>
+      </div>
+      <MenuButton
+        label={`Options for ${name}`}
+        triggerRef={trigger}
+        items={[
+          {
+            id: 'delete',
+            label: 'Delete',
+            danger: true,
+            onSelect: () => {
+              setAsking(true);
+            },
+          },
+        ]}
+      />
+      {asking && (
+        <ConfirmDeleteDialog
+          deckTitle={name}
+          returnFocusTo={trigger}
+          onCancel={() => {
+            setAsking(false);
+          }}
+          onConfirm={() => {
+            setAsking(false);
+            void store.remove(deck.id).then(onChanged);
           }}
         />
       )}
