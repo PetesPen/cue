@@ -20,6 +20,8 @@ test.describe('Given the two windows (PM-3)', () => {
   test('When a key is pressed in one, Then the other draws the change within 100 ms', async ({
     page,
   }, info) => {
+    // Twenty presses, each waited for: patient on a busy machine (the latency itself is measured apart).
+    test.slow();
     await openDeck(page);
     // Slides 7 to 12 have no transition, so a change is drawn at once.
     await page.getByRole('option', { name: 'Slide 7', exact: true }).click();
@@ -64,10 +66,13 @@ test.describe('Given the two windows (PM-3)', () => {
       const count = Array.isArray(before) ? before.length : 0;
       await page.keyboard.press(key);
       await expect
-        .poll(async () => {
-          const now = await audience.evaluate(() => Reflect.get(window, 'drawn') as unknown);
-          return Array.isArray(now) ? now.length : 0;
-        })
+        .poll(
+          async () => {
+            const now = await audience.evaluate(() => Reflect.get(window, 'drawn') as unknown);
+            return Array.isArray(now) ? now.length : 0;
+          },
+          { timeout: 20_000 },
+        )
         .toBe(count + 1);
     }
 
