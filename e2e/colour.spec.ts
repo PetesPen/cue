@@ -35,7 +35,18 @@ test.describe('Given a shape, When a colour is picked by eye (EL-10)', () => {
     await page.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.5, { steps: 6 });
     await page.mouse.move(box.x + box.width * 0.9, box.y + box.height * 0.3, { steps: 6 });
 
-    // Mid-drag: the shape on the slide has the colour, and nothing has been saved yet.
+    // Mid-drag: the shape on the slide has the colour, and nothing has been saved yet. The last
+    // pointer move is drawn a frame later in WebKit, so let two frames pass before reading it.
+    await page.evaluate(
+      () =>
+        new Promise<void>((done) =>
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              done();
+            });
+          }),
+        ),
+    );
     const live = await rectFill(page);
     expect(live).not.toBe(before);
     expect(await savedFill(page)).toBe(before);

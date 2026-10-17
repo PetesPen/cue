@@ -20,7 +20,8 @@ async function exportDeck(page: Page, path: string) {
   const download = page.waitForEvent('download');
   await dialog.getByRole('button', { name: 'Export deck file' }).click();
   const taken = await download;
-  expect(taken.suggestedFilename()).toBe('Autumn Launch.slides');
+  // The app names the file "Autumn Launch.slides"; WebKit on Linux turns the space into an underscore.
+  expect(taken.suggestedFilename()).toMatch(/^Autumn[ _]Launch\.slides$/);
   await taken.saveAs(path);
   return path;
 }
