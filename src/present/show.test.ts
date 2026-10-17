@@ -1,7 +1,9 @@
 import { describe, expect, test, vi } from 'vitest';
 import { createDeck, createSlide, createStep, type Deck, type Env, type ShowPlace } from '@/model';
 import { parseMessage, type ShowChannel, type ShowMessage } from './channel';
-import { Show, type ShowRole } from './show';
+import { FakeRegistry } from './fakeLocks';
+import type { Locks } from './locks';
+import { Show, type ShowOptions, type ShowRole } from './show';
 
 const env: Env = { newId: () => 'id', now: () => 0 };
 
@@ -44,8 +46,18 @@ function line() {
 }
 
 /** A window joining the show: made, then connected. */
-function join(role: ShowRole, start: ShowPlace, channel?: ShowChannel) {
-  const show = new Show(deck, start, role, channel && (() => channel));
+function join(
+  role: ShowRole,
+  start: ShowPlace,
+  channel?: ShowChannel,
+  extra: Partial<ShowOptions> = {},
+) {
+  // No locks unless a test gives some: the browser's own would be shared by every test.
+  const show = new Show(deck, start, role, {
+    ...(channel ? { openChannel: () => channel } : {}),
+    locks: undefined,
+    ...extra,
+  });
   const hangUp = show.connect();
   return Object.assign(show, { hangUp });
 }
@@ -257,6 +269,161 @@ describe('a presenter view that goes away (PM-1)', () => {
     expect(ended).not.toHaveBeenCalled();
     expect(here.getPlace().slide).toBe(1);
     vi.useRealTimers();
+  });
+});
+
+describe('a window that goes away, or comes back (PM-3)', () => {
+  const GRACE = 1000;
+  const windows = () => {
+    const registry = new FakeRegistry();
+    const talk = line();
+    return { registry, ...talk };
+  };
+  const open = (
+    role: ShowRole,
+    channel: ShowChannel,
+    locks: Locks | undefined,
+    start: ShowPlace = at(0),
+  ) => join(role, start, channel, { locks, graceMs: GRACE });
+
+  test('Given a presenter view and no audience window yet, Then it knows nothing of one; after hello it is here', () => {
+    const { registry, presenter, audience } = windows();
+    const here = open('presenter', presenter, registry.window());
+    expect(here.getAudience()).toBe('unknown');
+
+    open('audience', audience, registry.window());
+
+    expect(here.getAudience()).toBe('here');
+  });
+
+  test('Given an audience window that dies, When the grace has passed, Then the presenter view knows it is gone, and the show goes on', async () => {
+    vi.useFakeTimers();
+    const { registry, presenter, audience } = windows();
+    const here = open('presenter', presenter, registry.window());
+    const audienceLocks = registry.window();
+    open('audience', audience, audienceLocks);
+
+    audienceLocks.kill();
+    await vi.advanceTimersByTimeAsync(GRACE * 3);
+
+    expect(here.getAudience()).toBe('gone');
+    here.forward();
+    expect(here.getPlace().slide).toBe(1);
+    vi.useRealTimers();
+  });
+
+  test('Given an audience window that is gone, When a new one opens (Reconnect), Then it is caught up and the presenter view knows it is here', async () => {
+    vi.useFakeTimers();
+    const { registry, presenter, audience } = windows();
+    const here = open('presenter', presenter, registry.window());
+    const first = registry.window();
+    open('audience', audience, first);
+    here.forward();
+    first.kill();
+    await vi.advanceTimersByTimeAsync(GRACE * 3);
+    expect(here.getAudience()).toBe('gone');
+
+    here.expectAudience();
+    expect(here.getAudience()).toBe('unknown');
+    const again = open('audience', audience, registry.window(), at(0));
+
+    expect(again.getPlace()).toEqual(at(1));
+    expect(here.getAudience()).toBe('here');
+    vi.useRealTimers();
+  });
+
+  test('Given a presenter view that dies, When the grace has passed, Then the audience window ends itself', async () => {
+    vi.useFakeTimers();
+    const { registry, presenter, audience } = windows();
+    const presenterLocks = registry.window();
+    open('presenter', presenter, presenterLocks);
+    const there = open('audience', audience, registry.window());
+    const ended = vi.fn();
+    there.onEnd(ended);
+
+    presenterLocks.kill();
+    await vi.advanceTimersByTimeAsync(GRACE - 1);
+    expect(ended).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(GRACE * 3);
+
+    expect(ended).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+
+  test('Given a presenter tab that is reloaded, When it is back within the grace, Then the audience window stays and follows it', async () => {
+    vi.useFakeTimers();
+    const { registry, presenter, audience } = windows();
+    const before = registry.window();
+    const first = open('presenter', presenter, before);
+    const there = open('audience', audience, registry.window());
+    const ended = vi.fn();
+    there.onEnd(ended);
+    first.forward();
+
+    // The reload: the old page dies without running anything (so no hang-up), and a new one starts from
+    // where the show was and tells the audience.
+    before.kill();
+    await vi.advanceTimersByTimeAsync(GRACE / 3);
+    const after = open('presenter', presenter, registry.window(), at(1));
+    await vi.advanceTimersByTimeAsync(GRACE * 5);
+    after.forward();
+
+    expect(ended).not.toHaveBeenCalled();
+    expect(there.getPlace()).toEqual(at(1, 1));
+    vi.useRealTimers();
+  });
+
+  test('Given an audience window that never heard from a presenter view, When time passes, Then it stays open', async () => {
+    vi.useFakeTimers();
+    const { registry, audience } = windows();
+    const there = open('audience', audience, registry.window());
+    const ended = vi.fn();
+    there.onEnd(ended);
+
+    await vi.advanceTimersByTimeAsync(GRACE * 20);
+
+    expect(ended).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  test('Given a browser with no locks, Then the windows still move together and nothing else changes', () => {
+    const { presenter, audience } = windows();
+    const here = open('presenter', presenter, undefined);
+    const there = open('audience', audience, undefined);
+
+    here.forward();
+
+    expect(there.getPlace()).toEqual(at(1));
+    expect(here.getAudience()).toBe('here');
+  });
+
+  test('Given each window, Then it holds a lock named after its role while connected, and lets go when it hangs up', () => {
+    const { registry, presenter, audience } = windows();
+    const here = open('presenter', presenter, registry.window());
+    const there = open('audience', audience, registry.window());
+    expect(registry.held().sort()).toEqual(['cue-show:id:audience', 'cue-show:id:presenter']);
+
+    there.hangUp();
+    here.hangUp();
+
+    expect(registry.held()).toEqual([]);
+  });
+});
+
+describe('the places a show comes to are handed on (PM-3)', () => {
+  test('Given a callback, When the show moves from either window, Then it is told every new place and nothing else', () => {
+    const { presenter, audience } = line();
+    const places: ShowPlace[] = [];
+    const here = join('presenter', at(0), presenter, {
+      onPlace: (place) => places.push(place),
+    });
+    const there = join('audience', at(0), audience);
+
+    here.forward();
+    there.jump(2);
+    here.forward();
+
+    expect(places).toEqual([at(1), at(2)]);
   });
 });
 

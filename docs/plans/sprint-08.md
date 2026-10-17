@@ -1,6 +1,6 @@
 # Sprint 8 plan: A complete presenting experience
 
-Status: **approved by Peter on 2026-10-17, together with the plan for sprint 9** ("I approve"; on the Reconnect banner and the next-slide wording: "Your thoughts are good"). Plans are approved in pairs (rule 9 of `CLAUDE.md`). Stories: PM-3, PM-4, PM-5, PM-6 (all Must), and, proposed, TN-2 and TN-3 pulled forward from sprint 11. There is no gate at the end of this sprint and no review after it: the next review is after sprint 9 (Gate 4 follows sprint 10).
+Status: **approved by Peter on 2026-10-17, together with the plan for sprint 9, and built the same day** (what finished and what stays manual is in `docs/sprint-log.md`) ("I approve"; on the Reconnect banner and the next-slide wording: "Your thoughts are good"). Plans are approved in pairs (rule 9 of `CLAUDE.md`). Stories: PM-3, PM-4, PM-5, PM-6 (all Must), and, proposed, TN-2 and TN-3 pulled forward from sprint 11. There is no gate at the end of this sprint and no review after it: the next review is after sprint 9 (Gate 4 follows sprint 10).
 
 Sprint 7 already built much of what these stories ask for, so this sprint is smaller than its nominal 14 days. What is left is below; the room is used for TN-2 and TN-3 (their board exists and their model is ready since sprint 6), which leaves sprint 11 lighter, and as a buffer for what Gate 3's manual checks find.
 

@@ -100,6 +100,58 @@
   color: var(--color-forest);
 }
 
+/* The smallest and the largest value under a slider (board: Editor-Transition). */
+.timing-ends {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--space-1);
+  color: var(--color-muted);
+  font: var(--type-caption);
+}
+
+/* Direction: four arrows, the way the new slide moves (board: Editor-Transition). */
+.tn-directions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-field);
+}
+
+.tn-direction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--control-field-height);
+  border: 0;
+  border-left: 1px solid var(--color-hairline);
+  background: var(--color-white);
+  color: inherit;
+  cursor: pointer;
+}
+
+.tn-direction:first-child {
+  border-left: 0;
+}
+
+.tn-direction:hover {
+  background: var(--color-sage);
+}
+
+.tn-direction[aria-pressed='true'] {
+  background: var(--color-accent-tint);
+  color: var(--color-accent-tint-text);
+}
+
+.tn-actions {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.button-quiet {
+  color: var(--color-muted);
+}
+
 .step-remove {
   display: flex;
   justify-content: flex-end;

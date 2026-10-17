@@ -1,6 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent } from 'react';
 import { clickCount, playsFor, upcoming, type Slide, type Step } from '@/model';
 import { ArrowLeftIcon, ArrowRightIcon, Logo, PauseIcon, PlayIcon, ResetIcon } from './icons';
+import {
+  NOTES_PX,
+  TOP_VH,
+  clampNotesPx,
+  clampTopVh,
+  readLayout,
+  writeLayout,
+  type PresenterLayout,
+} from './layoutStore';
 import { ShowStage } from './ShowStage';
 import { SlidePreview } from './SlidePreview';
 import type { Show } from './show';
@@ -81,9 +90,28 @@ function useStopwatch() {
  * tab during a show, and it draws what the audience sees with the same stage, so a transition plays
  * here too.
  */
-export function PresenterView({ show }: { readonly show: Show }) {
+export function PresenterView({
+  show,
+  blocked = false,
+  onReconnect,
+}: {
+  readonly show: Show;
+  /** The browser refused the last try at reopening the audience window. */
+  readonly blocked?: boolean;
+  /** Ask for the audience window again; called from the Reconnect click. */
+  readonly onReconnect?: () => void;
+}) {
   const { deck } = show;
   const place = useShowPlace(show);
+  const audience = useSyncExternalStore(show.subscribe, show.getAudience);
+  // The size of the slides against the notes, and of the notes' text: kept between shows (PM-4).
+  const [layout, setLayout] = useState<PresenterLayout>(readLayout);
+  const changeLayout = (change: Partial<PresenterLayout>) => {
+    const next = { ...layout, ...change };
+    setLayout(next);
+    writeLayout(next);
+  };
+  const top = useRef<HTMLElement>(null);
   const slide = deck.slides[place.slide];
   const clock = useStopwatch();
   const { start: startTimer } = clock;
@@ -101,7 +129,7 @@ export function PresenterView({ show }: { readonly show: Show }) {
 
   const nextLabel =
     next.kind === 'click'
-      ? `Next · Click ${String(next.click)}`
+      ? `Next · Click ${String(next.click)} of ${String(clicks)}`
       : next.kind === 'slide'
         ? `Next · Slide ${String(next.slide + 1)}`
         : 'Next';
@@ -154,8 +182,28 @@ export function PresenterView({ show }: { readonly show: Show }) {
         </div>
       </header>
 
+      <div className="pv-banner-area">
+        {audience === 'gone' && onReconnect && (
+          <div className="pv-banner" role="status">
+            <p>
+              {blocked
+                ? 'Your browser blocked the audience window. Allow pop-ups for this site, then try again.'
+                : 'The audience window was closed. The show goes on here.'}
+            </p>
+            <button type="button" className="pv-button pv-button-small" onClick={onReconnect}>
+              {blocked ? 'Try again' : 'Reconnect'}
+            </button>
+          </div>
+        )}
+      </div>
+
       <main className="pv-main">
-        <section className="pv-top" aria-label="On screen and next">
+        <section
+          ref={top}
+          className="pv-top"
+          aria-label="On screen and next"
+          style={{ height: `${String(layout.topVh)}vh` }}
+        >
           <div className="pv-now">
             <div className="pv-heading">
               <h2 className="pv-label">On screen now</h2>
@@ -236,23 +284,161 @@ export function PresenterView({ show }: { readonly show: Show }) {
           </div>
         </section>
 
-        <Notes slide={slide} number={place.slide + 1} />
+        <Divider
+          topVh={layout.topVh}
+          top={top}
+          onChange={(topVh) => {
+            changeLayout({ topVh });
+          }}
+        />
+        <Notes
+          slide={slide}
+          number={place.slide + 1}
+          px={layout.notesPx}
+          onSize={(notesPx) => {
+            changeLayout({ notesPx });
+          }}
+        />
         <Navigator show={show} current={place.slide} />
       </main>
     </div>
   );
 }
 
-function Notes({ slide, number }: { readonly slide: Slide | undefined; readonly number: number }) {
+/**
+ * The divider between the slides and the notes (PM-4; design: Presenter): dragged with the mouse, or moved
+ * with the arrow keys when it has focus (a window splitter). Up gives the notes more room.
+ */
+function Divider({
+  topVh,
+  top,
+  onChange,
+}: {
+  readonly topVh: number;
+  readonly top: React.RefObject<HTMLElement | null>;
+  readonly onChange: (topVh: number) => void;
+}) {
+  const [dragging, setDragging] = useState(false);
+
+  function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    const by = event.shiftKey ? TOP_VH.big : TOP_VH.step;
+    let next: number | undefined;
+    if (event.key === 'ArrowUp') next = topVh - by;
+    else if (event.key === 'ArrowDown') next = topVh + by;
+    else if (event.key === 'Home') next = TOP_VH.min;
+    else if (event.key === 'End') next = TOP_VH.max;
+    if (next === undefined) return;
+    event.preventDefault();
+    onChange(clampTopVh(next));
+  }
+
+  return (
+    // A separator that can be focused and moved is a window splitter (WAI-ARIA): an interactive widget.
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+    <div
+      className="pv-divider"
+      role="separator"
+      aria-orientation="horizontal"
+      aria-label="Resize notes"
+      aria-valuemin={TOP_VH.min}
+      aria-valuemax={TOP_VH.max}
+      aria-valuenow={topVh}
+      aria-valuetext={`The slides take ${String(topVh)}% of the window`}
+      // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+      tabIndex={0}
+      data-dragging={dragging}
+      onKeyDown={onKeyDown}
+      onPointerDown={(event) => {
+        event.currentTarget.setPointerCapture(event.pointerId);
+        setDragging(true);
+      }}
+      onPointerMove={(event) => {
+        if (!dragging) return;
+        const at = top.current?.getBoundingClientRect().top ?? 0;
+        onChange(clampTopVh(((event.clientY - at) / window.innerHeight) * 100));
+      }}
+      onPointerUp={() => {
+        setDragging(false);
+      }}
+      onPointerCancel={() => {
+        setDragging(false);
+      }}
+    >
+      <span className="pv-divider-pill">
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M8 9l4-4 4 4M8 15l4 4 4-4" />
+        </svg>
+        Drag to resize notes
+      </span>
+    </div>
+  );
+}
+
+function Notes({
+  slide,
+  number,
+  px,
+  onSize,
+}: {
+  readonly slide: Slide | undefined;
+  readonly number: number;
+  readonly px: number;
+  readonly onSize: (px: number) => void;
+}) {
   const notes = slide?.notes ?? '';
   return (
     <section className="pv-notes" aria-label="Speaker notes">
-      <h2 className="pv-label">{`Notes · Slide ${String(number)}`}</h2>
-      {notes.trim() === '' ? (
-        <p className="pv-notes-empty">No notes for this slide.</p>
-      ) : (
-        <p className="pv-notes-text">{notes}</p>
-      )}
+      <div className="pv-heading">
+        <h2 className="pv-label">{`Notes · Slide ${String(number)}`}</h2>
+        <div className="pv-size" role="group" aria-label="Notes text size">
+          <button
+            type="button"
+            className="pv-button pv-button-small"
+            aria-label="Smaller text"
+            disabled={px <= NOTES_PX.min}
+            onClick={() => {
+              onSize(clampNotesPx(px - NOTES_PX.step));
+            }}
+          >
+            A−
+          </button>
+          <span className="pv-caption" aria-live="polite">{`${String(px)} px`}</span>
+          <button
+            type="button"
+            className="pv-button pv-button-small"
+            aria-label="Larger text"
+            disabled={px >= NOTES_PX.max}
+            onClick={() => {
+              onSize(clampNotesPx(px + NOTES_PX.step));
+            }}
+          >
+            A+
+          </button>
+        </div>
+      </div>
+      {/* Notes that overflow must be scrollable from the keyboard: the region takes focus (WCAG 2.1.1). */}
+      {/* eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex */}
+      <div className="pv-notes-scroll" role="region" tabIndex={0} aria-label="Notes text">
+        {notes.trim() === '' ? (
+          <p className="pv-notes-empty" style={{ fontSize: `${String(px)}px` }}>
+            No notes for this slide.
+          </p>
+        ) : (
+          <p className="pv-notes-text" style={{ fontSize: `${String(px)}px` }}>
+            {notes}
+          </p>
+        )}
+      </div>
     </section>
   );
 }

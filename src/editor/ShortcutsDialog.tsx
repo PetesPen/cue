@@ -72,7 +72,9 @@ export function ShortcutsDialog({ onClose, returnFocusTo }: ShortcutsDialogProps
       {shown.length === 0 ? (
         <p className="shortcuts-empty">{`No shortcut matches “${query.trim()}”.`}</p>
       ) : (
-        <div className="shortcuts-body">
+        // The list scrolls when the window is short, so it takes focus: the keyboard can scroll it (WCAG 2.1.1).
+        // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+        <div className="shortcuts-body" role="region" aria-label="All shortcuts" tabIndex={0}>
           {columns.map((groups, index) => (
             <div key={index} className="shortcuts-column">
               {groups.map(({ group, items }) => (

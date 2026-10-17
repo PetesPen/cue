@@ -111,3 +111,61 @@ test.describe('Given Autumn Launch, When Preview transition is pressed on slide 
     expect(results.violations).toEqual([]);
   });
 });
+
+// Sprint 8: direction and duration (TN-2), apply to all slides (TN-3).
+
+test.describe('Given a deck of three slides (TN-2, TN-3)', () => {
+  test('When a direction and a duration are chosen and applied to all slides, Then every slide but the first has them, one undo takes them back, and they are saved', async ({
+    page,
+  }) => {
+    await openNewDeck(page);
+    await page.getByRole('button', { name: 'New slide' }).click();
+    await page.getByRole('button', { name: 'New slide' }).click();
+    await page.getByRole('option', { name: 'Slide 2', exact: true }).click();
+    await page.getByRole('tab', { name: 'Transition' }).click();
+    await effect(page, 'Push').click();
+    await page
+      .getByRole('group', { name: 'Direction' })
+      .getByRole('button', { name: 'From the bottom' })
+      .click();
+    await expect(page.getByText('New slide comes in from the bottom.')).toBeVisible();
+    const duration = page.getByRole('slider', { name: 'Duration' });
+    await duration.focus();
+    await page.keyboard.press('End');
+    await page.keyboard.press('Tab');
+    await expect(page.getByText('3.0 s').first()).toBeVisible();
+
+    await page.getByRole('button', { name: 'Apply to all slides' }).click();
+
+    await expect(page.locator('.rail-transition')).toHaveCount(2);
+    // One undo takes it back from every slide at once, and redo puts it back.
+    await page.keyboard.press('Control+z');
+    await expect(page.locator('.rail-transition')).toHaveCount(1);
+    await page.keyboard.press('Control+Shift+z');
+    await expect(page.locator('.rail-transition')).toHaveCount(2);
+    await page.getByRole('option', { name: 'Slide 3', exact: true }).click();
+    await expect(effect(page, 'Push')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByText('New slide comes in from the bottom.')).toBeVisible();
+    await expect(page.getByText('3.0 s').first()).toBeVisible();
+    await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+    await page.waitForTimeout(800);
+    await page.reload();
+    await page.getByRole('option', { name: 'Slide 3', exact: true }).click();
+    await page.getByRole('tab', { name: 'Transition' }).click();
+    await expect(effect(page, 'Push')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByText('New slide comes in from the bottom.')).toBeVisible();
+  });
+
+  test('Then the Transition tab with Direction and Duration has no accessibility violations', async ({
+    page,
+  }) => {
+    await openNewDeck(page);
+    await page.getByRole('button', { name: 'New slide' }).click();
+    await page.getByRole('tab', { name: 'Transition' }).click();
+    await effect(page, 'Slide').click();
+
+    const results = await new AxeBuilder({ page }).analyze();
+
+    expect(results.violations).toEqual([]);
+  });
+});

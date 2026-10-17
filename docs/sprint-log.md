@@ -545,3 +545,49 @@ Peter answered the retrospective questions.
 4. **A transition plays only between neighbouring slides:** correct. A jump by number or from the strip shows the slide at once.
 5. **A blanked screen:** correct. The first forward or back only brings the slide back.
 6. Questions 6 to 8 (going back shows the slide before with all its clicks played; the audience window's size and the second display; the timer starting early) were not answered, so they stand as built.
+
+## Sprint 8: A complete presenting experience (with TN-2 and TN-3)
+
+**Dates:** plan approved 2026-10-17 together with sprint 9's; built the same day. **No review follows it**: Peter reviews after sprint 9 (rule 9), so these notes are read with that sprint's. Its questions are at the end.
+
+**Goal:** rehearse a talk of your own without touching the mouse: the two windows stay together within a tenth of a second, closing or reloading either one does the right thing, the notes are the size you want and stay that way, and a transition can be given a direction and a length or applied to every slide. **Met on the evidence below.**
+
+### What finished
+
+| Story | Status | How it is shown |
+|---|---|---|
+| PM-3 Keep both windows in sync | done, except real Safari and a real second display | the place is drawn in the other window **9 to 20 ms** after a key press (median about 10 ms, 90th percentile about 15 ms, Chromium and WebKit here; the test holds Chromium and Firefox to 100 ms and reports WebKit). Each window holds a Web Lock named after itself and watches the other's: closing the audience window shows "The audience window was closed. The show goes on here." with **Reconnect** (a new window, caught up); closing the presenter tab closes the audience window after a few seconds' grace; reloading either window comes back at the same place (the audience window stays through a presenter reload). Two-page end-to-end tests of each, unit tests with pretend locks of every case |
+| PM-4 Read and resize notes | done | the divider of the board (drag it, or focus it and use the arrows, Home, End; Shift for bigger steps), A− and A+ with the size shown (14 to 40 px in steps of 2), long notes scroll inside their panel, and the layout is remembered on this browser. Component tests and a mouse-drag end-to-end test; axe finds nothing |
+| PM-5 Preview what comes next | done | the next click's state with "Next · Click 2 of 3" and a badge, the next slide as it opens, "End of presentation" on the last |
+| PM-6 Navigate the deck | done | one table of show keys (`model/showkeys.ts`) read by the key handler, by the editor's shortcut sheet (its "Presenting" group) and by the tests; table and property tests |
+| TN-2 Set duration and direction | done | the Transition tab as on the board: four arrows for Slide and Push ("New slide comes in from the right."), Duration from 0.2 to 3 s with its two ends shown; Preview and the show play what is stored |
+| TN-3 Apply to all slides | done | "Apply to all slides" gives every slide but the first the same effect, direction and duration in one undo step; "Reset to none"; the first slide has neither |
+
+Tests now: 1,479 Vitest tests (1,389 at the end of sprint 7). End to end: 138 per engine (126 before), 272 passing on Chromium and WebKit here. Coverage `model` 98.1%, `render` 99.5%. First-load bundle 150.5 KB of 300 KB, CSS 7.9 of 30 KB; the show windows are a lazy chunk of 7.5 KB (budget 40 KB).
+
+### Not done
+
+- **PM-7's target time** (amber at 90%, red when over) stays in sprint 12; the timer already has pause and reset.
+- **Real Safari, a real second display and real window closing** (below).
+- **The "Standalone web page" half of TN-2's footnote** ("Transitions also play in the exported HTML deck") is left off the panel until the export exists (sprint 10).
+
+### What building it showed
+
+- **A lock that is free does not mean its holder is gone**: a window that has not started yet holds nothing, and a window that is reloading lets go for a moment. A watcher waits for the lock, then gives the other window a few seconds' grace and asks again; the audience window only starts watching after it has heard from the presenter view once, so an audience window opened by hand does not close itself.
+- **An empty grid row hidden with `display: none` is not a row**: the Reconnect banner's (empty) row collapsed, the notes got the banner's row and the presenter view lost its layout. The component tests of the notes found it; the row now stays, with no height.
+- **`sessionStorage` is copied into a window opened by `window.open`**, so a remembered place is only used when the page was reloaded, and each role has its own key; a show that ends clears it. The two small things kept in the browser (the place of a show for a tab, the layout for the browser) are the only uses of the key-value stores; the storage-rules test says so by name and checks they hold no deck.
+- **A scrollable list must take keyboard focus** (axe): the shortcut sheet grew with the show keys and began to scroll.
+- **Two more tests raced TipTap's delayed focus** (a Delete in a text box); they wait for the editor to hold focus.
+- **A development build tries a page out twice**: the show connects and hangs up its lines and locks cleanly, and a presenter view that goes away for real tells the audience window.
+
+### What stays manual (please check by hand)
+
+1. **Closing and reloading each window in real Chrome, Edge, Firefox and Safari**, and Reconnect on a real second display (Playwright's WebKit does not release a closed page's locks, so that one case is skipped there).
+2. **Dragging the divider with a trackpad**, and the notes at several sizes on your laptop.
+3. **A twenty-minute talk** of your own in two windows.
+4. **The Transition tab and the presenter view against the boards**, at your screen size.
+
+### Questions for the review after sprint 9
+
+1. Is a few seconds' grace (4) before an audience window closes after its presenter tab is gone the right length? Too short and a slow reload closes it; too long and a closed tab leaves the window up.
+2. Should the notes' size and the divider be remembered per deck rather than for the whole browser? (Built per browser.)

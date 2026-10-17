@@ -83,6 +83,8 @@ export interface DeckSession {
   readonly removeStep: (stepId: Id) => void;
   /** How the current slide arrives (TN-1). */
   readonly setTransition: (change: Partial<Transition>) => void;
+  /** Give every slide but the first this transition, in one step (TN-3). */
+  readonly applyTransitionToAll: (transition: Transition) => void;
   /** Put a step at another place in the list (AN-5). */
   readonly moveStep: (stepId: Id, toIndex: number) => void;
   /** The background colour of the current slide, or of every slide (SL-5). */
@@ -364,6 +366,13 @@ export function useDeckSession(
     [dispatch, env],
   );
 
+  const applyTransitionToAll = useCallback(
+    (transition: Transition) => {
+      dispatch({ type: 'setAllTransitions', transition, at: env.now() });
+    },
+    [dispatch, env],
+  );
+
   const moveStep = useCallback(
     (stepId: Id, toIndex: number) => {
       const slideId = currentRef.current;
@@ -552,6 +561,7 @@ export function useDeckSession(
     updateStep,
     removeStep,
     setTransition,
+    applyTransitionToAll,
     moveStep,
     undo,
     redo,

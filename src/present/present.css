@@ -94,7 +94,7 @@
 
 .presenter {
   display: grid;
-  grid-template-rows: var(--layout-topbar) minmax(0, 1fr);
+  grid-template-rows: var(--layout-topbar) auto minmax(0, 1fr);
   height: 100%;
   background: var(--color-app-bg);
   color: var(--color-forest);
@@ -267,20 +267,37 @@
   color: var(--color-accent-tint-text);
 }
 
+/* The audience window was closed (PM-3): the warning style of the States board. The area is a row of the
+   grid even when it is empty (and then has no height), so the rows below keep their places. */
+.pv-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-5);
+  border-bottom: 1px solid var(--color-hairline);
+  background: var(--color-warning-tint);
+}
+
+.pv-banner p {
+  margin: 0;
+  font: var(--type-body);
+}
+
 .pv-main {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   gap: var(--space-4);
   min-height: 0;
   padding: var(--space-4) var(--space-5);
 }
 
+/* The slides take the height the person at the show chose (PM-4); what is inside follows it. */
 .pv-top {
-  --pv-top-height: clamp(260px, 46vh, 560px);
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
   gap: var(--space-5);
-  height: var(--pv-top-height);
+  container-type: size;
 }
 
 .pv-now,
@@ -303,7 +320,7 @@
 /* The slide on screen now, sized by the room it has (its height is what is left under the heading). */
 .pv-now-frame {
   position: relative;
-  width: min(100%, calc((var(--pv-top-height) - 28px) * 16 / 9));
+  width: min(100%, calc((100cqh - 28px) * 16 / 9));
   background: var(--color-white);
   outline: 2px solid var(--color-accent);
   box-shadow: var(--shadow-slide);
@@ -382,22 +399,65 @@
   margin-left: auto;
 }
 
+/* The divider between the slides and the notes: a line with a handle in the middle (board: Presenter). */
+.pv-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+  margin: calc(-1 * var(--space-2)) 0;
+  cursor: row-resize;
+  touch-action: none;
+  background: linear-gradient(var(--color-mint), var(--color-mint)) center / 100% 1px no-repeat;
+}
+
+.pv-divider-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border: 1px solid var(--color-mint);
+  border-radius: 999px;
+  background: var(--color-app-bg);
+  color: var(--color-accent-tint-text);
+  font: var(--type-caption);
+  font-weight: 600;
+}
+
+.pv-divider:hover .pv-divider-pill,
+.pv-divider[data-dragging='true'] .pv-divider-pill {
+  background: var(--color-accent-tint);
+}
+
+.pv-size {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .pv-notes {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
   min-height: 0;
   padding: var(--space-3) var(--space-4);
-  overflow: auto;
   border: 1px solid var(--color-hairline);
   border-radius: var(--radius-card);
   background: var(--color-white);
+}
+
+/* Long notes scroll inside the panel; the rest of the view stays put (PM-4). */
+.pv-notes-scroll {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .pv-notes-text,
 .pv-notes-empty {
   margin: 0;
   font: var(--type-presenter-notes);
+  line-height: 1.5;
   white-space: pre-wrap;
 }
 

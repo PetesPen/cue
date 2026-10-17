@@ -183,6 +183,18 @@ export const ArrowRightIcon = (props: IconProps) => (
   </Stroke>
 );
 
+export const ArrowUpIcon = (props: IconProps) => (
+  <Stroke {...props}>
+    <path d="M12 19V5M6 11l6-6 6 6" />
+  </Stroke>
+);
+
+export const ArrowDownIcon = (props: IconProps) => (
+  <Stroke {...props}>
+    <path d="M12 5v14M6 13l6 6 6-6" />
+  </Stroke>
+);
+
 /** Two columns of dots: a row that can be dragged. */
 export function GripIcon({ size = 12 }: IconProps) {
   return (

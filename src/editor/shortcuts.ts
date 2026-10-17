@@ -4,6 +4,8 @@
  * table says is on a toolbar button is there.
  */
 
+import { SHOW_KEYS } from '@/model';
+
 export type ShortcutGroup = 'Slides' | 'Order' | 'General' | 'Elements' | 'Presenting';
 
 export interface Shortcut {
@@ -60,25 +62,13 @@ export const SHORTCUTS: readonly Shortcut[] = [
     group: 'Presenting',
     keys: ['Mod', 'Shift', 'Enter'],
   },
-  {
-    id: 'present.next',
-    label: 'Next click or slide',
+  // The keys inside a show are the table in `model`, which the show windows read as well.
+  ...SHOW_KEYS.map((entry): Shortcut => ({
+    id: `show.${entry.action}`,
+    label: entry.label,
     group: 'Presenting',
-    keys: ['→', 'Space'],
-  },
-  {
-    id: 'present.previous',
-    label: 'Previous click or slide',
-    group: 'Presenting',
-    keys: ['←'],
-  },
-  {
-    id: 'present.blank',
-    label: 'Blank the screen',
-    group: 'Presenting',
-    keys: ['B'],
-  },
-  { id: 'present.end', label: 'End the show', group: 'Presenting', keys: ['Esc'] },
+    keys: entry.caps,
+  })),
 ];
 
 /** Is this a Mac, where Mod is ⌘? Read when asked, so a test can change it. */

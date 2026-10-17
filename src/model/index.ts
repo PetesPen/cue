@@ -219,3 +219,5 @@ export {
 export type { Blank, Movement, ShowPlace, Upcoming } from './show';
 export { parseRoute, routeHash } from './route';
 export type { Route, ShowView } from './route';
+export { SHOW_KEYS, showActionFor } from './showkeys';
+export type { ShowAction, ShowKey } from './showkeys';

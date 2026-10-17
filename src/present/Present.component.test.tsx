@@ -44,6 +44,7 @@ const join = (start: ShowPlace = startShow(deck)) => {
 };
 
 afterEach(() => {
+  localStorage.clear();
   shows.length = 0;
   vi.restoreAllMocks();
 });
@@ -70,7 +71,9 @@ describe('the presenter view (PM-2)', () => {
       .element(screen.getByText('No clicks').or(screen.getByText('Click 0 of 2')))
       .toBeVisible();
     await expect.element(screen.getByText('Open with the customer problem.')).toBeVisible();
-    await expect.element(screen.getByRole('heading', { name: 'Next · Click 1' })).toBeVisible();
+    await expect
+      .element(screen.getByRole('heading', { name: 'Next · Click 1 of 2' }))
+      .toBeVisible();
     // Every slide, with the current one marked.
     const strip = screen.getByRole('region', { name: 'All slides' });
     await expect
@@ -88,7 +91,9 @@ describe('the presenter view (PM-2)', () => {
 
     await expect.element(screen.getByText('Appears')).toBeVisible();
     await userEvent.click(screen.getByRole('button', { name: 'Next click' }).element());
-    await expect.element(screen.getByRole('heading', { name: 'Next · Click 2' })).toBeVisible();
+    await expect
+      .element(screen.getByRole('heading', { name: 'Next · Click 2 of 2' }))
+      .toBeVisible();
     await expect.element(screen.getByText('Moves')).toBeVisible();
     await expect.element(screen.getByText('Click 1 of 2')).toBeVisible();
     // The picture fades in, then it is at its own opacity.
@@ -179,6 +184,155 @@ describe('the presenter view (PM-2)', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Reset timer' }).element());
 
     await expect.element(screen.getByLabelText(/^Elapsed/)).toHaveTextContent('00:00');
+  });
+});
+
+describe('the notes panel (PM-4)', () => {
+  /** The view as the app has it: as tall as the window, which is what gives the notes their room. */
+  const inWindow = (view: React.ReactElement) =>
+    render(<div style={{ height: '100vh' }}>{view}</div>);
+  const separator = (screen: Awaited<ReturnType<typeof render>>) =>
+    screen.getByRole('separator', { name: 'Resize notes' });
+  const topHeight = () => must('.pv-top').getBoundingClientRect().height;
+
+  test('Given the divider, When it is moved with the arrow keys, Then the slides give the notes more or less room, and the show does not move', async () => {
+    const show = join(startShow(deck, 1));
+    const screen = await inWindow(<PresenterView show={show} />);
+    const handle = separator(screen);
+    await expect.element(handle).toHaveAttribute('aria-valuenow', '46');
+    const before = topHeight();
+
+    await userEvent.click(handle.element());
+    await userEvent.keyboard('{ArrowUp}');
+    await expect.element(handle).toHaveAttribute('aria-valuenow', '44');
+    expect(topHeight()).toBeLessThan(before);
+    await userEvent.keyboard('{Shift>}{ArrowUp}{/Shift}');
+    await expect.element(handle).toHaveAttribute('aria-valuenow', '36');
+    await userEvent.keyboard('{Home}');
+    await expect.element(handle).toHaveAttribute('aria-valuenow', '24');
+    await userEvent.keyboard('{ArrowUp}');
+    await expect.element(handle).toHaveAttribute('aria-valuenow', '24');
+    await userEvent.keyboard('{End}');
+    await expect.element(handle).toHaveAttribute('aria-valuenow', '66');
+    await userEvent.keyboard('{ArrowDown}');
+
+    // The arrows were the divider's, not the show's.
+    expect(show.getPlace()).toEqual({ slide: 1, click: 0, blank: 'none' });
+  });
+
+  test('Given a smaller share for the slides, Then the slide on screen reflows to fit what is left', async () => {
+    const show = join();
+    const screen = await inWindow(<PresenterView show={show} />);
+    const wide = must('.pv-now-frame').getBoundingClientRect().width;
+
+    await userEvent.click(separator(screen).element());
+    await userEvent.keyboard('{Home}');
+
+    const narrow = must('.pv-now-frame').getBoundingClientRect();
+    expect(narrow.width).toBeLessThan(wide);
+    expect(narrow.width / narrow.height).toBeCloseTo(16 / 9, 1);
+  });
+
+  test('Given A+ and A−, Then the notes text grows and shrinks in steps of 2 px, within limits, and the panel does not change size', async () => {
+    const show = join(startShow(deck, 1));
+    const screen = await inWindow(<PresenterView show={show} />);
+    const notes = () => getComputedStyle(must('.pv-notes-text')).fontSize;
+    const before = topHeight();
+    expect(notes()).toBe('22px');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Larger text' }).element());
+    await expect.element(screen.getByText('24 px')).toBeVisible();
+    expect(notes()).toBe('24px');
+    await userEvent.click(screen.getByRole('button', { name: 'Smaller text' }).element());
+    await userEvent.click(screen.getByRole('button', { name: 'Smaller text' }).element());
+    expect(notes()).toBe('20px');
+    expect(topHeight()).toBe(before);
+    for (let i = 0; i < 3; i++) {
+      await userEvent.click(screen.getByRole('button', { name: 'Smaller text' }).element());
+    }
+    await expect.element(screen.getByText('14 px')).toBeVisible();
+    await expect.element(screen.getByRole('button', { name: 'Smaller text' })).toBeDisabled();
+  });
+
+  test('Given long notes, Then they scroll inside the panel and the rest of the view stays put', async () => {
+    const longDeck: Deck = {
+      ...deck,
+      slides: [
+        { ...createSlide('long'), notes: Array(60).fill('A long line of notes.').join('\n') },
+      ],
+    };
+    const show = new Show(longDeck, startShow(longDeck), 'presenter');
+    shows.push(show);
+    const screen = await inWindow(<PresenterView show={show} />);
+    const scroller = must('.pv-notes-scroll');
+    const strip = must('.pv-strip').getBoundingClientRect();
+
+    expect(scroller.scrollHeight).toBeGreaterThan(scroller.clientHeight);
+    expect(getComputedStyle(scroller).overflowY).toBe('auto');
+    scroller.scrollTop = 400;
+    expect(scroller.scrollTop).toBeGreaterThan(0);
+    expect(document.documentElement.scrollHeight).toBeLessThanOrEqual(window.innerHeight + 1);
+    expect(must('.pv-strip').getBoundingClientRect().top).toBe(strip.top);
+    await expect.element(screen.getByRole('region', { name: 'Notes text' })).toBeVisible();
+  });
+
+  test('Given the divider and the text size changed, When a new show starts, Then they are as they were left', async () => {
+    const show = join();
+    const first = await inWindow(<PresenterView show={show} />);
+    await userEvent.click(separator(first).element());
+    await userEvent.keyboard('{ArrowUp}{ArrowUp}');
+    await userEvent.click(first.getByRole('button', { name: 'Larger text' }).element());
+    await userEvent.click(first.getByRole('button', { name: 'Larger text' }).element());
+    await first.unmount();
+
+    const second = await inWindow(<PresenterView show={join()} />);
+
+    await expect.element(separator(second)).toHaveAttribute('aria-valuenow', '42');
+    await expect.element(second.getByText('26 px')).toBeVisible();
+  });
+
+  test('Given nothing kept or something spoiled, Then the notes panel starts at the board sizes', async () => {
+    localStorage.setItem('cue.presenter', 'garbage');
+
+    const screen = await render(<PresenterView show={join()} />);
+
+    await expect.element(separator(screen)).toHaveAttribute('aria-valuenow', '46');
+    await expect.element(screen.getByText('22 px')).toBeVisible();
+  });
+});
+
+describe('the presenter view when the audience window is gone (PM-3)', () => {
+  test('Given an audience window that is gone, Then the view says so and offers Reconnect; given it is not, Then it says nothing', async () => {
+    const show = join();
+    const reconnect = vi.fn();
+    const screen = await render(<PresenterView show={show} onReconnect={reconnect} />);
+    expect(screen.getByRole('status').elements()).toHaveLength(0);
+
+    show.markAudienceGone();
+
+    await expect
+      .element(screen.getByText('The audience window was closed. The show goes on here.'))
+      .toBeVisible();
+    await userEvent.click(screen.getByRole('button', { name: 'Reconnect' }).element());
+    expect(reconnect).toHaveBeenCalledTimes(1);
+    // The show goes on meanwhile.
+    await userEvent.keyboard('{ArrowRight}');
+    await expect.element(screen.getByText('Slide 2 of 3')).toBeVisible();
+  });
+
+  test('Given a new audience window being asked for, Then the notice goes; given the browser blocked it, Then it says how to allow it', async () => {
+    const show = join();
+    const screen = await render(<PresenterView show={show} blocked onReconnect={vi.fn()} />);
+    show.markAudienceGone();
+
+    await expect
+      .element(screen.getByText(/Your browser blocked the audience window/))
+      .toBeVisible();
+    await expect.element(screen.getByRole('button', { name: 'Try again' })).toBeVisible();
+
+    show.expectAudience();
+
+    await expect.poll(() => screen.getByRole('status').elements()).toHaveLength(0);
   });
 });
 

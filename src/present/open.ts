@@ -33,6 +33,11 @@ export function closeAudienceWindow(): void {
   audience = null;
 }
 
+/** The audience window this tab opened has been closed (by the person at the show, not by us). */
+export function audienceWindowClosed(): boolean {
+  return audience?.closed === true;
+}
+
 /** Whether the audience window this tab opened is still open. */
 export function audienceWindowOpen(): boolean {
   return audience !== null && !audience.closed;
