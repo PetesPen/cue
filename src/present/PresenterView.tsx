@@ -129,7 +129,7 @@ export function PresenterView({
 
   const nextLabel =
     next.kind === 'click'
-      ? `Next · Click ${String(next.click)}`
+      ? `Next · Click ${String(next.click)} of ${String(clicks)}`
       : next.kind === 'slide'
         ? `Next · Slide ${String(next.slide + 1)}`
         : 'Next';

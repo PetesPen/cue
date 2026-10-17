@@ -71,7 +71,9 @@ describe('the presenter view (PM-2)', () => {
       .element(screen.getByText('No clicks').or(screen.getByText('Click 0 of 2')))
       .toBeVisible();
     await expect.element(screen.getByText('Open with the customer problem.')).toBeVisible();
-    await expect.element(screen.getByRole('heading', { name: 'Next · Click 1' })).toBeVisible();
+    await expect
+      .element(screen.getByRole('heading', { name: 'Next · Click 1 of 2' }))
+      .toBeVisible();
     // Every slide, with the current one marked.
     const strip = screen.getByRole('region', { name: 'All slides' });
     await expect
@@ -89,7 +91,9 @@ describe('the presenter view (PM-2)', () => {
 
     await expect.element(screen.getByText('Appears')).toBeVisible();
     await userEvent.click(screen.getByRole('button', { name: 'Next click' }).element());
-    await expect.element(screen.getByRole('heading', { name: 'Next · Click 2' })).toBeVisible();
+    await expect
+      .element(screen.getByRole('heading', { name: 'Next · Click 2 of 2' }))
+      .toBeVisible();
     await expect.element(screen.getByText('Moves')).toBeVisible();
     await expect.element(screen.getByText('Click 1 of 2')).toBeVisible();
     // The picture fades in, then it is at its own opacity.

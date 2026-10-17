@@ -243,6 +243,10 @@ test('Given text being edited, When Delete is pressed, Then it deletes a letter 
   await expect
     .poll(() => document.querySelector('.text-edit-box .ProseMirror'), { timeout: 5000 })
     .not.toBeNull();
+  // The editor takes focus a frame later (TipTap's focus command); a key before that is the slide's.
+  await expect
+    .poll(() => document.querySelector('.text-edit-box .ProseMirror') === document.activeElement)
+    .toBe(true);
   await new Promise((resolve) => setTimeout(resolve, 300));
 
   await userEvent.keyboard('{Control>}{Home}{/Control}{Delete}');

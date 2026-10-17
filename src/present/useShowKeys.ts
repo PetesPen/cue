@@ -1,8 +1,12 @@
 import { useEffect } from 'react';
+import { showActionFor } from '@/model';
 import type { Show } from './show';
 
 /** How long typed digits wait for Enter before they are forgotten. */
 const NUMBER_WAIT_MS = 2500;
+
+/** The most digits of a slide number that are kept (a deck of ten thousand slides is not a talk). */
+const MAX_DIGITS = 4;
 
 /**
  * Typing in a field is not a shortcut: the number box of the navigator takes its own keys, and so does the
@@ -18,10 +22,10 @@ function isTyping(target: EventTarget | null): boolean {
 }
 
 /**
- * The keys of a show, in either window (PM-6): Right, Down, Page Down, Space and Enter go forward; Left,
- * Up, Page Up and Backspace go back; Home and End jump to the first and the last slide; B and W blank
- * the screen; a number then Enter jumps to that slide; Esc ends the show. F, where given, is handled by
- * the window itself. A key with Ctrl, Cmd or Alt is the browser's.
+ * The keys of a show, in either window (PM-6). What each key means is the table in `model` (`SHOW_KEYS`),
+ * which the editor's shortcut sheet reads too; this says what the show does for each action. A number then
+ * Enter jumps to that slide. F is the window's own (full screen), so it does nothing where there is no
+ * `onFullscreen`.
  */
 export function useShowKeys(show: Show, onFullscreen?: () => void): void {
   useEffect(() => {
@@ -33,37 +37,30 @@ export function useShowKeys(show: Show, onFullscreen?: () => void): void {
     };
 
     function onKeyDown(event: KeyboardEvent) {
-      if (event.ctrlKey || event.metaKey || event.altKey || isTyping(event.target)) return;
+      const action = showActionFor(event);
+      if (!action || isTyping(event.target)) return;
       // A button focused with the keyboard takes Space and Enter itself.
       const onButton = event.target instanceof HTMLButtonElement;
-      const key = event.key;
-      let handled = true;
+      if (onButton && (event.key === ' ' || event.key === 'Enter')) return;
+      if (action === 'fullscreen' && !onFullscreen) return;
 
-      if (/^[0-9]$/.test(key)) {
-        typed = (typed + key).slice(0, 4);
+      if (action === 'digit') {
+        typed = (typed + event.key).slice(0, MAX_DIGITS);
         clearTimeout(forget);
         forget = setTimeout(clearTyped, NUMBER_WAIT_MS);
-      } else if (key === 'Enter' && typed !== '') {
+      } else if (action === 'next' && event.key === 'Enter' && typed !== '') {
         show.jump(Number.parseInt(typed, 10) - 1);
         clearTyped();
-      } else if (key === 'ArrowRight' || key === 'ArrowDown' || key === 'PageDown') show.forward();
-      else if ((key === ' ' || key === 'Enter') && !onButton) show.forward();
-      else if (
-        key === 'ArrowLeft' ||
-        key === 'ArrowUp' ||
-        key === 'PageUp' ||
-        key === 'Backspace'
-      ) {
-        show.back();
-      } else if (key === 'Home') show.toStart();
-      else if (key === 'End') show.toEnd();
-      else if (key === 'b' || key === 'B') show.blank('black');
-      else if (key === 'w' || key === 'W') show.blank('white');
-      else if (key === 'Escape') show.end();
-      else if ((key === 'f' || key === 'F') && onFullscreen) onFullscreen();
-      else handled = false;
+      } else if (action === 'next') show.forward();
+      else if (action === 'previous') show.back();
+      else if (action === 'first') show.toStart();
+      else if (action === 'last') show.toEnd();
+      else if (action === 'blackout') show.blank('black');
+      else if (action === 'whiteout') show.blank('white');
+      else if (action === 'end') show.end();
+      else onFullscreen?.();
 
-      if (handled) event.preventDefault();
+      event.preventDefault();
     }
 
     window.addEventListener('keydown', onKeyDown);
