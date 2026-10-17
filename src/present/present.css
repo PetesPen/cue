@@ -279,6 +279,20 @@
   background: var(--color-warning-tint);
 }
 
+/* A hint, not a warning: the tint of a chosen thing. */
+.pv-banner-tip {
+  background: var(--color-accent-tint);
+  color: var(--color-accent-tint-text);
+}
+
+.pv-banner-tip kbd {
+  padding: 0 6px;
+  border: 1px solid currentcolor;
+  border-radius: var(--radius-thumb);
+  font: inherit;
+  font-weight: 600;
+}
+
 .pv-banner p {
   margin: 0;
   font: var(--type-body);

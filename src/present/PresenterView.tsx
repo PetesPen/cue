@@ -112,6 +112,11 @@ export function PresenterView({
     writeLayout(next);
   };
   const top = useRef<HTMLElement>(null);
+  // Until the first move, a hint about the second screen (UX-5): no browser can be told to put the window
+  // there and go full screen without the person's own click, so this says how.
+  const [startedAt] = useState(place);
+  const [tipClosed, setTipClosed] = useState(false);
+  const moved = place.slide !== startedAt.slide || place.click !== startedAt.click;
   const slide = deck.slides[place.slide];
   const clock = useStopwatch();
   const { start: startTimer } = clock;
@@ -183,6 +188,24 @@ export function PresenterView({
       </header>
 
       <div className="pv-banner-area">
+        {audience === 'here' && !moved && !tipClosed && (
+          <div className="pv-banner pv-banner-tip" role="status">
+            <p>
+              <strong>Two screens?</strong> Drag the audience window to your projector or second
+              screen, then press <kbd>F</kbd> in it for full screen. The cursor and the hint go
+              away.
+            </p>
+            <button
+              type="button"
+              className="pv-button pv-button-small"
+              onClick={() => {
+                setTipClosed(true);
+              }}
+            >
+              Got it
+            </button>
+          </div>
+        )}
         {audience === 'gone' && onReconnect && (
           <div className="pv-banner" role="status">
             <p>
