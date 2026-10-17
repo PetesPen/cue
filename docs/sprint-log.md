@@ -591,3 +591,66 @@ Tests now: 1,479 Vitest tests (1,389 at the end of sprint 7). End to end: 138 pe
 
 1. Is a few seconds' grace (4) before an audience window closes after its presenter tab is gone the right length? Too short and a slow reload closes it; too long and a closed tab leaves the window up.
 2. Should the notes' size and the divider be remembered per deck rather than for the whole browser? (Built per browser.)
+
+## Sprint 9: Deck files, browsers and offline use
+
+**Dates:** plan approved 2026-10-17 with sprint 8's; built the same day. **This is the review of sprints 8 and 9 together** (rule 9); there is no gate here (Gate 4 follows sprint 10). Sprint 8's notes are the entry above.
+
+**Goal:** save a deck to a file and open it in another browser; install Cue and open it with the network off; be told kindly on a phone that Cue is for larger screens. **Met on the evidence below**, with the things that need a real machine listed under "What stays manual".
+
+### What finished
+
+| Story | Status | How it is shown |
+|---|---|---|
+| SV-3 Save and open a deck file | done | **Export** (the board's dialog, also from a card's menu and Ctrl/⌘ E) makes a `.slides` file: a zip with `deck.json`, each picture once by its hash (and the original of a scaled-down one), and the fonts the deck uses with their licences. **Open file** (the library's top bar and its empty state) checks the whole file before storing anything and adds the deck as a **new** deck, never replacing one. A file that is not a deck, is cut short, is damaged, is too big, or is from a newer Cue shows a clear card ("Your decks are untouched") and changes nothing. Property test: any deck saved and opened is the same deck; Autumn Launch round-trips exactly; every kind of bad file has a test. End to end: Autumn Launch with a picture exported, opened in a fresh browser profile, and found with its picture, steps, transition and notes. Carried over from sprint 1: the storage banners offer **Export deck** (it works even when saving is failing: the file is made from the deck in the tab), the delete confirmation says "Export a copy first if you might want it back", and a deck Cue cannot read is a card with Delete |
+| UX-5 Works in modern browsers | done, except real Safari | the whole end-to-end suite runs on Chromium, Firefox and WebKit on every pull request (Edge nightly); a phone-sized screen (under 700 px) shows the card of the States board ("Cue is built for larger screens", Copy link) instead of the editor, and a show window of any size still runs; a browser without what Cue needs gets a plain page saying what it lacks; the presenter view tells you to drag the audience window to the second screen and press F, until the first move; the blocked-window card is the explanation of pop-ups |
+| UX-7 Install and work offline | done, except the real install flow | after one visit the whole app (57 files, 1.4 MB, the fonts, the show windows and the deck file code included) is in a service worker's cache: with the network off, a test reloads, makes and edits a deck, types text (the editor that loads on first use comes from the cache), opens the audience window, and no request fails. A new version **waits**: the banner ("A new version of Cue is ready", Update now, Later) never reloads anything by itself, never touches the stored decks, and if the new version does not take over within 3 s (the WebKit finding of SP-6) the worker and caches are removed and the page reloads. "Install Cue" is in the library's top bar only where the browser offers it. The worker is registered in production builds only. Headers: `sw.js`, `index.html` and the manifest are never cached by the browser |
+
+Tests now: 1,568 Vitest tests (1,479 at the end of sprint 8). End to end: 151 per engine (138 before), 301 passing on Chromium and WebKit here (one skipped: closing a page in Playwright's WebKit does not release locks). Coverage `model` 98.1%, `render` 99.5%. First-load bundle 154.9 KB of 300 KB (150.5 before), CSS 8.3 of 30 KB; lazy chunks: text editor 118.6 of 160 KB, the show windows 7.6 of 40 KB, the deck file code with its zip library 8.7 of 30 KB.
+
+### Not done
+
+- **The backup reminder** of the Home board ("Your decks live only in this browser. It has been 14 days since your last backup…", Back up all decks) is not in any story's criteria, so it is not built; the story assumptions mention a reminder to export. It would need "Back up all decks" (every deck in one file), which is a story of its own. A question below.
+- **The standalone web page** option of the Export dialog is greyed out with "Coming soon" until sprint 10.
+- **The real update flow with two builds** is checked by unit tests with a pretend register and by hand (SP-6 did it with two builds); it is on the manual list.
+- **Final app icons**: the interim ones are drawn from the logo mark.
+
+### What building it showed
+
+- **A clock before 1980 or after 2099 stopped a save** (the zip format cannot date an entry outside that): the date is clamped; a test uses four wrong clocks.
+- **Opening is all or nothing**: the file is unpacked and every picture's hash, every name and every size is checked first; only then is the deck stored (with its pictures, in one transaction), as a new deck. The zip code reads only the names the layout allows and refuses oversize entries before inflating them.
+- **The zip library is a lazy chunk**, and the editor reaches it by a dynamic import, so the first load grew by 2.6 KB only (the buttons and the dialog).
+- **Export while a save is failing** had to read the deck in the tab, not the store: the session now hands the dialog the deck as it is, typed text flushed, with the pictures that are not stored yet.
+- **A service worker in every end-to-end test** (production build) changed nothing that the suite could see; the offline tests prove the cache.
+- **The decisions log kept two storage-rules**: the tests that forbid `localStorage`/`sessionStorage` now name the two small habits (sprint 8) as the only exceptions and check they hold no deck.
+- Two flaky component tests raced TipTap's delayed focus and ProseMirror's start-up; both wait for what they need now.
+
+### What stays manual (please check by hand)
+
+1. **Install in Chrome and Edge (and Add to Dock in Safari)**: its own window and icon; start a show from the installed app (does the audience window open, and where?).
+2. **A real update**: with the live site, publish a change, reload, see the banner, Update now, and that a deck is untouched.
+3. **A real phone**: the card, and Copy link.
+4. **Open a file made in one browser in another** (Chrome to Firefox to Safari), and a damaged one.
+5. **Real Safari for the two windows** (pop-ups, full screen), and a real second display and projector (sprint 7 and 8's lists).
+
+### Demo script for the review of sprints 8 and 9 (about 60 minutes)
+
+Use https://cue-presentations.netlify.app/ after this sprint's pull request is merged.
+
+1. (10 min) **Rehearse a talk.** Present from the fixture deck: both windows, the hero slide's clicks, the Next preview ("Next · Click 2 of 3"), the notes (drag the divider, A− and A+, then end the show and start again: they stay), the timer.
+2. (8 min) **Windows that go away.** Close the audience window: the notice and Reconnect. Reload the presenter tab and the audience window: the place is kept. Close the presenter tab: the audience window closes.
+3. (6 min) **Transitions.** Slide with a direction, a duration, Apply to all slides (and one undo), Reset to none.
+4. (10 min) **Deck files.** Export (the button, Ctrl/⌘ E); open the file with Open file in another browser; open the same file twice; open a text file renamed to `.slides`.
+5. (5 min) **Trouble.** Fill storage (the banner says Export deck); delete a deck from its card, with the new wording.
+6. (8 min) **Offline and install.** Switch the network off in the browser's tools and reload; install Cue; the update banner when a new version is out.
+7. (5 min) **A phone** (or a narrow window): the card.
+8. (8 min) **A short talk of your own.**
+
+### Questions for the review (most important first)
+
+1. **Is the backup reminder** (Back up all decks, after 14 days) wanted in v1, and where: Home, with a story for "all decks in one file" (about 2 days)?
+2. **Interim icons**: when will the final art come (and its maskable version)? Install shows them.
+3. **"Install Cue"** is a quiet button in the library's top bar. Right? And the wording of the update banner?
+4. **A few seconds' grace** (4) before an audience window closes after its presenter tab is gone: right length? (From sprint 8.)
+5. **The notes' size and the divider** are remembered for the browser, not per deck. Right? (From sprint 8.)
+6. **A phone** is anything under 700 px wide. Right?
