@@ -58,6 +58,7 @@ One file per sprint, with the stories (full acceptance criteria), demo, key test
 | TN-3 | Apply to all slides | Should | [8](sprint-08.md) |
 | TN-4 | Preview a transition | Must | [7](sprint-07.md) |
 | TN-5 | Transitions play smoothly | Must | [7](sprint-07.md) |
+| TN-6 | Morph transition | Should | [12](sprint-12.md) (proposed; Peter decides with the plans for sprints 11 and 12) |
 | PM-1 | Start a presentation | Must | [7](sprint-07.md) |
 | PM-2 | Present from the presenter view | Must | [7](sprint-07.md) |
 | PM-3 | Keep both windows in sync | Must | [8](sprint-08.md) |

@@ -6,7 +6,7 @@
 
 ## Summary
 
-Slides can reach a v1.0 release in about 14 two-week sprints (about 28 weeks) with two engineers, with a working, tested app at the end of every sprint. This plan turns the 60 user stories and the Studio design canvas into that sequence.
+Slides can reach a v1.0 release in about 14 two-week sprints (about 28 weeks) with two engineers, with a working, tested app at the end of every sprint. This plan turns the 61 user stories and the Studio design canvas into that sequence.
 
 **How we work**
 
@@ -177,7 +177,7 @@ Reviews with the product owner happen every other sprint (agreed 2026-10-16), an
 | 4 | First full show | 10 | Can you deliver a real talk from start to finish, with all 39 Must stories working? |
 | 5 | v1.0 | 13 | Is the release candidate good on all four browsers, with every budget met? |
 
-**Status:** Gate 1 passed on 2026-10-15, Gate 2 on 2026-10-16 and Gate 3 ("Motion beta") on 2026-10-17 (all accepted by Peter). Gates 4 and 5 are open. The criteria for Gates 1 to 3 are written. The criteria for each later gate are written at the start of the sprint that ends in it.
+**Status:** Gate 1 passed on 2026-10-15, Gate 2 on 2026-10-16 and Gate 3 ("Motion beta") on 2026-10-17 (all accepted by Peter). Gates 4 and 5 are open. The criteria for Gates 1 to 4 are written. The criteria for each later gate are written at the start of the sprint that ends in it.
 
 **Gate 1 criteria** (written by Claude on 2026-10-15, because the plan did not define them; the product owner can change them):
 
@@ -206,6 +206,15 @@ Gate 2 is not about polish (slide backgrounds, snapping and a layers panel are l
 4. **Accessibility and budgets hold.** axe finds nothing on the presenter view, the audience window and the transition bar; the first load stays inside 300 KB; the transition frame budgets are met on the nightly run.
 5. **Peter presents a short talk** of his own from the live app in two windows, on his own machine, and says whether he would try a real one (manual).
 
+**Gate 4 criteria** (written by Claude on 2026-10-17, in `docs/plans/sprint-10.md`, and approved by Peter on 2026-10-18 with the plan; the product owner can change them). The question is "can you deliver a real talk from start to finish, with all 39 Must stories working?":
+
+1. **Every acceptance criterion of sprints 8 to 10 is shown working** on the preview deployment (PM-3 to PM-6, TN-2, TN-3, SV-3, UX-5, UX-7, SV-4, SV-5 and SV-8), with its tests green on Chromium, Firefox and WebKit.
+2. **All 39 Must stories have an end-to-end test.** A test reads `docs/user-stories.md` and fails when a Must story's ID is in no end-to-end or performance test name, and the sprint log lists each Must story with its tests.
+3. **A real deck goes the whole way.** By end-to-end tests, Autumn Launch is built in the editor, presented from first slide to last in two windows, exported as a file and as a web page, the page presented from first slide to last with the network off, and the deck file opened in a fresh profile and found whole.
+4. **Nothing is lost.** An export never changes the deck; a failed export (a picture that cannot be read, a full disk) says so and leaves everything; a show never changes the deck.
+5. **Accessibility and budgets hold.** axe finds nothing on the Export dialog, the exported page, the presenter view and the audience window; the first load stays inside 300 KB; the export budgets hold (30 slides in under 10 seconds, the page's program and the exporter's chunk inside their sizes); the exported page makes no request.
+6. **Peter gives a short talk of his own** from the live app (two windows) and from an exported page in another browser, on his own machine, and says whether he would try a real one (manual).
+
 If a gate's criteria are not met, the next sprint closes the gap before any new stories start.
 
 **Sprint by sprint**
@@ -231,7 +240,7 @@ Sprints loaded below 16 days keep a few days free for bugs and surprises. Stretc
 
 ## Backlog
 
-The backlog is the 60 stories from [user-stories.md](user-stories.md), grouped into ten epics, and 39 of them are Must. The estimate is in engineering days (small = 2, medium = 4, large = 8) and covers Must and Should stories only.
+The backlog is the 61 stories from [user-stories.md](user-stories.md), grouped into ten epics, and 39 of them are Must. The estimate is in engineering days (small = 2, medium = 4, large = 8) and covers Must and Should stories only.
 
 | Epic | Stories | Must | Should | Could | Estimate (days) | Sprints |
 |---|---|---|---|---|---|---|
@@ -240,13 +249,13 @@ The backlog is the 60 stories from [user-stories.md](user-stories.md), grouped i
 | Z-order | ZO-1 to ZO-3 | 1 | 2 | 0 | 8 | 2, 11 |
 | Transparency | TR-1 to TR-3 | 2 | 1 | 0 | 6 | 2, 5, 11 |
 | Animations | AN-1 to AN-7 | 5 | 2 | 0 | 22 | 5, 6, 11 |
-| Transitions | TN-1 to TN-5 | 3 | 2 | 0 | 14 | 6, 7, 11 |
+| Transitions | TN-1 to TN-6 | 3 | 3 | 0 | 20 | 6, 7, 8, 12 (TN-6 proposed) |
 | Presenting | PM-1 to PM-8 | 6 | 1 | 1 | 24 | 7, 8, 12 |
 | Saving and export | SV-1 to SV-8 | 5 | 2 | 1 | 32 | 1, 2, 9, 10 |
 | Look, feel and quality | UX-1 to UX-7 | 5 | 2 | 0 | 24 | 1, 5, 9, 12 |
 | Themes and templates | TH-1 to TH-3 | 0 | 0 | 3 | 0 | After v1.0 |
 | Foundations and hardening | Not user stories | n/a | n/a | n/a | 32 | 0, 13 |
-| Total | 60 stories | 39 | 15 | 6 | 220 | 14 sprints |
+| Total | 61 stories | 39 | 16 | 6 | 226 | 14 sprints |
 
 **How the backlog is managed**
 
