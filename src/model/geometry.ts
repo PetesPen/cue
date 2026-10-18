@@ -168,8 +168,9 @@ export function resizeBox(
       minSize / box.width,
       minSize / box.height,
     );
-    width = box.width * factor;
-    height = box.height * factor;
+    // Multiplying back can land a rounding error below the smallest size (found by the property test).
+    width = Math.max(minSize, box.width * factor);
+    height = Math.max(minSize, box.height * factor);
   }
 
   // The anchor (opposite side) is fixed, so the centre moves half of what the size changed.

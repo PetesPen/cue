@@ -67,7 +67,8 @@ test.describe('Given Autumn Launch exported as a web page and opened with the ne
           document.fonts.ready.then(() =>
             [...document.fonts]
               .filter((face) => face.status === 'loaded')
-              .map((face) => face.family),
+              // Firefox writes the family with its quotes, the others without.
+              .map((face) => face.family.replaceAll('"', '')),
           ),
         ),
       )
