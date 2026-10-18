@@ -250,6 +250,17 @@ A transition plays when the show moves from one slide to the next, and belongs t
 - Animations that belong to the new slide only begin once the transition finishes.
 - Moving backward plays the same transition in reverse, or a plain fade if reversing does not make sense.
 
+**TN-6 Morph transition (Should).** As a presenter, I want a Morph transition, so that when the next slide has the same things arranged differently, they glide from where they were to where they now are instead of cutting. (Added 2026-10-18 at Peter's request.)
+
+- Morph is a choice in the transition panel beside None, Fade, Slide, Push and Zoom; its duration can be set (TN-2); the default stays None.
+- An element that is on both slides moves, resizes, turns and changes its colours and transparency smoothly from how it is on the first slide to how it is on the second.
+- An element on only one of the two slides fades out or in during the same time, and the slide's background changes smoothly.
+- Which elements count as "the same" is predictable: an element copied to another slide (by duplicating the slide, or by copy and paste) is the same element there; so is a picture with the same image, or a text with the same words, that was not copied. The panel says how many elements will morph.
+- It morphs from the first slide as it ends (every click played) to the second as it opens; animations of the new slide begin once the morph finishes; going back plays it in reverse.
+- It runs at 60 fps on a typical laptop with a fully populated slide (the budget of TN-5), and the exported web page morphs in the same way.
+
+Design: no board yet (a new choice in the transition panel of the Animate board). Priority Should is proposed: Peter can change it.
+
 ## Presentation mode
 
 Starting a show opens an audience window for the projector, and the editor tab itself becomes the presenter view for the speaker. The two stay in sync, and either one can drive. (Decided by Peter on 2026-10-14 after spike SP-1: browsers block a second pop-up opened by the same click.)
