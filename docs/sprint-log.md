@@ -669,3 +669,73 @@ Peter answered the six questions. There is no gate here. Every answer agrees wit
 Still manual, and carried to the rehearsal before Gate 4: the real install and update, a real phone, real Safari, a second display and a projector.
 
 After the review, pull request 33's WebKit job failed on two tests that passed here: on Linux, WebKit turns the space in a downloaded file's name into an underscore (the test now accepts either), and the colour picker test read the colour before WebKit had drawn the last pointer move (it now waits two frames). Neither was a fault in the app; Firefox passed every test.
+
+## Sprint 10: Standalone HTML (Gate 4, "First full show")
+
+**Dates:** plan approved 2026-10-18; built the same day. **This is the review for Gate 4** (rule 9); sprints 8 and 9 were reviewed on 2026-10-17. The criteria of Gate 4 are in `docs/plans/sprint-10.md` and `docs/development-plan.md`.
+
+**Goal:** present from one offline HTML file that matches the editor; back up every deck. **Met on the evidence below**, with the things that need a real machine listed under "What stays manual".
+
+### What finished
+
+| Story | Status | How it is shown |
+|---|---|---|
+| SV-4 Export to HTML | done, except real Safari and a real phone | **Export** opens on "Standalone web page": one `.html` file with the deck, every picture once, the fonts it uses with their licences, and a small program built from the same renderer, with a content security policy that lets the browser refuse any request (one script, by its hash; pictures and fonts only from the file). Opened from a real file with the network off, in a browser that records everything: Autumn Launch plays from slide 1 to slide 12 in the order the show has (every click, every transition), with no request, no error and no policy violation. The keys of the show all work (arrows, Space, Enter, a number then Enter, Home, End, B, W, F), and **N** shows the notes beside the slide with where the show is and what comes next, **?** lists the keys and the font licences. A tap on the right or left of the slide, and a swipe, move a touch screen. At three sizes (1920 × 1080, 1280 × 600, a phone) the slide fits at 16:9. "Include speaker notes" off: not a word of the notes is in the file. Text that tries to break out (`</script><script>…`) is held as text and nothing runs. A picture the store cannot give stops the export and names the slide. 30 slides with a picture each export in **0.6 s** in Chromium (2.0 s in WebKit); the budget is 10 s. axe finds nothing on the page (slide, notes, key list) or on the Export dialog |
+| SV-5 Import and export fidelity | done | One test draws every slide and click of Autumn Launch (with a picture) and of a deck made to be awkward (all seven fonts, mixed bold, italic, underline and colours in one line, lists, every alignment, line spacing, turned, transparent and dashed shapes, words inside a shape, overlapping layers, a click for each kind of step) in the editor, the audience window and the exported page, at 1920 × 1080, in one engine at a time, and compares where every element and every line of text sits (to within one pixel), the order of the layers, and the pixels. **23 states, no pixel differs** in Chromium and WebKit (Firefox runs in CI). Round trip: a deck file opened and saved again is the same deck apart from its id and times, and the same pictures, byte for byte |
+| SV-8 Back up all decks | done | The library has **Back up all decks** (beside the storage figure, and in the reminder): one `.zip` named "Cue backup" and the day, holding a `.slides` file for each deck. **Open file** also takes it and adds every deck as a new deck (nothing is replaced); a deck in it that is damaged is named and the others are added; a deck whose picture cannot be read is named when the backup is made, never left out silently. The reminder of the Home board appears when a deck has changed since it was last put in a file and that file is 14 days old or more (a deck never filed counts from the day it was made), counts the days, and its close button hides it for 14 days; a backup, or a deck file saved from Export, counts as saving; a web page does not (it cannot be opened again). Pure rule with a table and property tests; end to end: two decks backed up and brought back in a profile with nothing in it |
+
+Also in the sprint: the **working logo** Peter gave is the source of the app icons (`brand/`, `npm run icons`), and the new story **TN-6 Morph** is written up (below).
+
+Tests now: 1,741 Vitest tests (1,568 at the end of sprint 9). End to end: 169 per engine (151 before). Coverage `model` 98.2%, `render` 99.5%. First-load bundle 157.0 KB of 300 KB (154.9 before), CSS 8.5 of 30 KB; lazy chunks: text editor 118.6 of 160 KB, the show windows 7.6 of 40 KB, the deck file code 8.7 of 30 KB, the web page exporter 17.2 of 30 KB (new); the page's own program 38.8 KB minified (13.7 KB gzipped) of 50 KB.
+
+### Gate 4: how each criterion is shown
+
+1. **Every criterion of sprints 8 to 10 works, tests green on three engines.** The suites of sprints 8 and 9 stand; this sprint's are above. CI runs Firefox, which cannot run on this PC.
+2. **All 39 Must stories have an end-to-end test.** `tests/must-stories.test.ts` reads the stories and fails when a Must story's ID is in no end-to-end or performance test title. It found one real gap and three tests that did not say what they showed: **EL-2 (choosing fonts) had no end-to-end test**; it has one now (each font previewed in its own typeface, the choice drawn and saved, no italic button for a font without an italic, the font listed first next time). AN-6, TN-5, PM-5, PM-6 and TR-3 were tagged.
+3. **A real deck goes the whole way**, by tests that already exist and the new ones together: the hero slide of Autumn Launch is built through the interface (`autumn-launch.spec.ts`); it is presented first to last in two windows, every click and transition played, and Esc returns the editor (`present.spec.ts`); it is exported as a file and opened in a fresh profile (`deck-file.spec.ts`), and as a page that is presented first to last with the network off (`html-export.spec.ts`); and it is backed up and brought back whole (`backup.spec.ts`). One test chain would be slower and show no more.
+4. **Nothing is lost.** An export never changes the deck (the dialog and the exporter write nothing; the deck is read as it is in the tab); a failed export says why and changes nothing (a picture that cannot be read; the same while a save is failing); a show never changes the deck (Gate 3's test, kept).
+5. **Accessibility and budgets hold.** axe: the Export dialog, the page (slide, notes open, key list open), the reminder and the backup message; the presenter view and the audience window as before. Budgets: first load, the new lazy chunk, the page's program and the 30-slide export are failing tests; the page makes no request.
+6. **Peter gives a short talk of his own** from the live app and from an exported page in another browser: **his to do** (manual).
+
+### What building it showed
+
+- **A slide's text inherited its weight and font from the page around it.** The fidelity test failed on its first run: in the exported page regular text came out about 1.2% narrower. The editor's own page sets its body text to medium weight (500) in the interface font, and slides, which never named a weight, had always inherited that. The renderer now gives `.cue-slide` its own defaults (the font, the size, the colour and the weight, written down as what they were), so a slide looks the same in any page; nothing changed in the editor (the visual tests pass on the same pictures). **A question for Peter below:** regular text has therefore always been drawn at medium weight, not true regular.
+- **The page's program is small and stands alone.** It is built apart from the app by a second Vite build (`config/exportRuntime.ts`) that leaves out everything it does not use (the commands and undo, the library behind them), and a test of the built text checks that it never touches storage, the network, a framework or a clock of its own.
+- **Opening a page made on the same engine, in a profile with nothing in it, with the network off,** is the only honest way to test "no external requests": the test records every request, every console error and every policy violation, and opens the file from disk.
+- **A startup sweep deleted the pictures of a test deck.** The app removes pictures no deck shows when it starts; the export timing test stored its pictures and then started the app before the deck that shows them was stored. The test now stores both before the app starts. (The sweep is right; the order was wrong.)
+- **WebKit on this PC is very slow with large pages**: the fidelity test takes minutes there; it is arranged to open the editor first and let it go before the other two windows are drawn, and its timeout is long. CI's Linux WebKit is far faster.
+- **Peter's laptop crashed during the sprint** (unrelated). Nothing was lost: the branch was pushed, and the work after the last push was whole on disk.
+
+### Not done
+
+- **The standalone page has no board.** It is built to the style guide (black bars, the dark forest bar and notes panel, the yellow for "next"), and is Peter's to react to.
+- **A real Safari, a real phone, a projector** (below).
+- **The final icons**: the working logo is a soft-edged picture with a transparent background; a vector would be sharper at small sizes.
+
+### What stays manual (please check by hand)
+
+1. **Open an exported page in each real browser from disk** (Chrome, Edge, Firefox, Safari), and send one to a phone (AirDrop or mail) and play it: tap and swipe.
+2. **A full rehearsal** of a real talk: in the live app (two windows) and from an exported page.
+3. **Fonts and wrapping on macOS and Linux** (the fidelity test compares the three renderers within one engine; across machines the fonts are the bundled ones, so they should agree).
+4. Sprint 7 to 9's lists still stand: a second display and projector, real install and update, real Safari for the two windows.
+
+### Demo script for the Gate 4 review (about 75 minutes)
+
+Use https://cue-presentations.netlify.app/ after this sprint's pull request is merged.
+
+1. (10 min) **Export Autumn Launch as a web page** (Export, the first choice; try the notes box). Open the file from your Downloads folder in another browser, with the Wi-Fi off. Press → through every slide; N, B, W, F, a number then Enter, ?.
+2. (5 min) **A phone**: send the file to your phone and play it (tap the right, tap the left, swipe).
+3. (10 min) **Side by side**: the editor, the audience window and the page on one slide of your own deck: do text and positions agree?
+4. (8 min) **Back up all decks** from the library; open the file in a second browser profile; look at what came back. Close the reminder; export one deck as a file from its card.
+5. (10 min) **The icons**: install Cue (Chrome or Edge) and look at the icon.
+6. (5 min) **Trouble**: export a deck while storage is nearly full; try Open file on a text file.
+7. (25 min) **A short talk of your own**, from the live app and from an exported page.
+
+### Questions for the review (most important first)
+
+1. **Does Gate 4 ("First full show") pass?** Its six criteria are above; the sixth is your talk.
+2. **Regular text is drawn at medium weight.** The interface's own body text is medium (500) and slides have always inherited it, so every "regular" line is a little heavier than true regular (400). I have kept it as it is, written down on the slide. Is medium what you want for slide text, or true regular? (Changing it lightens every deck a little and re-wraps some lines; the three renderers agree either way.)
+3. **The look of the standalone page** (no board): black bars, a thin bar of buttons that appears when the mouse moves and fades after 3 seconds, notes in a panel on the right (below on a phone), a key list on **?**. Right direction?
+4. **Back up all decks** is a quiet button beside the storage figure on the library (the board has the reminder, not this button), and the message after a backup is a green banner (not on a board). Right?
+5. **TN-6 Morph**: sprint 12 has the room (8 of 14 days) with no swap; sooner means swapping it with ZO-3 in sprint 11. The plans for sprints 11 and 12 are next: place it there?
+6. **Final icons**: the working logo is in as the app icon; when will the final art (ideally a vector) come?

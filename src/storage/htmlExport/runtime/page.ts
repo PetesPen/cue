@@ -51,8 +51,8 @@ function create<K extends keyof HTMLElementTagNameMap>(
   return element;
 }
 
-function button(label: string, text: string, onClick: () => void): HTMLButtonElement {
-  const node = create('button', 'cp-button', text);
+function button(label: string, text: string, onClick: () => void, extra = ''): HTMLButtonElement {
+  const node = create('button', `cp-button${extra === '' ? '' : ` ${extra}`}`, text);
   node.type = 'button';
   node.setAttribute('aria-label', label);
   node.addEventListener('click', onClick);
@@ -97,6 +97,8 @@ function buildHelp(licences: string): HTMLDialogElement {
   const close = button('Close', 'Close', () => {
     dialog.close();
   });
+  // The list opens with this button focused, not the first thing in it.
+  close.autofocus = true;
   dialog.append(heading, list, touch);
   if (licences.trim() !== '') {
     const details = create('details', 'cp-licences');
@@ -165,13 +167,23 @@ export function mountPage(root: HTMLElement, data: PageData, startAt = 1): () =>
   const bar = create('nav', 'cp-bar');
   bar.setAttribute('aria-label', 'Slide controls');
   bar.append(
-    button('Previous', '‹', () => {
-      go(back(deck, place));
-    }),
+    button(
+      'Previous',
+      '‹',
+      () => {
+        go(back(deck, place));
+      },
+      'cp-arrow',
+    ),
     count,
-    button('Next', '›', () => {
-      go(forward(deck, place));
-    }),
+    button(
+      'Next',
+      '›',
+      () => {
+        go(forward(deck, place));
+      },
+      'cp-arrow',
+    ),
     notesButton,
     fullscreenButton,
     button('Keys', '?', () => {

@@ -1,6 +1,6 @@
 # Sprint 10 plan: Standalone HTML
 
-Status: **written on 2026-10-17 and approved by Peter on 2026-10-18** ("everything sounds good, please proceed"; his answers below are as proposed, including SV-8 in this sprint and the Gate 4 criteria). Stories: SV-4 (Must), SV-5 (Should), and, if Peter agrees, the new **SV-8 Back up all decks** (Should, added on 2026-10-17 at his request). Nominal load: SV-4 and SV-5 are 12 days; SV-8 adds about 2, so the sprint is 14 of 16 days and keeps its slack. **This sprint ends in Gate 4 ("First full show")**; its criteria are written below and were approved with the plan.
+Status: **written on 2026-10-17, approved by Peter on 2026-10-18, and built the same day** (what finished, what stays manual and the questions for the Gate 4 review are in `docs/sprint-log.md`). Peter's approval was "everything sounds good, please proceed": his answers below are as proposed, including SV-8 in this sprint and the Gate 4 criteria. Stories: SV-4 (Must), SV-5 (Should), and, if Peter agrees, the new **SV-8 Back up all decks** (Should, added on 2026-10-17 at his request). Nominal load: SV-4 and SV-5 are 12 days; SV-8 adds about 2, so the sprint is 14 of 16 days and keeps its slack. **This sprint ends in Gate 4 ("First full show")**; its criteria are written below and were approved with the plan.
 
 ## Outcome at the review
 

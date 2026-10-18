@@ -176,7 +176,14 @@ body {
   color: var(--cp-cream);
   font: inherit;
   font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
+}
+
+.cp-arrow {
+  padding: 0 14px;
+  font-size: 24px;
+  line-height: 1;
 }
 
 .cp-button:hover {
@@ -190,6 +197,13 @@ body {
 
 .cp-button[hidden] {
   display: none;
+}
+
+/* A phone: the bar has room for the arrows, the count, the notes and the key list. */
+@media (max-width: 480px) {
+  .cp-button[aria-label='Full screen'] {
+    display: none;
+  }
 }
 
 /* Said aloud to a screen reader, never drawn. */
