@@ -7,6 +7,8 @@
   --cp-cream: #f4f8f1; /* board: Style-Guide, page background */
   --cp-yellow: #f5c542; /* board: Style-Guide, yellow */
   --cp-line: rgb(244 248 241 / 35%);
+  /* The font of text that names none: the app's own (design/tokens.css), which a slide draws in. */
+  --font-ui: 'Instrument Sans', system-ui, sans-serif;
 }
 
 html,

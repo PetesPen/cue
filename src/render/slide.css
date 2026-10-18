@@ -15,6 +15,25 @@
   transform-origin: 0 0;
   /* Same on every platform, so lines wrap the same everywhere (docs/spikes/SP-2.md). */
   text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+  /* What text is when nothing says otherwise: the model's defaults (DEFAULT_TEXT_STYLE), written here so
+     that a slide looks the same in whatever page it is drawn in: the editor, the show windows and the
+     exported web page (SV-5). Regular text has always been drawn at the interface's own body weight
+     (medium, 500), which it used to inherit; it is written down now instead of left to the page. The font is
+     the app's own (`--font-ui`, which the page of an export defines too). */
+  font-family: var(--font-ui);
+  font-size: 56px;
+  font-weight: 500;
+  font-style: normal;
+  color: #14281b; /* board: Style-Guide, forest (DEFAULT_TEXT_STYLE) */
+}
+
+/* The editor's base styles size boxes by their border; a slide does not rely on them being there. */
+.cue-slide,
+.cue-slide *,
+.cue-slide *::before,
+.cue-slide *::after {
+  box-sizing: border-box;
 }
 
 /* An element is a box in slide pixels; it turns about its centre. Its fade (opacity) is on the box,
