@@ -12,6 +12,7 @@ import { CueDatabase, type StoredImage, type StoredOriginal } from './database';
 export interface DeckSummary {
   readonly id: string;
   readonly title: string;
+  readonly createdAt: number;
   readonly updatedAt: number;
   readonly slideCount: number;
   /** The first slide, drawn as the card's thumbnail. */
@@ -46,6 +47,13 @@ export interface DeckStore {
   remove(id: string): Promise<void>;
   /** Stores and returns a copy under new ids, or `undefined` when no such deck is stored. */
   duplicate(id: string, env: Env): Promise<Deck | undefined>;
+  /** Note that these decks have just been put in a file, so the backup reminder counts from now (SV-8). */
+  markFiled(deckIds: readonly string[], at: number): Promise<void>;
+  /** When each deck was last put in a file (SV-8); a deck never filed is not listed. */
+  listFiled(): Promise<Record<string, number>>;
+  /** The end of the pause the person asked for with the reminder's close button, or `undefined` (SV-8). */
+  reminderSnoozedUntil(): Promise<number | undefined>;
+  snoozeReminder(until: number): Promise<void>;
   loadImage(hash: string): Promise<StoredImage | undefined>;
   /** The picture as it came in, if it was kept (for the export), or `undefined`. */
   loadOriginal(hash: string): Promise<StoredOriginal | undefined>;
@@ -59,6 +67,8 @@ export interface DeckStore {
   sweepUnusedImages(): Promise<number>;
   close(): void;
 }
+
+const SNOOZE_KEY = 'backup-reminder-until';
 
 export function createDeckStore(databaseName = 'cue'): DeckStore {
   const db = new CueDatabase(databaseName);
@@ -98,6 +108,7 @@ export function createDeckStore(databaseName = 'cue'): DeckStore {
         summaries.push({
           id: deck.id,
           title: deck.title,
+          createdAt: deck.createdAt,
           updatedAt: deck.updatedAt,
           slideCount: deck.slides.length,
           firstSlide,
@@ -143,7 +154,30 @@ export function createDeckStore(databaseName = 'cue'): DeckStore {
     },
 
     async remove(id) {
-      await write(() => db.decks.delete(id));
+      await write(() =>
+        db.transaction('rw', db.decks, db.filed, async () => {
+          await db.decks.delete(id);
+          await db.filed.delete(id);
+        }),
+      );
+    },
+
+    async markFiled(deckIds, at) {
+      await write(() => db.filed.bulkPut(deckIds.map((deckId) => ({ deckId, at }))));
+    },
+
+    async listFiled() {
+      await writesSettled();
+      return Object.fromEntries((await db.filed.toArray()).map((one) => [one.deckId, one.at]));
+    },
+
+    async reminderSnoozedUntil() {
+      await writesSettled();
+      return (await db.meta.get(SNOOZE_KEY))?.value;
+    },
+
+    async snoozeReminder(until) {
+      await write(() => db.meta.put({ key: SNOOZE_KEY, value: until }));
     },
 
     async duplicate(id, env) {

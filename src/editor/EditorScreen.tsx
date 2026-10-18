@@ -1195,6 +1195,9 @@ function Editor({
             title={deck.title}
             slideCount={deck.slides.length}
             make={makeExport}
+            onSaved={() => {
+              void store.markFiled([deck.id], Date.now());
+            }}
             returnFocusTo={exportButton}
             onClose={() => {
               setExporting(false);

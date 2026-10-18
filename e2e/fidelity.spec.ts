@@ -230,7 +230,7 @@ const decks: { name: string; json: () => Json; picture: boolean }[] = [
 ];
 
 for (const { name, json, picture } of decks) {
-  test(`Given ${name}, When each slide and click is drawn in the editor, the audience window and the exported page, Then everything is where the editor has it`, async ({
+  test(`Given ${name}, When each slide and click is drawn in the editor, the audience window and the exported page, Then everything is where the editor has it, opacity included (SV-5, TR-3)`, async ({
     page,
     browser,
   }, info) => {

@@ -107,6 +107,18 @@
   color: var(--color-forest);
 }
 
+/* What a backup did, when all is well (not on a board: the green of the style guide). */
+.banner-good {
+  border-color: var(--color-hairline);
+  background: var(--color-accent-tint);
+  color: var(--color-accent-tint-text);
+}
+
+.banner-good .banner-icon {
+  background: var(--color-accent);
+  color: var(--color-white);
+}
+
 .banner-danger {
   border-color: #f1b9b2; /* board: States */
   background: var(--color-danger-tint);

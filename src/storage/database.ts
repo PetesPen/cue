@@ -22,10 +22,24 @@ export interface StoredOriginal {
   readonly bytes: Uint8Array<ArrayBuffer>;
 }
 
+/** When a deck was last put in a file, a deck file or a backup of all decks (SV-8). Not part of the deck. */
+export interface FiledDeck {
+  readonly deckId: string;
+  readonly at: number;
+}
+
+/** A small named value of the library itself, such as the end of the pause of the backup reminder (SV-8). */
+export interface MetaValue {
+  readonly key: string;
+  readonly value: number;
+}
+
 export class CueDatabase extends Dexie {
   decks!: EntityTable<Deck, 'id'>;
   images!: EntityTable<StoredImage, 'hash'>;
   originals!: EntityTable<StoredOriginal, 'hash'>;
+  filed!: EntityTable<FiledDeck, 'deckId'>;
+  meta!: EntityTable<MetaValue, 'key'>;
 
   constructor(name: string) {
     super(name);
@@ -33,5 +47,13 @@ export class CueDatabase extends Dexie {
     // a table, which needs none.
     this.version(1).stores({ decks: 'id, updatedAt', images: 'hash' });
     this.version(2).stores({ decks: 'id, updatedAt', images: 'hash', originals: 'hash' });
+    // Version 3 only adds two small tables (SV-8), which needs no upgrade.
+    this.version(3).stores({
+      decks: 'id, updatedAt',
+      images: 'hash',
+      originals: 'hash',
+      filed: 'deckId',
+      meta: 'key',
+    });
   }
 }

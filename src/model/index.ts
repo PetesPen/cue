@@ -230,3 +230,5 @@ export {
   typeDigit,
 } from './showkeys';
 export type { PageAction, PageKey, ShowAction, ShowKey } from './showkeys';
+export { REMINDER_DAYS, backupReminder, snoozeUntil } from './backup';
+export type { DeckDates, Reminder } from './backup';

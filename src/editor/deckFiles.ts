@@ -1,5 +1,13 @@
 import { systemEnv, type Deck } from '@/model';
-import { DeckFileError, type DeckStore, type StoredImage, type StoredOriginal } from '@/storage';
+import {
+  DeckFileError,
+  formatBytes,
+  type DeckStore,
+  type StoredImage,
+  type StoredOriginal,
+} from '@/storage';
+import type { MadeBackup, OpenedFile } from '@/storage/deckFileService';
+import type { Notice } from './BackupBanner';
 
 /**
  * Saving a deck to a file and opening one, from the editor (SV-3). The zip code is a separate chunk that is
@@ -58,6 +66,66 @@ export const estimateFileBytes = (pictureBytes: number): number => pictureBytes 
 export async function openFileInto(store: DeckStore, file: Blob): Promise<Deck> {
   const { openDeckFile } = await import('@/storage/deckFileService');
   return openDeckFile(store, file, systemEnv);
+}
+
+/** Every deck in one file (SV-8), read from the store. The zip code is in the same separate chunk as the deck file's. */
+export async function makeBackupFor(store: DeckStore): Promise<MadeBackup> {
+  const { makeBackupFile } = await import('@/storage/deckFileService');
+  return makeBackupFile(store, Date.now());
+}
+
+/**
+ * Open a file the person chose into the library: a deck file adds a deck, a backup adds every deck in it
+ * (SV-3, SV-8), each as a new deck. Throws a `DeckFileError` and changes nothing for a file that is neither.
+ */
+export async function openAnyFileInto(store: DeckStore, file: Blob): Promise<OpenedFile> {
+  const { openFileOfAnyKind } = await import('@/storage/deckFileService');
+  return openFileOfAnyKind(store, file, systemEnv);
+}
+
+const decksOf = (count: number) => `${String(count)} deck${count === 1 ? '' : 's'}`;
+
+/** What to tell the person after a backup was saved. */
+export function describeBackup(made: MadeBackup): Notice {
+  const left: string[] = [];
+  if (made.skipped.length > 0) {
+    left.push(
+      `${made.skipped.join(', ')} ${made.skipped.length === 1 ? 'has a picture that can’t' : 'have pictures that can’t'} be read, so ${made.skipped.length === 1 ? 'it was' : 'they were'} left out.`,
+    );
+  }
+  if (made.unreadable > 0) {
+    left.push(
+      `${decksOf(made.unreadable)} Cue can’t read ${made.unreadable === 1 ? 'was' : 'were'} left out too.`,
+    );
+  }
+  return {
+    tone: left.length === 0 ? 'good' : 'warning',
+    title: `Backed up ${decksOf(made.deckIds.length)}.`,
+    text: [
+      `${formatBytes(made.bytes)} saved as ${made.name}. Keep it somewhere safe: Open file brings the decks back.`,
+      ...left,
+    ].join(' '),
+  };
+}
+
+/** What to tell the person after a backup was opened: what was added and what could not be. */
+export function describeOpenedBackup(opened: Extract<OpenedFile, { kind: 'backup' }>): Notice {
+  const failed = opened.failed.map((one) => one.name.slice(0, -'.slides'.length));
+  return {
+    tone: failed.length === 0 ? 'good' : 'warning',
+    title:
+      opened.added.length === 0
+        ? 'No decks were added.'
+        : `Added ${decksOf(opened.added.length)} from the backup.`,
+    text: [
+      opened.added.length > 0 ? 'Nothing was replaced: they are new decks.' : '',
+      failed.length > 0
+        ? `${failed.join(', ')} couldn’t be opened (${failed.length === 1 ? 'it is' : 'they are'} damaged, or made by a newer Cue).`
+        : '',
+    ]
+      .filter((part) => part !== '')
+      .join(' '),
+  };
 }
 
 /** Hand a file to the browser to save, under a name. */

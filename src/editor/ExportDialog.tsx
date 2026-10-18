@@ -37,6 +37,7 @@ export function ExportDialog({
   slideCount,
   make,
   onClose,
+  onSaved,
   returnFocusTo,
 }: {
   readonly title: string;
@@ -47,6 +48,8 @@ export function ExportDialog({
     options: { readonly includeNotes: boolean },
   ) => Promise<MadeFile>;
   readonly onClose: () => void;
+  /** The deck file was handed to the browser to save: the deck is in a file now, which the backup reminder counts (SV-8). */
+  readonly onSaved?: () => void;
   readonly returnFocusTo?: RefObject<HTMLElement | null>;
 }) {
   const titleId = useId();
@@ -252,6 +255,8 @@ export function ExportDialog({
               onClick={() => {
                 if (state.phase !== 'ready') return;
                 downloadFile(state.made.file, state.made.name);
+                // A web page cannot be opened again, so it is not a copy of the deck to come back to.
+                if (kind === 'file') onSaved?.();
                 onClose();
               }}
             >
