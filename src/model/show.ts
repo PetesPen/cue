@@ -91,6 +91,15 @@ export function upcoming(deck: Deck, place: ShowPlace): Upcoming {
   return { kind: 'end' };
 }
 
+/** What the next press of "forward" is called in the presenter view and the page's notes (PM-5). */
+export function upcomingLabel(deck: Deck, place: ShowPlace): string {
+  const next = upcoming(deck, place);
+  if (next.kind === 'click') {
+    return `Next · Click ${String(next.click)} of ${String(clicksAt(deck, place.slide))}`;
+  }
+  return next.kind === 'slide' ? `Next · Slide ${String(next.slide + 1)}` : 'Next';
+}
+
 /**
  * How one place gives way to another, for the window to play it (TN-5, AN-7).
  *

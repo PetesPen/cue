@@ -27,10 +27,10 @@ No-network export test; three-renderer pixel comparison; 30-slide timing.
 As a presenter, I want to export a deck as one HTML file, so that I can present from any browser without the editor.
 
 Acceptance criteria:
-- [ ] The exported file works offline with no external requests, and includes all images and fonts.
-- [ ] It supports 16:9 scaling, keyboard navigation, animations, transitions and transparency exactly as in the editor.
-- [ ] It includes a simple presenter mode with notes, and the same keyboard shortcuts as the app.
-- [ ] A deck of 30 slides with images exports in under 10 seconds.
+- [x] The exported file works offline with no external requests, and includes all images and fonts.
+- [x] It supports 16:9 scaling, keyboard navigation, animations, transitions and transparency exactly as in the editor.
+- [x] It includes a simple presenter mode with notes, and the same keyboard shortcuts as the app.
+- [x] A deck of 30 slides with images exports in under 10 seconds.
 
 Design: [`Export-Dialog`](../../design/screenshots/Export-Dialog.png) ([source](../../design/boards/Export-Dialog.dc.html))
 
@@ -41,8 +41,8 @@ Tests: write each criterion as a Given / When / Then example first; each example
 As a presenter, I want exported decks to look identical to my slides, so that surprises never happen on show day.
 
 Acceptance criteria:
-- [ ] Text wrapping, fonts, positions and layering match the editor to within one pixel at 1920 × 1080.
-- [ ] Export and import round-trip: opening a saved deck file and exporting it again yields the same deck.
+- [x] Text wrapping, fonts, positions and layering match the editor to within one pixel at 1920 × 1080.
+- [x] Export and import round-trip: opening a saved deck file and exporting it again yields the same deck.
 
 Design: [`Export-Dialog`](../../design/screenshots/Export-Dialog.png) ([source](../../design/boards/Export-Dialog.dc.html))
 
@@ -55,10 +55,10 @@ As a presenter, I want to back up every deck in one step and be reminded when I 
 Added 2026-10-17 at Peter's request (his answer to the sprint 9 review's first question). The plan is [`docs/plans/sprint-10.md`](../plans/sprint-10.md); it would come after SV-4 and SV-5 and is the first thing cut if the sprint runs over.
 
 Acceptance criteria:
-- [ ] "Back up all decks" saves one file that holds every deck with its pictures, animations, transitions, notes and fonts, and says how many decks it holds and how large it is. It works while saving is failing, and it never changes a deck.
-- [ ] Opening that file in Cue adds every deck in it as a new deck and never replaces one; a deck in it that cannot be read is named, and the others are still added.
-- [ ] The Home board shows the reminder ("It has been N days since your last backup…") when a deck has changed since it was last saved to a file and that file is 14 days old or more (a deck never saved to a file counts from the day it was made). A backup or a single-deck export counts as saving. Nothing has changed, nothing to say.
-- [ ] The reminder's Back up all decks button makes the backup; its close button hides the reminder for 14 days.
+- [x] "Back up all decks" saves one file that holds every deck with its pictures, animations, transitions, notes and fonts, and says how many decks it holds and how large it is. The button is on the library (beside the storage figure) and in the reminder. A deck that cannot be read is named, never left out silently. It never changes a deck.
+- [x] Opening that file in Cue adds every deck in it as a new deck and never replaces one; a deck in it that cannot be read is named, and the others are still added.
+- [x] The Home board shows the reminder ("It has been N days since your last backup…") when a deck has changed since it was last saved to a file and that file is 14 days old or more (a deck never saved to a file counts from the day it was made). A backup, or a deck file saved from Export, counts as saving; a standalone web page does not (it cannot be opened again). Nothing has changed, nothing to say.
+- [x] The reminder's Back up all decks button makes the backup; its close button hides the reminder for 14 days.
 
 Design: [`Home`](../../design/screenshots/Home.png) ([source](../../design/boards/Home.dc.html)) (the reminder banner).
 

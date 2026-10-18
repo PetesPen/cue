@@ -48,6 +48,12 @@
   margin: 0;
 }
 
+.library-tools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
 .storage-meter {
   display: inline-flex;
   align-items: center;

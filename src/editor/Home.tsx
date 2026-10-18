@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { systemEnv } from '@/model';
+import { backupReminder, snoozeUntil, systemEnv, type Reminder } from '@/model';
 import {
   formatBytes,
   isNearlyFull,
@@ -8,7 +8,17 @@ import {
   type UnreadableDeck,
 } from '@/storage';
 import { ConfirmDeleteDialog, RenameDialog } from './Dialogs';
-import { describeFileProblem, makeFileFor, openFileInto } from './deckFiles';
+import { BackupReminderBanner, NoticeBanner, type Notice } from './BackupBanner';
+import {
+  describeBackup,
+  describeFileProblem,
+  describeOpenedBackup,
+  makeBackupFor,
+  makeFileFor,
+  makePageFor,
+  openAnyFileInto,
+  downloadFile,
+} from './deckFiles';
 import { ExportDialog } from './ExportDialog';
 import { useInstall } from './InstallContext';
 import { deckMeta } from './format';
@@ -29,6 +39,8 @@ interface Library {
   readonly unreadable: readonly UnreadableDeck[];
   /** When the list was read, so "2 hours ago" is worked out against one moment. */
   readonly at: number;
+  /** The reminder to back up, when there is one to show (SV-8). */
+  readonly reminder: Reminder | undefined;
 }
 
 /** The deck library at `#/` (design: Home): create, open, rename, duplicate and delete decks (SV-2). */
@@ -40,15 +52,25 @@ export function Home() {
   // A file that could not be opened, and whether one is being read (SV-3).
   const [fileProblem, setFileProblem] = useState<{ title: string; text: string } | undefined>();
   const [opening, setOpening] = useState(false);
+  // What a backup or opening a backup did, and whether a backup is being made (SV-8).
+  const [notice, setNotice] = useState<Notice | undefined>();
+  const [backingUp, setBackingUp] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const installer = useInstall();
   const usage = useStorageUsage(version);
 
   useEffect(() => {
     let current = true;
-    Promise.all([store.list(), store.listUnreadable()])
-      .then(([decks, unreadable]) => {
-        if (current) setLibrary({ decks, unreadable, at: Date.now() });
+    Promise.all([
+      store.list(),
+      store.listUnreadable(),
+      store.listFiled(),
+      store.reminderSnoozedUntil(),
+    ])
+      .then(([decks, unreadable, filed, snoozedUntil]) => {
+        const at = Date.now();
+        const reminder = backupReminder(decks, filed, at, snoozedUntil);
+        if (current) setLibrary({ decks, unreadable, at, reminder });
       })
       .catch(() => {
         if (current) setFailed(true);
@@ -67,18 +89,55 @@ export function Home() {
     navigate({ page: 'deck', deckId: deck.id });
   }
 
-  /** Open a deck file as a new deck and go to it; a file that cannot be opened changes nothing (SV-3). */
+  /**
+   * Open a deck file as a new deck and go to it; a backup adds every deck in it and says so (SV-3, SV-8). A
+   * file that cannot be opened changes nothing.
+   */
   async function openFile(file: File) {
     setOpening(true);
     setFileProblem(undefined);
+    setNotice(undefined);
     try {
-      const deck = await openFileInto(store, file);
-      navigate({ page: 'deck', deckId: deck.id });
+      const opened = await openAnyFileInto(store, file);
+      if (opened.kind === 'deck') navigate({ page: 'deck', deckId: opened.deck.id });
+      else {
+        setNotice(describeOpenedBackup(opened));
+        reload();
+      }
     } catch (error) {
       setFileProblem(describeFileProblem(error));
     } finally {
       setOpening(false);
     }
+  }
+
+  /** Every deck in one file (SV-8): the file is saved, and then the decks are noted as filed. */
+  async function backUp() {
+    setBackingUp(true);
+    setNotice(undefined);
+    try {
+      const made = await makeBackupFor(store);
+      if (made.deckIds.length > 0) {
+        downloadFile(made.file, made.name);
+        await store.markFiled(made.deckIds, Date.now());
+      }
+      setNotice(describeBackup(made));
+      reload();
+    } catch {
+      setNotice({
+        tone: 'warning',
+        title: 'The backup couldn’t be made.',
+        text: 'Your decks are untouched. Try again, or export them one by one from their menus.',
+      });
+    } finally {
+      setBackingUp(false);
+    }
+  }
+
+  /** The reminder's close button: it stays away for 14 days. */
+  async function hideReminder() {
+    await store.snoozeReminder(snoozeUntil(Date.now()));
+    reload();
   }
 
   const chooseFile = () => {
@@ -133,21 +192,51 @@ export function Home() {
       <main className="home-main">
         {usage && isNearlyFull(usage) && <NearlyFullBanner usage={usage} withManageLink={false} />}
 
+        {library?.reminder && (
+          <BackupReminderBanner
+            reminder={library.reminder}
+            busy={backingUp}
+            onBackup={() => void backUp()}
+            onClose={() => void hideReminder()}
+          />
+        )}
+
+        {notice && (
+          <NoticeBanner
+            notice={notice}
+            onClose={() => {
+              setNotice(undefined);
+            }}
+          />
+        )}
+
         <div className="library-header">
           <h1 className="section-label">
             Your decks{decks && decks.length > 0 ? ` · ${String(decks.length)}` : ''}
           </h1>
-          {usage && (
-            <span className="storage-meter">
-              Stored on this device · {formatBytes(usage.usage)} used
-              <span className="meter meter-small" aria-hidden="true">
-                <span
-                  className="meter-fill"
-                  style={{ width: `${String(Math.max(1, (usage.usage / usage.quota) * 100))}%` }}
-                />
+          <span className="library-tools">
+            {decks && decks.length > 0 && (
+              <button
+                type="button"
+                className="button button-quiet button-compact"
+                disabled={backingUp}
+                onClick={() => void backUp()}
+              >
+                {backingUp ? 'Backing up…' : 'Back up all decks'}
+              </button>
+            )}
+            {usage && (
+              <span className="storage-meter">
+                Stored on this device · {formatBytes(usage.usage)} used
+                <span className="meter meter-small" aria-hidden="true">
+                  <span
+                    className="meter-fill"
+                    style={{ width: `${String(Math.max(1, (usage.usage / usage.quota) * 100))}%` }}
+                  />
+                </span>
               </span>
-            </span>
-          )}
+            )}
+          </span>
         </div>
 
         {fileProblem && (
@@ -303,10 +392,13 @@ function DeckCard({
           title={summary.title}
           slideCount={summary.slideCount}
           returnFocusTo={trigger}
-          make={async () => {
+          onSaved={() => {
+            void store.markFiled([summary.id], Date.now()).then(onChanged);
+          }}
+          make={async (kind, options) => {
             const deck = await store.load(summary.id);
             if (!deck) throw new Error('This deck is not in this browser any more.');
-            return makeFileFor(store, deck);
+            return kind === 'page' ? makePageFor(store, deck, options) : makeFileFor(store, deck);
           }}
           onClose={() => {
             setDialog(undefined);

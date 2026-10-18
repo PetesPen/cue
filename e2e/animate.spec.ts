@@ -20,7 +20,7 @@ async function drawRectangle(page: Page, slideAt: Awaited<ReturnType<typeof open
   await drag(page, slideAt, [300, 300], [800, 600]);
 }
 
-test.describe('Given an element on a slide, When it is made to appear and disappear (AN-1, AN-2)', () => {
+test.describe('Given an element on a slide, When it is made to appear and disappear (AN-1, AN-2, TR-3)', () => {
   test('Then the steps are listed, saved with the deck, and Preview plays them click by click', async ({
     page,
   }) => {
@@ -59,7 +59,7 @@ test.describe('Given an element on a slide, When it is made to appear and disapp
   });
 });
 
-test.describe('Given the fixture deck Autumn Launch, When its hero slide is shown in Preview', () => {
+test.describe('Given the fixture deck Autumn Launch, When its hero slide is shown in Preview (AN-6)', () => {
   test('Then the picture and the rows come in on the first click, the circle moves on the second and the block leaves on the third', async ({
     page,
   }) => {

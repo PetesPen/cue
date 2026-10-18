@@ -1,6 +1,14 @@
 import fc from 'fast-check';
 import { describe, expect, test } from 'vitest';
-import { SHOW_KEYS, showActionFor, type ShowAction } from './showkeys';
+import {
+  MAX_DIGITS,
+  PAGE_KEYS,
+  SHOW_KEYS,
+  pageActionFor,
+  showActionFor,
+  typeDigit,
+  type ShowAction,
+} from './showkeys';
 
 const press = (
   key: string,
@@ -70,5 +78,46 @@ describe('the keys of a show (PM-6)', () => {
         }
       }),
     );
+  });
+});
+
+describe('typing a slide number (PM-6)', () => {
+  test('Given digits typed one after another, Then they make a number', () => {
+    expect(['1', '2'].reduce(typeDigit, '')).toBe('12');
+  });
+
+  test('Given more digits than a deck could need, Then only the first are kept', () => {
+    expect(Array.from('123456789').reduce(typeDigit, '')).toHaveLength(MAX_DIGITS);
+    expect(Array.from('123456789').reduce(typeDigit, '')).toBe('1234');
+  });
+});
+
+describe('the keys only the exported page has (SV-4)', () => {
+  const lookup = (key: string, modifiers: { ctrlKey?: true; metaKey?: true; altKey?: true } = {}) =>
+    pageActionFor({ key, ctrlKey: false, metaKey: false, altKey: false, ...modifiers });
+
+  test.each([
+    ['n', 'notes'],
+    ['N', 'notes'],
+    ['?', 'help'],
+    ['x', undefined],
+    ['ArrowRight', undefined],
+  ])('Given the key %j, Then the page action is %s', (key, action) => {
+    expect(lookup(key)).toBe(action);
+  });
+
+  test('Given Ctrl, Cmd or Alt, Then the key is left to the browser', () => {
+    expect(lookup('n', { ctrlKey: true })).toBeUndefined();
+    expect(lookup('n', { metaKey: true })).toBeUndefined();
+    expect(lookup('?', { altKey: true })).toBeUndefined();
+  });
+
+  test('Given both tables, Then no key does two things and every entry has a label and caps', () => {
+    const keys = [...SHOW_KEYS, ...PAGE_KEYS].flatMap((entry) => entry.keys);
+    expect(new Set(keys).size).toBe(keys.length);
+    for (const entry of PAGE_KEYS) {
+      expect(entry.label.length).toBeGreaterThan(3);
+      expect(entry.caps.length).toBeGreaterThan(0);
+    }
   });
 });

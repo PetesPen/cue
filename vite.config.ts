@@ -3,10 +3,11 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { securityHeaders } from './config/headers.ts';
+import { exportRuntime } from './config/exportRuntime.ts';
 import { pwaOptions } from './config/pwa.ts';
 
 export default defineConfig({
-  plugins: [react(), VitePWA(pwaOptions)],
+  plugins: [react(), exportRuntime(), VitePWA(pwaOptions)],
   // The text editor loads on first use; bundling it up front keeps the dev server from reloading the
   // page when it is first found.
   optimizeDeps: {

@@ -9,6 +9,7 @@ import {
 import type { StoredImage, StoredOriginal } from './database';
 import { DeckFileError } from './deckFileError';
 import { sha256Hex } from './hash';
+import { fontFolder, type EmbeddedFont } from './deckInfo';
 
 /**
  * The deck file (SV-3, SV-5): a zip with `deck.json` (what this is, the version of the file's layout, and
@@ -36,12 +37,7 @@ export const LIMITS: Limits = {
   totalBytes: 1024 * 1024 * 1024,
 };
 
-/** A font a deck uses, as it travels in the file: its files and the licence text that must go with them. */
-export interface EmbeddedFont {
-  readonly family: string;
-  readonly files: readonly { readonly name: string; readonly bytes: Uint8Array }[];
-  readonly licence: string;
-}
+export { fontFolder, type EmbeddedFont };
 
 /** Everything a deck file holds. */
 export interface DeckFile {
@@ -64,13 +60,6 @@ const typeOfExtension = (name: string): string | undefined =>
 
 const SAFE_NAME =
   /^(?:images|originals|fonts)\/[A-Za-z0-9][A-Za-z0-9._-]*(?:\/[A-Za-z0-9][A-Za-z0-9._-]*)?$/;
-
-/** The folder a family has in a deck file, and in the app's own font files. */
-export const fontFolder = (family: string) =>
-  family
-    .toLowerCase()
-    .replaceAll(/[^a-z0-9]+/g, '-')
-    .replaceAll(/^-|-$/g, '');
 
 interface Manifest {
   readonly format: typeof FILE_FORMAT;

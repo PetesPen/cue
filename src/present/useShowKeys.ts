@@ -1,12 +1,6 @@
 import { useEffect } from 'react';
-import { showActionFor } from '@/model';
+import { NUMBER_WAIT_MS, showActionFor, typeDigit } from '@/model';
 import type { Show } from './show';
-
-/** How long typed digits wait for Enter before they are forgotten. */
-const NUMBER_WAIT_MS = 2500;
-
-/** The most digits of a slide number that are kept (a deck of ten thousand slides is not a talk). */
-const MAX_DIGITS = 4;
 
 /**
  * Typing in a field is not a shortcut: the number box of the navigator takes its own keys, and so does the
@@ -45,7 +39,7 @@ export function useShowKeys(show: Show, onFullscreen?: () => void): void {
       if (action === 'fullscreen' && !onFullscreen) return;
 
       if (action === 'digit') {
-        typed = (typed + event.key).slice(0, MAX_DIGITS);
+        typed = typeDigit(typed, event.key);
         clearTimeout(forget);
         forget = setTimeout(clearTyped, NUMBER_WAIT_MS);
       } else if (action === 'next' && event.key === 'Enter' && typed !== '') {

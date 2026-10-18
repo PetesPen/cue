@@ -16,9 +16,12 @@ const DECK = 'autumn-launch';
 async function exportDeck(page: Page, path: string) {
   await page.getByRole('button', { name: 'Export', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Export deck' });
+  await dialog.getByRole('radio', { name: /Editable deck file/ }).click();
   await expect(dialog.getByText(/\.slides · about/)).toBeVisible();
+  const button = dialog.getByRole('button', { name: 'Export deck file' });
+  await expect(button).toBeEnabled();
   const download = page.waitForEvent('download');
-  await dialog.getByRole('button', { name: 'Export deck file' }).click();
+  await button.click();
   const taken = await download;
   // The app names the file "Autumn Launch.slides"; WebKit on Linux turns the space into an underscore.
   expect(taken.suggestedFilename()).toMatch(/^Autumn[ _]Launch\.slides$/);

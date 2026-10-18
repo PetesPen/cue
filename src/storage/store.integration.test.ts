@@ -104,6 +104,7 @@ describe('the deck store (SV-1, SV-2)', () => {
     expect(summary).toEqual({
       id: deck.id,
       title: 'Team offsite',
+      createdAt: 1000,
       updatedAt: 4000,
       slideCount: 2,
       firstSlide: deck.slides[0],
@@ -468,5 +469,65 @@ describe('autosave onto the real store (SV-1)', () => {
     });
 
     expect(states).toEqual(['saving', 'saved']);
+  });
+});
+
+describe('when decks were last put in a file, and the pause of the reminder (SV-8)', () => {
+  test('Given decks put in a file, Then the store remembers when, for each, and across a reopening', async () => {
+    const name = `filed-${crypto.randomUUID()}`;
+    const first = openStore(name);
+    await first.markFiled(['a', 'b'], 5000);
+    await first.markFiled(['b'], 9000);
+    first.close();
+
+    const second = openStore(name);
+    expect(await second.listFiled()).toEqual({ a: 5000, b: 9000 });
+  });
+
+  test('Given a deck that was filed, When it is deleted, Then its record goes with it', async () => {
+    const store = openStore();
+    const deck = deckAt(1000, 'Gone soon');
+    await store.save(deck);
+    await store.markFiled([deck.id, 'other'], 5000);
+
+    await store.remove(deck.id);
+
+    expect(await store.listFiled()).toEqual({ other: 5000 });
+  });
+
+  test('Given no deck was ever filed, Then there is nothing recorded', async () => {
+    expect(await openStore().listFiled()).toEqual({});
+  });
+
+  test('Given the reminder was closed, Then the end of the pause is kept across a reopening', async () => {
+    const name = `snooze-${crypto.randomUUID()}`;
+    const first = openStore(name);
+    expect(await first.reminderSnoozedUntil()).toBeUndefined();
+    await first.snoozeReminder(123_456);
+    first.close();
+
+    expect(await openStore(name).reminderSnoozedUntil()).toBe(123_456);
+  });
+
+  test('Given a deck, Then the library lists when it was made, which the reminder counts from', async () => {
+    const store = openStore();
+    await store.save(deckAt(1000, 'Made at 1000'));
+
+    const [summary] = await store.list();
+    expect(summary?.createdAt).toBe(1000);
+  });
+
+  test('Given a database from before the backup tables, When it is opened, Then the decks are still there', async () => {
+    const name = `upgrade-${crypto.randomUUID()}`;
+    // The library as version 2 left it: decks, pictures and originals, no more.
+    const old = new Dexie(name);
+    old.version(2).stores({ decks: 'id, updatedAt', images: 'hash', originals: 'hash' });
+    await old.table('decks').put(deckAt(1000, 'Before the tables'));
+    old.close();
+
+    const store = openStore(name);
+
+    expect((await store.list()).map((deck) => deck.title)).toEqual(['Before the tables']);
+    expect(await store.listFiled()).toEqual({});
   });
 });

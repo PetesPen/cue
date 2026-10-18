@@ -271,6 +271,19 @@ describe('resizeBox (EL-5)', () => {
     );
   });
 
+  test('Given a box a hair over 5 and a drag with Shift that shrinks it to the smallest size, Then it is not a rounding error below it', () => {
+    // Found by the property test: the proportions were scaled back to 0.9999999999999999.
+    const box = { x: 0, y: 0, width: 5.0000000000000036, height: 5.0000000000000036, rotation: 0 };
+    const resized = resizeBox(
+      box,
+      'ne',
+      { x: -4.0000000000000036, y: 4.0000000000000036 },
+      { keepAspect: true },
+    );
+    expect(resized.width).toBeGreaterThanOrEqual(1);
+    expect(resized.height).toBeGreaterThanOrEqual(1);
+  });
+
   test('Given a corner handle with Shift, When any box is dragged, Then its proportions never change', () => {
     fc.assert(
       fc.property(

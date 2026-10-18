@@ -163,6 +163,63 @@ test.describe('Given a text box, When it is edited (EL-1)', () => {
   });
 });
 
+test.describe('Given a text box, When a font is chosen (EL-2)', () => {
+  test('Then each font is shown in its own typeface, the choice is drawn and saved, controls the font lacks are hidden, and the font is listed first next time', async ({
+    page,
+  }) => {
+    const slide = await openNewDeck(page);
+    await addText(page, slide);
+    await page.keyboard.type('Hand written');
+    await settle(page);
+    await page.keyboard.press('Control+A');
+
+    await toolbar(page)
+      .getByRole('button', { name: /^Font: / })
+      .click();
+    const options = page.getByRole('listbox', { name: 'Fonts' }).getByRole('option');
+    await expect(options).toHaveCount(7);
+    // Every font is previewed in its own typeface.
+    const names = await options
+      .locator('.font-option-name')
+      .evaluateAll((nodes) =>
+        nodes.map((node) => [node.textContent, getComputedStyle(node).fontFamily]),
+      );
+    expect(names).toHaveLength(7);
+    for (const [name, family] of names) expect(family).toContain(name);
+
+    await options.filter({ hasText: 'Caveat' }).click();
+    // Caveat has no italic design, so there is no italic button to make a slant the export might not match.
+    await expect(toolbar(page).getByRole('button', { name: 'Italic', exact: true })).toHaveCount(0);
+    await expect(toolbar(page).getByRole('button', { name: 'Bold', exact: true })).toBeVisible();
+    await finish(page);
+
+    const family = () =>
+      drawn(page)
+        .locator('span')
+        .first()
+        .evaluate((node) => getComputedStyle(node).fontFamily);
+    await expect.poll(family).toContain('Caveat');
+    // The font is bundled: it is loaded from the app's own files.
+    await expect.poll(() => page.evaluate(() => document.fonts.check('16px "Caveat"'))).toBe(true);
+
+    // Saved with the deck.
+    await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+    await page.reload();
+    await expect(drawn(page)).toHaveText('Hand written');
+    await expect.poll(family).toContain('Caveat');
+
+    // Next time, the fonts the deck uses come first.
+    await page.locator('.slide-frame [data-kind="text"]').dblclick({ position: { x: 20, y: 10 } });
+    await expect(editor(page)).toBeFocused();
+    await toolbar(page)
+      .getByRole('button', { name: /^Font: / })
+      .click();
+    const first = page.getByRole('group', { name: 'Fonts in this deck' }).getByRole('option');
+    await expect(first).toHaveCount(1);
+    await expect(first).toContainText('Caveat');
+  });
+});
+
 test.describe('Given the text editor (accessibility)', () => {
   test('Then the editor, its toolbar and the Text section have no accessibility violations', async ({
     page,

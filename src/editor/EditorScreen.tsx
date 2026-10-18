@@ -57,7 +57,7 @@ import type { SlideViewHandle } from './SlideView';
 import { Logo } from './Logo';
 import { NotesField } from './NotesField';
 import { BlockedAudienceDialog } from './BlockedAudienceDialog';
-import { makeFileFor } from './deckFiles';
+import { makeFileFor, makePageFor, type ExportKind } from './deckFiles';
 import { ExportDialog } from './ExportDialog';
 import { ContextMenu, MenuButton, type MenuItem } from './Menu';
 import { useOpenAudience } from './PresentContext';
@@ -375,10 +375,12 @@ function Editor({
     setMenuAt(undefined);
     setExporting(true);
   }
-  const makeExport = async () => {
+  const makeExport = async (kind: ExportKind, options: { readonly includeNotes: boolean }) => {
     const snapshot = session.exportSnapshot();
     if (!snapshot) throw new Error('This deck is not open.');
-    return makeFileFor(store, snapshot.deck, snapshot);
+    return kind === 'page'
+      ? makePageFor(store, snapshot.deck, options, snapshot)
+      : makeFileFor(store, snapshot.deck, snapshot);
   };
 
   function startShow(slideIndex: number) {
@@ -1193,6 +1195,9 @@ function Editor({
             title={deck.title}
             slideCount={deck.slides.length}
             make={makeExport}
+            onSaved={() => {
+              void store.markFiled([deck.id], Date.now());
+            }}
             returnFocusTo={exportButton}
             onClose={() => {
               setExporting(false);

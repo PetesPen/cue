@@ -107,6 +107,18 @@
   color: var(--color-forest);
 }
 
+/* What a backup did, when all is well (not on a board: the green of the style guide). */
+.banner-good {
+  border-color: var(--color-hairline);
+  background: var(--color-accent-tint);
+  color: var(--color-accent-tint-text);
+}
+
+.banner-good .banner-icon {
+  background: var(--color-accent);
+  color: var(--color-white);
+}
+
 .banner-danger {
   border-color: #f1b9b2; /* board: States */
   background: var(--color-danger-tint);
@@ -585,8 +597,7 @@
 }
 
 .export-option {
-  display: flex;
-  align-items: flex-start;
+  display: grid;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   border: 1px solid var(--color-hairline);
@@ -604,9 +615,52 @@
   color: var(--color-disabled-text);
 }
 
+/* The radio and the words, one label. */
+.export-option-pick {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
 .export-option input {
   margin-top: 3px;
   accent-color: var(--color-accent);
+}
+
+/* What the chosen option adds: its own choices, under a hairline (board: Export-Dialog). */
+.export-extras {
+  display: grid;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  margin-left: calc(13px + var(--space-3));
+  border-top: 1px solid var(--color-hairline);
+}
+
+.export-extra {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.export-extra-hint {
+  color: var(--color-muted);
+}
+
+.export-check {
+  display: inline-flex;
+  width: 13px;
+  justify-content: center;
+  color: var(--color-accent);
+}
+
+.export-large {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-card);
+  background: var(--color-warning-tint);
+  color: var(--color-forest);
+  font: var(--type-caption);
 }
 
 .export-option-body {

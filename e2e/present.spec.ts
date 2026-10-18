@@ -23,7 +23,7 @@ function slideSummaries(deck: object): { readonly id: string; readonly kind: str
 }
 
 test.describe('Given Autumn Launch, When Present is pressed (PM-1, PM-2)', () => {
-  test('Then an audience window opens with only the slide, and this tab is the presenter view', async ({
+  test('Then an audience window opens with only the slide, and this tab is the presenter view, with a preview of what comes next (PM-5)', async ({
     page,
   }) => {
     await openDeck(page);
@@ -73,7 +73,7 @@ test.describe('Given Autumn Launch, When Present is pressed (PM-1, PM-2)', () =>
     }
   });
 
-  test('Then Right and Left move both windows, the hero slide plays its three clicks, and B blanks the audience', async ({
+  test('Then Right and Left move both windows, the hero slide plays its three clicks, and B blanks the audience (PM-6)', async ({
     page,
   }) => {
     await openDeck(page);
@@ -117,7 +117,7 @@ test.describe('Given Autumn Launch, When Present is pressed (PM-1, PM-2)', () =>
     await expect(audience.locator('.audience-blank')).toHaveCount(0);
   });
 
-  test('Then a number then Enter jumps to that slide, and Space goes forward in either window', async ({
+  test('Then a number then Enter jumps to that slide, and Space goes forward in either window (PM-6)', async ({
     page,
   }) => {
     await openDeck(page);
@@ -135,7 +135,7 @@ test.describe('Given Autumn Launch, When Present is pressed (PM-1, PM-2)', () =>
   });
 });
 
-test.describe('Given the whole of Autumn Launch (Gate 3)', () => {
+test.describe('Given the whole of Autumn Launch (Gate 3, TN-5)', () => {
   test('Then it is presented from the first slide to the last in two windows, every click and transition played, and Esc returns the editor', async ({
     page,
   }) => {
