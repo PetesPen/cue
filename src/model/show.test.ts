@@ -13,6 +13,7 @@ import {
   toggleBlank,
   toStart,
   upcoming,
+  upcomingLabel,
   type ShowPlace,
 } from './show';
 import { changeTransition, DEFAULT_TRANSITION, type TransitionKind } from './transition';
@@ -145,6 +146,18 @@ describe('upcoming: what the next press shows (PM-5)', () => {
     { name: 'the end of the last slide: the end', from: at(3, 1), next: { kind: 'end' } },
   ])('Given $name', ({ from, next }) => {
     expect(upcoming(talk, from)).toEqual(next);
+  });
+});
+
+describe('upcomingLabel: the words for the next press (PM-5)', () => {
+  test.each<[string, ShowPlace, string]>([
+    ['clicks left', at(1), 'Next · Click 1 of 2'],
+    ['the last click', at(1, 1), 'Next · Click 2 of 2'],
+    ['all clicks played', at(1, 2), 'Next · Slide 3'],
+    ['a slide with no clicks', at(0), 'Next · Slide 2'],
+    ['the end of the last slide', at(3, 1), 'Next'],
+  ])('Given %s, Then the label is %j', (_name, from, label) => {
+    expect(upcomingLabel(talk, from)).toBe(label);
   });
 });
 

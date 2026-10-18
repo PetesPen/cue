@@ -1,0 +1,273 @@
+/* The exported web page (SV-4). Its own small style sheet: the page does not have the app's. The colours
+   are the style guide's (design/tokens.css), written out because there are no tokens here. */
+
+:root {
+  color-scheme: dark;
+  --cp-forest: #14281b; /* board: Style-Guide, forest */
+  --cp-cream: #f4f8f1; /* board: Style-Guide, page background */
+  --cp-yellow: #f5c542; /* board: Style-Guide, yellow */
+  --cp-line: rgb(244 248 241 / 35%);
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  background: #000; /* board: Audience, the bars around the slide */
+  color: var(--cp-cream);
+  font:
+    14px/1.4 system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+}
+
+.cp-error {
+  padding: 48px 24px;
+  font-size: 16px;
+  text-align: center;
+}
+
+/* The page fills the window: the slide area, and the notes beside it when they are open. */
+.cp {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.cp[data-notes='open'] {
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 30%);
+}
+
+@media (max-width: 700px), (orientation: portrait) {
+  .cp[data-notes='open'] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) minmax(0, 40%);
+  }
+}
+
+/* The largest 16:9 box that fits the area: the slide is never cropped, and the rest is black. */
+.cp-area {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  container-type: size;
+  background: #000; /* board: Audience, the bars around the slide */
+  /* A tap or a swipe moves the show; pinching still zooms. */
+  touch-action: pinch-zoom;
+}
+
+.cp-frame {
+  width: min(100cqw, calc(100cqh * 16 / 9));
+}
+
+/* A blanked screen (B or W) covers the whole area. */
+.cp-blank {
+  position: absolute;
+  inset: 0;
+  background: #000; /* board: Audience, a blanked screen */
+}
+
+.cp-blank[hidden] {
+  display: none;
+}
+
+.cp-blank[data-colour='white'] {
+  background: #fff; /* board: Audience, a whitened screen */
+}
+
+/* The notes beside the slide. */
+.cp-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+  padding: 16px;
+  background: var(--cp-forest);
+  color: var(--cp-cream);
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.cp-notes[hidden] {
+  display: none;
+}
+
+.cp-notes-heading {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cp-notes-next {
+  margin: 0;
+  color: var(--cp-yellow);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cp-notes-scroll {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  font-size: 20px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.cp-notes-scroll[data-empty='true'] {
+  color: var(--cp-line);
+  font-style: italic;
+}
+
+.cp-notes-scroll:focus-visible,
+.cp-button:focus-visible {
+  outline: 2px solid var(--cp-yellow);
+  outline-offset: 2px;
+}
+
+/* The bar of buttons: it appears when the pointer moves or a key is pressed, and a focused button keeps it. */
+.cp-bar {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 999px;
+  background: var(--cp-forest);
+  box-shadow: 0 2px 12px rgb(0 0 0 / 40%);
+  transform: translateX(-50%);
+  transition: opacity 150ms ease-out;
+}
+
+.cp[data-bar='hidden'] .cp-bar:not(:focus-within) {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cp-count {
+  min-width: 64px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.cp-button {
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--cp-cream);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cp-button:hover {
+  border-color: var(--cp-line);
+}
+
+.cp-button[aria-pressed='true'] {
+  background: var(--cp-cream);
+  color: var(--cp-forest);
+}
+
+.cp-button[hidden] {
+  display: none;
+}
+
+/* Said aloud to a screen reader, never drawn. */
+.cp-announce {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The list of keys. */
+.cp-help {
+  max-width: min(520px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  padding: 20px 24px;
+  border: 1px solid var(--cp-line);
+  border-radius: 12px;
+  background: var(--cp-forest);
+  color: var(--cp-cream);
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.cp-help::backdrop {
+  background: rgb(0 0 0 / 60%);
+}
+
+.cp-help-title {
+  margin: 0 0 12px;
+  font-size: 18px;
+}
+
+.cp-keys {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 8px 16px;
+  margin: 0 0 12px;
+}
+
+.cp-keys-caps,
+.cp-keys-label {
+  margin: 0;
+}
+
+.cp-kbd {
+  display: inline-block;
+  min-width: 20px;
+  padding: 1px 6px;
+  border: 1px solid var(--cp-cream);
+  border-radius: 4px;
+  font: inherit;
+  font-weight: 600;
+  text-align: center;
+}
+
+.cp-help-note {
+  margin: 0 0 12px;
+}
+
+.cp-licences {
+  margin: 0 0 12px;
+}
+
+.cp-licences-summary {
+  cursor: pointer;
+}
+
+.cp-licences-text {
+  max-height: 200px;
+  margin: 8px 0 0;
+  overflow: auto;
+  font-size: 12px;
+  white-space: pre-wrap;
+}
+
+/* Nothing in the bar moves for a person who asks for less. */
+@media (prefers-reduced-motion: reduce) {
+  .cp-bar {
+    transition: none;
+  }
+}

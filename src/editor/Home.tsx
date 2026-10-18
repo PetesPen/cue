@@ -8,7 +8,7 @@ import {
   type UnreadableDeck,
 } from '@/storage';
 import { ConfirmDeleteDialog, RenameDialog } from './Dialogs';
-import { describeFileProblem, makeFileFor, openFileInto } from './deckFiles';
+import { describeFileProblem, makeFileFor, makePageFor, openFileInto } from './deckFiles';
 import { ExportDialog } from './ExportDialog';
 import { useInstall } from './InstallContext';
 import { deckMeta } from './format';
@@ -303,10 +303,10 @@ function DeckCard({
           title={summary.title}
           slideCount={summary.slideCount}
           returnFocusTo={trigger}
-          make={async () => {
+          make={async (kind, options) => {
             const deck = await store.load(summary.id);
             if (!deck) throw new Error('This deck is not in this browser any more.');
-            return makeFileFor(store, deck);
+            return kind === 'page' ? makePageFor(store, deck, options) : makeFileFor(store, deck);
           }}
           onClose={() => {
             setDialog(undefined);

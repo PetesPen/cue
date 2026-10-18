@@ -57,4 +57,25 @@ export default defineConfig(
     languageOptions: { globals: globals.node },
   },
   ...layering,
+  {
+    // The exported web page's program (SV-4) runs in a page of its own, so it may use `model`, `render`
+    // and its own folder, and nothing else: no React, no storage, no library. A test of the built program
+    // checks the same from the other side.
+    files: ['src/storage/htmlExport/runtime/**/*.ts'],
+    ignores: ['**/*.test.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              regex: String.raw`^(?!(@/model|@/render|\./|\.\./layout$))`,
+              message:
+                "The exported page's program may import only 'model', 'render', its own files and ../layout.",
+            },
+          ],
+        },
+      ],
+    },
+  },
 );

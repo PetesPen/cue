@@ -6,10 +6,15 @@ import { DeckFileError, type DeckStore, type StoredImage, type StoredOriginal } 
  * fetched only when a file is saved or opened, so the first load does not pay for it.
  */
 
+/** The two files Cue can make of a deck: a standalone web page (SV-4) and an editable deck file (SV-3). */
+export type ExportKind = 'page' | 'file';
+
 export interface MadeFile {
   readonly file: Blob;
   readonly name: string;
   readonly bytes: number;
+  /** What the pictures in it weigh, when it is known: the size of the other kind of file is guessed from it. */
+  readonly pictureBytes?: number;
 }
 
 /** The deck as a file (its pictures and fonts included), read from the store and the app's own files. */
@@ -24,6 +29,30 @@ export async function makeFileFor(
   const { makeDeckFile } = await import('@/storage/deckFileService');
   return makeDeckFile(store, deck, Date.now(), unsaved);
 }
+
+/**
+ * The deck as a standalone web page (SV-4), from the store, the app's own fonts and the page's program. A
+ * separate chunk, fetched only when a page is made. `options.includeNotes` leaves the notes out when off.
+ */
+export async function makePageFor(
+  store: DeckStore,
+  deck: Deck,
+  options: { readonly includeNotes: boolean },
+  unsaved?: {
+    readonly images: readonly StoredImage[];
+    readonly originals: readonly StoredOriginal[];
+  },
+): Promise<MadeFile> {
+  const { makeHtmlFile } = await import('@/storage/htmlExport/htmlExportService');
+  return makeHtmlFile(store, deck, options, unsaved);
+}
+
+/** About what a web page weighs: the pictures as base64 (a third more, SP-3), and the page's own program. */
+export const estimatePageBytes = (pictureBytes: number): number =>
+  Math.round(pictureBytes * 1.35 + 200 * 1024);
+
+/** About what a deck file weighs: the pictures, the deck and the fonts. */
+export const estimateFileBytes = (pictureBytes: number): number => pictureBytes + 30 * 1024;
 
 /** Open a file into the library as a new deck. Throws a `DeckFileError` and changes nothing if it cannot be. */
 export async function openFileInto(store: DeckStore, file: Blob): Promise<Deck> {

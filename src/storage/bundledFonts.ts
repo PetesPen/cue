@@ -1,4 +1,4 @@
-import { fontFolder, type EmbeddedFont } from './deckFile';
+import { fontFolder, type EmbeddedFont } from './deckInfo';
 
 /**
  * The files of Cue's own fonts (src/fonts) and their licences, read from the app's own files, for a deck

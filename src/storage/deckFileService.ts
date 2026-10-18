@@ -1,7 +1,8 @@
-import { fontsUsed, imageHashes, isShape, isTextBox, type Deck, type Env } from '@/model';
+import { imageHashes, type Deck, type Env } from '@/model';
 import { loadBundledFonts } from './bundledFonts';
 import { packDeck, unpackDeck, type DeckFile } from './deckFile';
-import { FILE_EXTENSION, FILE_TYPE } from './deckFileError';
+import { FILE_TYPE } from './deckFileError';
+import { fileNameFor, fontsOfDeck, type UnsavedPictures } from './deckInfo';
 import type { StoredImage, StoredOriginal } from './database';
 import type { DeckStore } from './store';
 
@@ -9,33 +10,6 @@ import type { DeckStore } from './store';
  * Saving a deck to a file and opening one (SV-3), from the deck store. A lazy chunk: the zip library is
  * fetched only when a file is saved or opened.
  */
-
-/** The bundled font families a deck's text uses. */
-export function fontsOfDeck(deck: Deck): string[] {
-  const families = new Set<string>();
-  for (const slide of deck.slides) {
-    for (const element of slide.elements) {
-      const doc = isTextBox(element) ? element.doc : isShape(element) ? element.text : undefined;
-      if (doc) for (const family of fontsUsed(doc)) families.add(family);
-    }
-  }
-  return [...families];
-}
-
-/** A file name from a deck title: letters, digits, spaces and dashes; never empty. */
-export function fileNameFor(title: string): string {
-  const cleaned = title
-    .replaceAll(/[^\p{L}\p{N} _-]+/gu, '')
-    .trim()
-    .slice(0, 80);
-  return `${cleaned === '' ? 'Cue deck' : cleaned}${FILE_EXTENSION}`;
-}
-
-/** Pictures that are in the editor but not in the store yet (a save that has not worked, or has not happened). */
-export interface UnsavedPictures {
-  readonly images: readonly StoredImage[];
-  readonly originals: readonly StoredOriginal[];
-}
 
 /** Everything the deck file of `deck` holds, read from the store (and `unsaved`) and the app's own fonts. */
 async function gather(

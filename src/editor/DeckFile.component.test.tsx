@@ -1,7 +1,7 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { userEvent } from 'vitest/browser';
 import { render } from 'vitest-browser-react';
-import type { Deck } from '@/model';
+import { createImage, parseDeck, type Deck } from '@/model';
 import { packDeck, unpackDeck } from '@/storage/deckFile';
 import type { DeckStore } from '@/storage';
 import { EditorApp } from './EditorApp';
@@ -141,7 +141,7 @@ test('Given a file from a newer Cue, When it is chosen, Then it says a newer ver
   expect(await store.list()).toEqual([]);
 });
 
-test('Given a deck card, When Export… is chosen, Then the dialog offers the deck file, shows its size, and Export deck file saves it', async () => {
+test('Given a deck card, When Export… is chosen, Then the dialog offers the page and the deck file, and Export deck file saves the file', async () => {
   const store = createTestStore();
   await store.save({ ...deckWithSlides(2, 'Team offsite'), id: 'a' });
   const downloads = catchDownloads();
@@ -153,10 +153,11 @@ test('Given a deck card, When Export… is chosen, Then the dialog offers the de
   const dialog = screen.getByRole('dialog', { name: 'Export deck' });
   await expect.element(dialog).toBeVisible();
   await expect.element(dialog.getByText('Team offsite · 2 slides')).toBeVisible();
-  await expect.element(dialog.getByText('Coming soon')).toBeVisible();
   await expect.element(dialog.getByText('Coming later')).toBeVisible();
   await expect.element(dialog.getByText('Made on your device. Nothing is uploaded.')).toBeVisible();
-  await expect.element(dialog.getByRole('radio', { name: /Standalone web page/ })).toBeDisabled();
+  await expect.element(dialog.getByRole('radio', { name: /Standalone web page/ })).toBeChecked();
+  await expect.element(dialog.getByRole('radio', { name: /PDF or images/ })).toBeDisabled();
+  await dialog.getByRole('radio', { name: /Editable deck file/ }).click();
   await expect.element(dialog.getByText(/\.slides · about/)).toBeVisible();
   await dialog.getByRole('button', { name: 'Export deck file' }).click();
 
@@ -175,7 +176,7 @@ test('Given the Export dialog, When Cancel is pressed, Then nothing is saved', a
   await screen.getByRole('button', { name: 'Options for Team offsite' }).click();
   await screen.getByRole('menuitem', { name: 'Export…' }).click();
   const dialog = screen.getByRole('dialog', { name: 'Export deck' });
-  await expect.element(dialog.getByText(/about/)).toBeVisible();
+  await expect.element(dialog.getByText(/.html · about/)).toBeVisible();
 
   await dialog.getByRole('button', { name: 'Cancel' }).click();
 
@@ -214,6 +215,7 @@ test('Given the editor, When Export is pressed, Then the dialog opens, and the f
 
   await screen.getByRole('button', { name: 'Export', exact: true }).click();
   const dialog = screen.getByRole('dialog', { name: 'Export deck' });
+  await dialog.getByRole('radio', { name: /Editable deck file/ }).click();
   await expect.element(dialog.getByText(/\.slides · about/)).toBeVisible();
   await dialog.getByRole('button', { name: 'Export deck file' }).click();
 
@@ -248,12 +250,125 @@ test('Given a save that fails, When the banner shows, Then it offers Export deck
 
   await screen.getByRole('button', { name: 'Export deck', exact: true }).first().click();
   const dialog = screen.getByRole('dialog', { name: 'Export deck' });
+  await dialog.getByRole('radio', { name: /Editable deck file/ }).click();
   await expect.element(dialog.getByText(/\.slides · about/)).toBeVisible();
   await dialog.getByRole('button', { name: 'Export deck file' }).click();
 
   // The file holds the added slide, which the store never got.
   expect((await unpackDeck(await downloads.read())).deck.slides).toHaveLength(2);
   expect((await real.load('deck'))?.slides).toHaveLength(1);
+});
+
+// SV-4: the standalone web page, from the same dialog.
+
+/** The deck a page holds, read back from the text of the file. */
+function deckInPage(page: string): Deck {
+  const block = /id="cue-deck">([\s\S]*?)<\/script>/.exec(page)?.[1] ?? '';
+  return parseDeck(JSON.parse(block));
+}
+
+const text = async (downloads: ReturnType<typeof catchDownloads>, at = 0) =>
+  new TextDecoder().decode(await downloads.read(at));
+
+test('Given a deck card, When Export… is chosen, Then the web page is chosen first, with its size, and Export web page saves it', async () => {
+  const store = createTestStore();
+  await store.save({ ...deckWithSlides(2, 'Team offsite'), id: 'a' });
+  const downloads = catchDownloads();
+  const screen = await openLibrary(store);
+
+  await screen.getByRole('button', { name: 'Options for Team offsite' }).click();
+  await screen.getByRole('menuitem', { name: 'Export…' }).click();
+
+  const dialog = screen.getByRole('dialog', { name: 'Export deck' });
+  await expect.element(dialog.getByText(/\.html · about/)).toBeVisible();
+  await expect
+    .element(dialog.getByRole('checkbox', { name: /Include speaker notes/ }))
+    .toBeChecked();
+  await expect.element(dialog.getByText(/Pictures and fonts are included/)).toBeVisible();
+  // The other file's size is a guess from the pictures until it is chosen.
+  await expect.element(dialog.getByText(/\.slides · about/)).toBeVisible();
+  await dialog.getByRole('button', { name: 'Export web page' }).click();
+
+  expect(downloads.taken.map((d) => d.name)).toEqual(['Team offsite.html']);
+  const page = await text(downloads);
+  expect(page.startsWith('<!doctype html>')).toBe(true);
+  expect(page).toContain('Content-Security-Policy');
+  expect(deckInPage(page).slides).toHaveLength(2);
+  expect(deckInPage(page).title).toBe('Team offsite');
+  await expect.element(dialog).not.toBeInTheDocument();
+});
+
+test('Given the editor, When the notes are typed and the page is made, Then the page holds them; and without "Include speaker notes", not a word', async () => {
+  const store = createTestStore();
+  const downloads = catchDownloads();
+  const screen = await openEditor(store, deckWithSlides(2, 'Q3 review'));
+  await screen.getByRole('textbox', { name: /notes/i }).fill('Say hello first');
+
+  await screen.getByRole('button', { name: 'Export', exact: true }).click();
+  const dialog = screen.getByRole('dialog', { name: 'Export deck' });
+  await expect.element(dialog.getByText(/\.html · about/)).toBeVisible();
+  await dialog.getByRole('button', { name: 'Export web page' }).click();
+  const withNotes = await text(downloads, 0);
+  expect(deckInPage(withNotes).slides[0]?.notes).toBe('Say hello first');
+  expect(withNotes).toContain('data-cue-notes="included"');
+
+  await screen.getByRole('button', { name: 'Export', exact: true }).click();
+  const again = screen.getByRole('dialog', { name: 'Export deck' });
+  await again.getByRole('checkbox', { name: /Include speaker notes/ }).click();
+  await expect.element(again.getByText(/\.html · about/)).toBeVisible();
+  await again.getByRole('button', { name: 'Export web page' }).click();
+  const without = await text(downloads, 1);
+  expect(without).not.toContain('Say hello first');
+  expect(without).toContain('data-cue-notes="none"');
+  expect(deckInPage(without).slides[0]?.notes).toBe('');
+});
+
+test('Given a deck with a picture the store cannot give, When the page is made, Then the dialog says which slide, and nothing is saved', async () => {
+  const store = createTestStore();
+  const deck = deckWithSlides(2, 'Broken');
+  const picture = createImage('pic', 'missing-hash', { x: 0, y: 0, width: 400, height: 300 });
+  const withPicture: Deck = {
+    ...deck,
+    slides: deck.slides.map((slide, index) =>
+      index === 1 ? { ...slide, elements: [picture] } : slide,
+    ),
+  };
+  await store.save(withPicture);
+  const downloads = catchDownloads();
+  const screen = await openLibrary(store);
+  await screen.getByRole('button', { name: 'Options for Broken' }).click();
+  await screen.getByRole('menuitem', { name: 'Export…' }).click();
+
+  const dialog = screen.getByRole('dialog', { name: 'Export deck' });
+  await expect
+    .element(
+      dialog.getByRole('alert').getByText(/The picture on slide 2 can’t be read from this browser/),
+    )
+    .toBeVisible();
+  await expect.element(dialog.getByRole('button', { name: 'Export web page' })).toBeDisabled();
+  expect(downloads.taken).toEqual([]);
+  expect((await store.load(deck.id))?.slides).toHaveLength(2);
+});
+
+test('Given a save that fails, When the page is made, Then it is made from the deck in the tab', async () => {
+  const real = createTestStore();
+  const store: DeckStore = { ...real, save: () => Promise.reject(new Error('full')) };
+  await real.save(deckWithSlides(1, 'Unsaved work'));
+  const downloads = catchDownloads();
+  window.location.hash = '#/deck/deck';
+  const screen = await render(<EditorApp store={store} />);
+  await expect.element(screen.getByRole('option', { name: 'Slide 1', exact: true })).toBeVisible();
+  await screen.getByRole('button', { name: 'Add slide' }).click();
+  await expect
+    .element(screen.getByText('Changes can’t be saved.'), { timeout: 4000 })
+    .toBeVisible();
+
+  await screen.getByRole('button', { name: 'Export deck', exact: true }).first().click();
+  const dialog = screen.getByRole('dialog', { name: 'Export deck' });
+  await expect.element(dialog.getByText(/\.html · about/)).toBeVisible();
+  await dialog.getByRole('button', { name: 'Export web page' }).click();
+
+  expect(deckInPage(await text(downloads)).slides).toHaveLength(2);
 });
 
 test('Given storage nearly full, When the editor opens, Then the banner says to back up, and offers Export deck', async () => {

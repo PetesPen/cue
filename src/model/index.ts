@@ -215,9 +215,18 @@ export {
   toStart,
   toggleBlank,
   upcoming,
+  upcomingLabel,
 } from './show';
 export type { Blank, Movement, ShowPlace, Upcoming } from './show';
 export { parseRoute, routeHash } from './route';
 export type { Route, ShowView } from './route';
-export { SHOW_KEYS, showActionFor } from './showkeys';
-export type { ShowAction, ShowKey } from './showkeys';
+export {
+  MAX_DIGITS,
+  NUMBER_WAIT_MS,
+  PAGE_KEYS,
+  SHOW_KEYS,
+  pageActionFor,
+  showActionFor,
+  typeDigit,
+} from './showkeys';
+export type { PageAction, PageKey, ShowAction, ShowKey } from './showkeys';

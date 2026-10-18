@@ -1,19 +1,21 @@
 {
   "initialJsGzipKB": 300,
   "initialCssGzipKB": 30,
-  "note": "Set in sprint 0 (F5). The first load is the scripts, preloads and stylesheets that index.html asks for. Baseline on 2026-10-14 (React and the empty shell): 68.6 KB JS and 1.3 KB CSS, gzipped. Rich text, storage and undo will add to this. Presenting, export and anything else not needed to start editing must load lazily to stay inside the budget. Raising a number needs Peter's OK and a line in docs/decisions.md. The text editor (TipTap) is a lazy chunk with its own budget; it is fetched when text is first edited (sprint 3). The show windows (ShowApp) are a lazy chunk too, fetched when a show opens (sprint 7). The deck file code with its zip library (deckFileService) is another, fetched when a file is saved or opened (sprint 9).",
+  "note": "Set in sprint 0 (F5). The first load is the scripts, preloads and stylesheets that index.html asks for. Baseline on 2026-10-14 (React and the empty shell): 68.6 KB JS and 1.3 KB CSS, gzipped. Rich text, storage and undo will add to this. Presenting, export and anything else not needed to start editing must load lazily to stay inside the budget. Raising a number needs Peter's OK and a line in docs/decisions.md. The text editor (TipTap) is a lazy chunk with its own budget; it is fetched when text is first edited (sprint 3). The show windows (ShowApp) are a lazy chunk too, fetched when a show opens (sprint 7). The deck file code with its zip library (deckFileService) is another, fetched when a file is saved or opened (sprint 9), and the web page exporter with the page's program (htmlExportService) another, fetched when a page is made (sprint 10).",
   "lazyChunksGzipKB": {
     "TextEditor": 160,
     "ShowApp": 40,
-    "deckFileService": 30
+    "deckFileService": 30,
+    "htmlExportService": 30
   },
   "show": {
     "note": "PM-3 (sprint 8): a change made in one show window is drawn in the other within this many milliseconds (the 90th percentile of twenty key presses on the same clock). Chromium and Firefox are held to it; WebKit is measured and reported. SP-1 measured about 17 ms.",
     "syncLatencyMs": 100
   },
-  "show": {
-    "note": "PM-3 (sprint 8): a change made in one show window is drawn in the other within this many milliseconds (the 90th percentile of twenty key presses on the same clock). Chromium and Firefox are held to it; WebKit is measured and reported. SP-1 measured about 17 ms.",
-    "syncLatencyMs": 100
+  "export": {
+    "note": "SV-4 (sprint 10): the exported web page. Its program (the renderer, the show's moves and the page's own buttons, built apart and written into every file as text) is measured minified, not gzipped, because the file is not gzipped when it is sent by mail. The first build was 39 KB. The exporter's own lazy chunk is htmlExportService above. A deck of 30 slides with pictures must export in under this many milliseconds (Chromium and Firefox are held to it; WebKit is measured and reported); SP-3 measured about half a second. Raising a number needs Peter's OK and a line in docs/decisions.md.",
+    "runtimeKB": 50,
+    "thirtySlidesMs": 10000
   },
   "perf": {
     "note": "UX-3 (sprint 5), written after spike SP-4 (the heavy-slide transition shares, sprint 7, are provisional: TN-5 asks for a budget of their own for slides of 50 elements, and the first nightly runs set it): on the nightly runner (no graphics card) Chromium and Firefox are held to these; WebKit is only reported. 60 fps itself is confirmed by hand on a real laptop and a Mac before each milestone. A frame is late when it took more than 25 ms. Raising a number needs Peter's OK and a line in docs/decisions.md.",

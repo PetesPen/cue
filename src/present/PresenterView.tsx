@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent } from 'react';
-import { clickCount, playsFor, upcoming, type Slide, type Step } from '@/model';
+import { clickCount, playsFor, upcoming, upcomingLabel, type Slide, type Step } from '@/model';
 import { ArrowLeftIcon, ArrowRightIcon, Logo, PauseIcon, PlayIcon, ResetIcon } from './icons';
 import {
   NOTES_PX,
@@ -132,12 +132,7 @@ export function PresenterView({
   const total = deck.slides.length;
   const blank = place.blank !== 'none';
 
-  const nextLabel =
-    next.kind === 'click'
-      ? `Next · Click ${String(next.click)} of ${String(clicks)}`
-      : next.kind === 'slide'
-        ? `Next · Slide ${String(next.slide + 1)}`
-        : 'Next';
+  const nextLabel = upcomingLabel(deck, place);
 
   return (
     <div className="presenter">

@@ -2,7 +2,8 @@ import { strToU8, zipSync } from 'fflate';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { createDeck, createImage, createSlide, type Deck, type Env } from '@/model';
 import { DeckFileError } from './deckFileError';
-import { fileNameFor, fontsOfDeck, makeDeckFile, openDeckFile } from './deckFileService';
+import { makeDeckFile, openDeckFile } from './deckFileService';
+import { fileNameFor, fontsOfDeck } from './deckInfo';
 import { sha256Hex } from './hash';
 import { createDeckStore, type DeckStore } from './store';
 

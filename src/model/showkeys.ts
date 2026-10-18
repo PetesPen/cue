@@ -56,3 +56,43 @@ export function showActionFor(event: {
   if (event.ctrlKey || event.metaKey || event.altKey) return undefined;
   return SHOW_KEYS.find((entry) => entry.keys.includes(event.key))?.action;
 }
+
+/** How long typed digits wait for Enter before they are forgotten. */
+export const NUMBER_WAIT_MS = 2500;
+
+/** The most digits of a slide number that are kept (a deck of ten thousand slides is not a talk). */
+export const MAX_DIGITS = 4;
+
+/** The digits typed so far with one more: a number then Enter jumps to that slide (PM-6). */
+export function typeDigit(typed: string, digit: string): string {
+  return (typed + digit).slice(0, MAX_DIGITS);
+}
+
+/**
+ * The keys only the exported web page has (SV-4), kept apart from the show's own so that the sheet in
+ * the editor does not list keys that do nothing there. The page lists both tables in its key list.
+ */
+export type PageAction = 'notes' | 'help';
+
+export interface PageKey {
+  readonly action: PageAction;
+  readonly label: string;
+  readonly caps: readonly string[];
+  readonly keys: readonly string[];
+}
+
+export const PAGE_KEYS: readonly PageKey[] = [
+  { action: 'notes', label: 'Show or hide the notes', caps: ['N'], keys: ['n', 'N'] },
+  { action: 'help', label: 'Show this list of keys', caps: ['?'], keys: ['?'] },
+];
+
+/** What a key press asks of the page that the show does not have, or nothing. */
+export function pageActionFor(event: {
+  readonly key: string;
+  readonly ctrlKey: boolean;
+  readonly metaKey: boolean;
+  readonly altKey: boolean;
+}): PageAction | undefined {
+  if (event.ctrlKey || event.metaKey || event.altKey) return undefined;
+  return PAGE_KEYS.find((entry) => entry.keys.includes(event.key))?.action;
+}
